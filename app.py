@@ -77,8 +77,8 @@ def load_user(user_id):
 
 # ✅ 구글 OAuth 블루프린트
 google_bp = make_google_blueprint(
-    client_id="581851547657-gbtk81a83k7nr188p347ardjciufkudd.apps.googleusercontent.com",  # ⚠️ 여기에 실제 Client ID 입력
-    client_secret="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",  # ⚠️ 여기에 실제 Client Secret 입력
+    client_id=os.environ.get("GOOGLE_CLIENT_ID", "581851547657-gbtk81a83k7nr188p347ardjciufkudd.apps.googleusercontent.com"),
+    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET", "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"),
     redirect_to="google_authorized",
     scope=["openid", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"]
 )
