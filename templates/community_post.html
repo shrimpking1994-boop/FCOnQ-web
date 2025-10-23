@@ -1,0 +1,416 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
+
+    <!-- 게시글 상세 -->
+    <div style="background: var(--card-bg); border-radius: 12px; padding: 40px; margin-bottom: 30px;">
+
+        <!-- 카테고리 + 제목 -->
+        <div style="margin-bottom: 20px;">
+            <span class="badge"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 6px 14px; border-radius: 12px; font-size: 0.9rem; margin-bottom: 15px; display: inline-block;">
+                {{ post.category }}
+            </span>
+            <h2 style="color: var(--text-primary); font-weight: 700; margin: 0;">{{ post.title }}</h2>
+        </div>
+
+        <!-- 작성자 정보 -->
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 30px;">
+            <div style="display: flex; gap: 20px; color: var(--text-secondary); font-size: 0.95rem;">
+                <span><strong style="color: var(--text-primary);">{{ post.author }}</strong></span>
+                <span>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                <span>조회 {{ post.views }}</span>
+                <span>추천 {{ post.likes }}</span>
+            </div>
+
+            <!-- 공유 버튼 -->
+            <button onclick="sharePost()" class="btn btn-outline-secondary"
+                style="padding: 6px 20px; border-radius: 20px;">
+                📤 공유
+            </button>
+        </div>
+
+        <!-- 본문 내용 -->
+        <div class="post-content"
+            style="color: var(--text-primary); line-height: 1.8; font-size: 1.05rem; min-height: 200px; margin-bottom: 30px;">
+            {{ post.content | safe }}
+        </div>
+
+        <!-- 추천/비추천 버튼 -->
+        <div
+            style="text-align: center; padding: 30px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; gap: 20px; justify-content: center; align-items: center;">
+                <button onclick="votePost({{ post.id }}, 'like')" id="likeBtn" class="btn btn-primary"
+                    style="padding: 12px 40px; font-size: 1.1rem; border-radius: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    👍 추천 (<span id="likeCount">{{ post.likes }}</span>)
+                </button>
+
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">
+                    순추천: <span id="netVotes">{{ post.likes - (post.dislikes or 0) }}</span>
+                </div>
+
+                <button onclick="votePost({{ post.id }}, 'dislike')" id="dislikeBtn" class="btn btn-secondary"
+                    style="padding: 12px 40px; font-size: 1.1rem; border-radius: 25px; background: linear-gradient(135deg, #6c757d 0%, #495057 100%); border: none;">
+                    👎 비추천 (<span id="dislikeCount">{{ post.dislikes or 0 }}</span>)
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 댓글 섹션 -->
+    <div style="background: var(--card-bg); border-radius: 12px; padding: 30px;">
+
+        <h4 style="color: var(--text-primary); margin-bottom: 20px; font-weight: 600;">
+            💬 댓글 <span style="color: var(--text-secondary); font-size: 0.9rem;">({{ comments|length }})</span>
+        </h4>
+
+        <!-- 댓글 목록 -->
+        {% if comments %}
+        <div style="margin-bottom: 30px;">
+            {% for comment in comments %}
+            <div
+                style="padding: 20px; border-bottom: 1px solid var(--border-color); {% if loop.last %}border-bottom: none;{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong style="color: var(--text-primary);">{{ comment.author }}</strong>
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">
+                        {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </span>
+                </div>
+                <div style="color: var(--text-primary); line-height: 1.6;">
+                    {{ comment.content }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div
+            style="text-align: center; padding: 40px 20px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); margin-bottom: 30px;">
+            첫 댓글을 작성해보세요!
+        </div>
+        {% endif %}
+
+        <!-- 댓글 작성 폼 -->
+        <form method="POST" action="/community/comment/{{ post.id }}" style="margin-top: 30px;">
+
+            <!-- 작성자 입력 -->
+            <div class="mb-3">
+                <input type="text" name="author" value="익명" maxlength="100" placeholder="작성자" class="form-control"
+                    style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 8px; max-width: 200px;">
+            </div>
+
+            <!-- 댓글 내용 -->
+            <div class="mb-3">
+                <textarea name="content" required rows="4" placeholder="댓글을 입력하세요 (로그인 하시겠습니까?)" class="form-control"
+                    style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 15px; border-radius: 8px; resize: vertical;"></textarea>
+            </div>
+
+            <!-- 제출 버튼 -->
+            <div style="text-align: right;">
+                <button type="submit" class="btn btn-success" style="padding: 10px 30px; font-weight: 600;">
+                    댓글 작성
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- 게시글 목록 섹션 추가 -->
+<div class="container" style="max-width: 1400px; margin: 40px auto 0; padding: 0 20px;">
+
+    <h4 style="color: var(--text-primary); margin-bottom: 20px; font-weight: 600;">
+        📋 {{ post.category }} 게시글
+    </h4>
+
+    <div class="table-responsive" style="background: var(--card-bg); border-radius: 12px; overflow: hidden;">
+        <table class="table table-hover" style="margin: 0; color: var(--text-primary);">
+            <thead style="background: var(--secondary-bg); border-bottom: 2px solid var(--border-color);">
+                <tr>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px;">번호</th>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px;">탭</th>
+                    <th style="padding: 15px 20px;">제목</th>
+                    <th style="width: 150px; text-align: center; padding: 15px 10px;">글쓴이</th>
+                    <th style="width: 120px; text-align: center; padding: 15px 10px;">날짜</th>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px;">조회</th>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px;">추천</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in related_posts %}
+                <tr style="cursor: pointer; border-bottom: 1px solid var(--border-color); {% if p.id == post.id %}background: var(--hover-bg);{% endif %}"
+                    onclick="window.location='/community/post/{{ p.id }}?category={{ current_category }}'">
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500;">
+                        {{ p.id }}
+                    </td>
+                    <td
+                        style="text-align: center; padding: 12px 10px; color: var(--text-primary); font-size: 0.9rem; white-space: nowrap;">
+                        {{ p.category }}
+                    </td>
+                    <td style="padding: 12px 20px;">
+                        <strong style="color: var(--text-primary); font-size: 1rem;">
+                            {{ p.title }}
+                            {% if p.has_image %}
+                            <span style="margin-left: 6px; font-size: 0.9rem;">🖼️</span>
+                            {% endif %}
+                            {% if p.has_video %}
+                            <span
+                                style="margin-left: {% if p.has_image %}-5px{% else %}2px{% endif %}; font-size: 0.9rem;">▶️</span>
+                            {% endif %}
+                        </strong>
+                    </td>
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
+                        {{ p.author }}
+                    </td>
+                    <td
+                        style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-size: 0.9rem;">
+                        {{ p.display_date }}
+                    </td>
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
+                        {{ p.views }}
+                    </td>
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
+                        {{ p.likes }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    {% if total_pages > 1 %}
+    <nav style="margin-top: 30px;">
+        <ul class="pagination justify-content-center">
+            {% if current_page > 1 %}
+            <li class="page-item">
+                <a class="page-link"
+                    href="/community?category={{ current_category }}&page={{ current_page - 1 }}">이전</a>
+            </li>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == current_page %}active{% endif %}">
+                <a class="page-link" href="/community?category={{ current_category }}&page={{ p }}">{{ p }}</a>
+            </li>
+            {% endfor %}
+
+            {% if current_page < total_pages %} <li class="page-item">
+                <a class="page-link"
+                    href="/community?category={{ current_category }}&page={{ current_page + 1 }}">다음</a>
+                </li>
+                {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+
+
+<!-- 검색 영역 -->
+<div class="container" style="max-width: 1400px; margin: 30px auto 0; padding: 0 20px;">
+    <div style="display: flex; gap: 10px; align-items: center; max-width: 600px; margin: 0 auto;">
+        <select name="search_type" id="searchType" class="form-select"
+            style="width: 140px; background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 8px;">
+            <option value="title_content">제목+내용</option>
+            <option value="title">제목</option>
+            <option value="content">내용</option>
+            <option value="author">글쓴이</option>
+            <option value="comment">댓글</option>
+        </select>
+
+        <input type="text" id="searchKeyword" placeholder="검색어를 입력하세요"
+            style="flex: 1; background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 8px;">
+
+        <button onclick="searchPosts()" class="btn btn-primary" style="padding: 8px 20px; white-space: nowrap;">
+            🔍 검색
+        </button>
+    </div>
+</div>
+
+
+<script>
+    function sharePost() {
+        // 현재 페이지 URL 복사
+        const url = window.location.href;
+
+        // 클립보드에 복사
+        navigator.clipboard.writeText(url).then(() => {
+            alert('게시글 주소가 복사되었습니다!\n' + url);
+        }).catch(err => {
+            // 복사 실패 시 fallback
+            prompt('이 주소를 복사하세요:', url);
+        });
+    }
+
+    function searchPosts() {
+        const searchType = document.getElementById('searchType').value;
+        const keyword = document.getElementById('searchKeyword').value.trim();
+
+        if (!keyword) {
+            alert('검색어를 입력해주세요');
+            return;
+        }
+
+        window.location.href = `/community?search_type=${searchType}&keyword=${encodeURIComponent(keyword)}`;
+    }
+
+    function votePost(postId, voteType) {
+        fetch(`/community/vote/${postId}/${voteType}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 카운트 업데이트
+                    document.getElementById('likeCount').textContent = data.likes;
+                    document.getElementById('dislikeCount').textContent = data.dislikes;
+                    document.getElementById('netVotes').textContent = data.net_votes;
+
+                    // 버튼 비활성화
+                    document.getElementById('likeBtn').disabled = true;
+                    document.getElementById('dislikeBtn').disabled = true;
+
+                    alert(voteType === 'like' ? '추천했습니다!' : '비추천했습니다!');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                alert('오류가 발생했습니다: ' + error);
+            });
+    }
+
+    // 엔터키 검색
+    document.getElementById('searchKeyword').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            searchPosts();
+        }
+    });
+</script>
+
+
+<style>
+    /* 본문 내용 스타일 */
+    .post-content {
+        display: block !important;
+        color: var(--text-primary) !important;
+        line-height: 1.8 !important;
+        font-size: 1.05rem !important;
+        word-wrap: break-word !important;
+    }
+
+    .post-content .ql-cursor,
+    .post-content .ql-clipboard {
+        display: none !important;
+    }
+
+    .post-content strong,
+    .post-content b {
+        font-weight: 700 !important;
+    }
+
+    .post-content em,
+    .post-content i {
+        font-style: italic !important;
+    }
+
+    .post-content u {
+        text-decoration: underline !important;
+    }
+
+    .post-content s,
+    .post-content del {
+        text-decoration: line-through !important;
+    }
+
+    .post-content h1 {
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        margin: 20px 0 10px !important;
+    }
+
+    .post-content h2 {
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        margin: 20px 0 10px !important;
+    }
+
+    .post-content h3 {
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        margin: 20px 0 10px !important;
+    }
+
+    .post-content ul,
+    .post-content ol {
+        margin-left: 25px !important;
+    }
+
+    .post-content p {
+        margin: 10px 0 !important;
+    }
+
+    .post-content img {
+        max-width: 100% !important;
+        height: auto !important;
+        margin: 15px 0 !important;
+    }
+
+    .post-content a {
+        color: #667eea !important;
+        text-decoration: underline !important;
+    }
+
+    .btn-outline-secondary {
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    /* 영상(iframe) 반응형 컨테이너 */
+    .post-content iframe {
+        max-width: 100% !important;
+        width: 100% !important;
+        aspect-ratio: 16 / 9 !important;
+        /* 16:9 비율 유지 */
+        height: auto !important;
+        border-radius: 8px !important;
+        margin: 20px 0 !important;
+    }
+
+    /* 구형 브라우저 대응 (aspect-ratio 미지원 시) */
+    @supports not (aspect-ratio: 16 / 9) {
+        .post-content iframe {
+            height: 450px !important;
+        }
+    }
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+        @supports not (aspect-ratio: 16 / 9) {
+            .post-content iframe {
+                height: 300px !important;
+            }
+        }
+    }
+
+    /* 검색 타입 드롭다운 다크모드 대응 */
+    [data-theme="dark"] .form-select option {
+        background: #2d3748;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}

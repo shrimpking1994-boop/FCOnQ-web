@@ -1,0 +1,210 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 40px auto; padding: 0 20px;">
+
+    <h3 style="color: var(--text-primary); margin-bottom: 30px; font-weight: 600;">✏️ 글쓰기</h3>
+
+    <form method="POST" action="/community/write"
+        style="background: var(--card-bg); padding: 30px; border-radius: 12px;">
+
+        <!-- 카테고리 선택 -->
+        <div class="mb-4">
+            <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
+                카테고리 <span style="color: #ff4444;">*</span>
+            </label>
+            <select name="category" required class="form-select" style="background: var(--secondary-bg); 
+               border: 1px solid var(--border-color); 
+               color: var(--text-primary); 
+               padding: 10px; 
+               border-radius: 8px;">
+                <option value="">글 카테고리를 선택하세요</option>
+                <option value="잡담">잡담</option>
+                <option value="꿀팁">꿀팁</option>
+                <option value="스쿼드">스쿼드</option>
+                <option value="선수 후기">선수 후기</option>ㄴ
+                <option value="전술">전술</option>
+                <option value="강화/득템">강화/득템</option>
+                <option value="감독모드">감독모드</option>
+                <option value="미니 페이스온">미니 페이스온</option>
+                <option value="명장면">명장면</option>
+            </select>
+        </div>
+
+        <!-- 제목 입력 -->
+        <div class="mb-4">
+            <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
+                제목 <span style="color: #ff4444;">*</span>
+            </label>
+            <input type="text" name="title" required maxlength="200" placeholder="제목을 입력하세요" class="form-control"
+                style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px;">
+        </div>
+
+        <!-- 작성자 입력 (임시) -->
+        <div class="mb-4">
+            <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
+                작성자
+            </label>
+            <input type="text" name="author" value="익명" maxlength="100" class="form-control"
+                style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px;">
+            <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
+                💡 추후 로그인 기능이 추가됩니다
+            </small>
+        </div>
+
+        <!-- 내용 입력 -->
+        <div class="mb-4">
+            <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
+                내용 <span style="color: #ff4444;">*</span>
+            </label>
+            <div id="editor"
+                style="background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 8px; min-height: 400px;">
+            </div>
+            <input type="hidden" name="content" id="content" required>
+        </div>
+
+        <!-- 버튼 -->
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+            <a href="/community" class="btn btn-secondary" style="padding: 10px 30px;">취소</a>
+            <button type="submit" class="btn btn-success" style="padding: 10px 30px; font-weight: 600;">작성완료</button>
+        </div>
+
+    </form>
+
+</div>
+
+<!-- Quill 에디터 -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+    // Quill 에디터 초기화
+    var quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: '내용을 입력하세요...',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ 'color': [] }, { 'background': [] }],
+                ['link', 'image', 'video'],
+                ['clean']
+            ]
+        }
+    });
+
+    // 폼 제출 시 에디터 내용을 hidden input에 저장
+    document.querySelector('form').onsubmit = function () {
+        var content = document.querySelector('#content');
+        content.value = quill.root.innerHTML;
+
+        // 빈 내용 체크
+        if (quill.getText().trim().length === 0) {
+            alert('내용을 입력해주세요');
+            return false;
+        }
+
+        return true;
+    };
+
+    // 다크모드 대응: Quill 에디터 스타일 조정
+    if (document.documentElement.getAttribute('data-theme') === 'dark') {
+        document.querySelector('.ql-toolbar').style.background = 'var(--secondary-bg)';
+        document.querySelector('.ql-toolbar').style.borderColor = 'var(--border-color)';
+        document.querySelector('.ql-container').style.borderColor = 'var(--border-color)';
+    }
+</script>
+
+<style>
+    /* 셀렉트 박스 다크모드 대응 */
+    [data-theme="dark"] .form-select option {
+        background: #2d3748;
+        color: #ffffff;
+    }
+
+    /* Quill 에디터 다크모드 스타일 */
+    .ql-toolbar {
+        background: var(--secondary-bg) !important;
+        border-color: var(--border-color) !important;
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    .ql-container {
+        border-color: var(--border-color) !important;
+        border-radius: 0 0 8px 8px !important;
+        font-size: 1rem;
+    }
+
+    .ql-editor {
+        min-height: 400px;
+        color: var(--text-primary) !important;
+    }
+
+    .ql-editor strong {
+        font-weight: bold !important;
+    }
+
+    .ql-editor em {
+        font-style: italic !important;
+    }
+
+    .ql-editor u {
+        text-decoration: underline !important;
+    }
+
+    .ql-editor s {
+        text-decoration: line-through !important;
+    }
+
+    .ql-editor h1,
+    .ql-editor h2,
+    .ql-editor h3 {
+        font-weight: bold !important;
+    }
+
+    .ql-editor.ql-blank::before {
+        color: var(--text-secondary) !important;
+    }
+
+    /* 툴바 버튼 색상 */
+    .ql-stroke {
+        stroke: var(--text-primary) !important;
+    }
+
+    .ql-fill {
+        fill: var(--text-primary) !important;
+    }
+
+    .ql-picker-label {
+        color: var(--text-primary) !important;
+    }
+
+    /* 에디터 내 영상 크기 조정 */
+    .ql-editor iframe {
+        max-width: 100% !important;
+        width: 100% !important;
+        aspect-ratio: 16 / 9 !important;
+        height: auto !important;
+        border-radius: 8px !important;
+        margin: 20px 0 !important;
+    }
+
+    /* 구형 브라우저 대응 */
+    @supports not (aspect-ratio: 16 / 9) {
+        .ql-editor iframe {
+            height: 450px !important;
+        }
+    }
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+        @supports not (aspect-ratio: 16 / 9) {
+            .ql-editor iframe {
+                height: 300px !important;
+            }
+        }
+    }
+</style>
+{% endblock %}

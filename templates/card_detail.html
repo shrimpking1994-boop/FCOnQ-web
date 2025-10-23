@@ -1,0 +1,800 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+    .back-btn {
+        background: var(--bg-main);
+        color: var(--primary-color);
+        padding: 10px 20px;
+        border-radius: 20px;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+        border: 2px solid var(--primary-color);
+        font-weight: 600;
+    }
+
+    .back-btn:hover {
+        background: var(--primary-color);
+        color: var(--bg-main);
+        transform: translateX(-5px);
+        box-shadow: 0 4px 15px var(--shadow-hover);
+    }
+
+    .card-header-section {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 30px;
+        background: var(--bg-secondary);
+        border-radius: 15px;
+        padding: 25px;
+    }
+
+    .main-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 15px;
+    }
+
+    .main-info h1 {
+        color: var(--text-primary);
+        margin-bottom: 10px;
+    }
+
+    .overall-large {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        font-size: 36px;
+        font-weight: bold;
+        padding: 10px 25px;
+        border-radius: 20px;
+        display: inline-block;
+    }
+
+    .stat-section {
+        margin-top: 30px;
+    }
+
+    .stat-category {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .stat-item:last-child {
+        border-bottom: none;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .position-map {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .position-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .position-item {
+        text-align: center;
+        padding: 10px;
+        background: var(--bg-main);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .position-name {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .position-ovr {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--text-primary);
+    }
+
+    .trait-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .trait-pill {
+        background: #17a2b8;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 14px;
+    }
+
+    .club-history {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .club-item {
+        padding: 5px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .stat-category .stat-item {
+        border-bottom: none !important;
+    }
+
+    .club-history::-webkit-scrollbar,
+    .price-table::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .club-history::-webkit-scrollbar-track,
+    .price-table::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+    }
+
+    .club-history::-webkit-scrollbar-thumb,
+    .price-table::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+
+    .club-history::-webkit-scrollbar-thumb:hover,
+    .price-table::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }
+
+    .enhance-level-1 {
+        background: #808080;
+        color: white;
+    }
+
+    .enhance-level-2-4 {
+        background: #CD7F32;
+        color: #333;
+    }
+
+    .enhance-level-5-7 {
+        background: #C0C0C0;
+        color: #333;
+    }
+
+    .enhance-level-8-10 {
+        background: #FFD700;
+        color: #333;
+    }
+
+    .enhance-level-11-13 {
+        background: #DDA0DD;
+        color: white;
+    }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <a href="javascript:history.back()" class="back-btn"
+        style="display: inline-block; padding: 10px 20px; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s;">
+        ← 뒤로 가기
+    </a>
+    <a href="/player_review/{{ card.spid }}" class="back-btn"
+        style="display: inline-block; padding: 10px 20px; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s;">
+        선수 후기 →
+    </a>
+</div>
+
+<!-- 헤더 섹션 -->
+<div class="card-header-section">
+    {% if card.image_info.mini_faceon %}
+    <img src="{{ card.image_info.mini_faceon }}" alt="{{ card.player_name }}" class="main-image">
+    {% else %}
+    <div class="main-image bg-secondary d-flex align-items-center justify-content-center text-white">
+        No Image
+    </div>
+    {% endif %}
+
+    <div class="main-info flex-grow-1">
+        <div class="d-flex align-items-end mb-3">
+            <div class="d-flex align-items-center">
+                {% if card.image_info.season_img %}
+                <img src="{{ card.image_info.season_img }}" alt="{{ card.season_name }}"
+                    style="height: 35px; margin-right: 10px; margin-top: 4px;">
+                {% endif %}
+                <h1 class="mb-0" style="margin-right: 20px; font-weight: 700;">{{ card.player_name }}</h1>
+            </div>
+
+            <div class="preferred-positions" style="font-size: 27px; line-height: 35px;">
+                {% for pos in card.stats_info.main_overall.preferred_positions %}
+                <span style="margin-right: 15px;">
+                    {% if pos.position in ['ST', 'CF', 'RW', 'LW'] %}
+                    <strong style="color: #e74c3c;">{{ pos.position }}</strong>
+                    {% elif pos.position in ['CAM', 'LM', 'RM', 'CM', 'CDM'] %}
+                    <strong style="color: #27ae60;">{{ pos.position }}</strong>
+                    {% elif pos.position in ['CB', 'RB', 'LB', 'RWB', 'LWB', 'SW'] %}
+                    <strong style="color: #3498db;">{{ pos.position }}</strong>
+                    {% elif pos.position == 'GK' %}
+                    <strong style="color: #f39c12;">{{ pos.position }}</strong>
+                    {% else %}
+                    <strong style="color: var(--text-secondary);">{{ pos.position }}</strong>
+                    {% endif %}
+                    <span style="color: var(--text-primary); font-weight: bold;">{{ pos.overall }}</span>
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="compact-info-section">
+            <div class="info-line mb-3" style="font-size: 17px; color: var(--text-secondary);">
+                <span style="display: inline-flex; align-items: center; justify-content: center;
+                    width: 28px; height: 32px; 
+                    background: var(--text-secondary);
+                    color: var(--bg-main);
+                    clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+                    font-weight: bold; font-size: 14px;">
+                    {{ card.game_info.salary|default(0) }}
+                </span>
+
+                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+
+                <span>{{ card.basic_info.height|default('Unknown') }} {{ card.basic_info.weight|default('Unknown') }} {{
+                    card.basic_info.body_type|default('Unknown') }}</span>
+
+                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+
+                <span>
+                    {% set pref_foot = card.game_info.preferred_foot|default('') %}
+                    {% set weak_foot = card.game_info.weak_foot|default('') %}
+                    {% if 'L' in pref_foot %}
+                    <strong>{{ pref_foot }}</strong>-{{ weak_foot }}
+                    {% else %}
+                    {{ weak_foot }}-<strong>{{ pref_foot }}</strong>
+                    {% endif %}
+                </span>
+
+                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+
+                <span>
+                    {% for i in range(card.game_info.skill_moves|default(0)) %}<span style="color: gold;">★</span>{%
+                    endfor %}
+                </span>
+
+                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+
+                <span style="display: inline-flex; align-items: center; gap: 5px;">
+                    {{ card.basic_info.nation|default('Unknown') }}
+                    {% if card.image_info.nation_img %}
+                    <img src="{{ card.image_info.nation_img }}" alt="{{ card.basic_info.nation }}"
+                        style="width: 24px; height: 18px; object-fit: contain; vertical-align: middle;">
+                    {% endif %}
+                </span>
+
+                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+
+                <span>{{ card.basic_info.birth_date|default('Unknown') }} ({{ card.basic_info.age|default(0) }}세)</span>
+
+                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+
+                <span>{{ card.basic_info.tier|default('Unknown') }}</span>
+            </div>
+
+            {% if card.game_info.traits %}
+            <div class="traits-images" style="display: flex; gap: 6px; flex-wrap: wrap; margin-left: -4px;">
+                {% set trait_mapping = {
+                "아크로바틱 피니셔": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_50.png",
+                "크로스 포쳐": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_51.png",
+                "라인 브레이커": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_52.png",
+                "와일드 태클러": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_53.png",
+                "체이서": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_54.png",
+                "2개의 심장": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_55.png",
+                "파이터": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_56.png",
+                "GK 빠른 반응": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_57.png",
+                "선호 포지션 고집": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_00.png",
+                "장거리 스로인": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_01.png",
+                "파울 유도 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_03.png",
+                "유리몸": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_04.png",
+                "강철몸": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_05.png",
+                "주발 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_06.png",
+                "슬라이딩 태클 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_07.png",
+                "개인 플레이 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_09.png",
+                "트러블 메이커": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_11.png",
+                "얼리 크로스 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_12.png",
+                "예리한 감아차기": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_13.png",
+                "화려한 개인기": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_14.png",
+                "긴 패스 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_15.png",
+                "중거리 슛 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_16.png",
+                "스피드 드리블러": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_17.png",
+                "플레이 메이커": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_18.png",
+                "GK 공격 가담": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_19.png",
+                "GK 능숙한 펀칭": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_20.png",
+                "GK 멀리 던지기": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_21.png",
+                "파워 헤더": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_22.png",
+                "GK 침착한 1:1 수비": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_23.png",
+                "초 장거리 스로인": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_24.png",
+                "아웃사이드 슈팅/크로스": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_25.png",
+                "패스마스터": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_27.png",
+                "승부욕": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_28.png",
+                "화려한 걷어내기": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_29.png",
+                "칩샷 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_41.png",
+                "테크니컬 드리블러": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_42.png",
+                "스위퍼 키퍼": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_43.png",
+                "GK 소극적 크로스 수비": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_48.png",
+                "GK 적극적 크로스 수비": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_49.png"
+                } %}
+
+                {% for trait in card.game_info.traits %}
+                {% if trait in trait_mapping %}
+                <img src="{{ trait_mapping[trait] }}" alt="{{ trait }}" title="{{ trait }}"
+                    style="width: 38px; height: 38px; object-fit: contain;">
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 통합 능력치 섹션 -->
+<div class="stat-section">
+    <h4>능력치</h4>
+
+    <!-- 동적 시뮬레이터 컨트롤 -->
+    <div class="mb-3" style="display: flex; justify-content: center;">
+        <div style="background: var(--bg-secondary); border-radius: 10px; padding: 15px 20px; width: 60%;">
+            <div style="display: flex; gap: 15px;">
+                <div style="flex: 1; position: relative;">
+                    <select class="form-select simulator-select" id="enhanceLevel" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
+                                appearance: none; padding-right: 30px; cursor: pointer;">
+                        <option value="0" selected>강화</option>
+                        <option value="1" class="enhance-level-1">+1</option>
+                        <option value="2" class="enhance-level-2-4">+2</option>
+                        <option value="3" class="enhance-level-2-4">+3</option>
+                        <option value="4" class="enhance-level-2-4">+4</option>
+                        <option value="5" class="enhance-level-5-7">+5</option>
+                        <option value="6" class="enhance-level-5-7">+6</option>
+                        <option value="7" class="enhance-level-5-7">+7</option>
+                        <option value="8" class="enhance-level-8-10">+8</option>
+                        <option value="9" class="enhance-level-8-10">+9</option>
+                        <option value="10" class="enhance-level-8-10">+10</option>
+                        <option value="11" class="enhance-level-11-13">+11</option>
+                        <option value="12" class="enhance-level-11-13">+12</option>
+                        <option value="13" class="enhance-level-11-13">+13</option>
+                    </select>
+                    <span
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
+                </div>
+
+                <div style="flex: 1; position: relative;">
+                    <select class="form-select simulator-select" id="adaptLevel" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
+                       appearance: none; padding-right: 30px; cursor: pointer;">
+                        <option value="0" selected>적응도</option>
+                        <option value="1">Lv.1</option>
+                        <option value="2">Lv.2</option>
+                        <option value="3">Lv.3</option>
+                        <option value="4">Lv.4</option>
+                        <option value="5">Lv.5</option>
+                    </select>
+                    <span
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
+                </div>
+
+                <div style="flex: 1; position: relative;">
+                    <select class="form-select simulator-select" id="teamColor" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
+                       appearance: none; padding-right: 30px; cursor: pointer;">
+                        <option value="0" selected>팀컬러</option>
+                        <option value="1">+1</option>
+                        <option value="2">+2</option>
+                        <option value="3">+3</option>
+                        <option value="4">+4</option>
+                        <option value="5">+5</option>
+                        <option value="6">+6</option>
+                        <option value="7">+7</option>
+                        <option value="8">+8</option>
+                        <option value="9">+9</option>
+                    </select>
+                    <span
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 포지션별 오버롤 -->
+    <div class="stat-category mb-3">
+        <!--<h6 class="text-muted mb-2">포지션별 오버롤</h6>-->
+        <div class="position-table"
+            style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; text-align: center;">
+            {% set position_mapping = {
+            'ST': ['ST'],
+            'W': ['LW', 'RW'],
+            'CF': ['CF'],
+            'CAM': ['CAM'],
+            'M': ['LM', 'RM'],
+            'CM': ['CM'],
+            'CDM': ['CDM'],
+            'WB': ['LWB', 'RWB'],
+            'B': ['LB', 'RB'],
+            'CB': ['CB'],
+            'SW': ['SW'],
+            'GK': ['GK']
+            } %}
+
+            {% for display_pos in position_order %}
+            {% set actual_pos = position_mapping[display_pos][0] %}
+            {% if card.stats_info.position_overall[actual_pos] is defined %}
+            <div>
+                <div style="font-size: 11px; color: var(--text-muted);">
+                    {% if position_mapping[display_pos]|length > 1 %}
+                    L{{ display_pos }}/R{{ display_pos }}
+                    {% else %}
+                    {{ display_pos }}
+                    {% endif %}
+                </div>
+                <div class="position-value" style="font-size: 16px; font-weight: bold;">
+                    {{ card.stats_info.position_overall[actual_pos] }}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 요약 스탯 -->
+    <div class="stat-category mb-3">
+        <!--<h6 class="text-muted mb-2">요약 스탯</h6>-->
+        <div class="summary-table"
+            style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; text-align: center;">
+            {% for stat_name in summary_order %}
+            {% if card.stats_info.summary_stats[stat_name] is defined %}
+            <div>
+                <div style="font-size: 13px; color: var(--text-muted);">{{ stat_name }}</div>
+                <div class="summary-value" style="font-size: 24px; font-weight: bold;">
+                    {{ card.stats_info.summary_stats[stat_name] }}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 세부 스탯 -->
+    <div class="stat-category">
+        <!--<h6 class="text-muted mb-2">세부 스탯</h6>-->
+        <div style="display: flex; gap: 0;">
+            <div style="flex: 1; border-right: 1px solid rgba(222, 226, 230, 0.5); padding-right: 10px;">
+                {% for i in range(7) %}
+                {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
+                    class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
+                    <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
+                    <span class="stat-value" style="font-size: 14px;">
+                        {{ card.stats_info.detailed_stats[detailed_order[i]] }}
+                    </span>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div style="flex: 1; border-right: 1px solid rgba(222, 226, 230, 0.5); padding: 0 10px;">
+            {% for i in range(7, 14) %}
+            {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
+                class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
+                <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
+                <span class="stat-value" style="font-size: 14px;">
+                    {{ card.stats_info.detailed_stats[detailed_order[i]] }}
+                </span>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <div style="flex: 1; border-right: 1px solid rgba(222, 226, 230, 0.5); padding: 0 10px;">
+        {% for i in range(14, 21) %}
+        {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
+            class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
+            <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
+            <span class="stat-value" style="font-size: 14px;">
+                {{ card.stats_info.detailed_stats[detailed_order[i]] }}
+            </span>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<div style="flex: 1; border-right: 1px solid rgba(222, 226, 230, 0.5); padding: 0 10px;">
+    {% for i in range(21, 28) %}
+    {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div class="stat-item"
+        style="display: flex; justify-content: space-between; padding: 8px 12px;">
+        <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
+        <span class="stat-value" style="font-size: 14px;">
+            {{ card.stats_info.detailed_stats[detailed_order[i]] }}
+        </span>
+</div>
+{% endif %}
+{% endfor %}
+</div>
+
+<div style="flex: 1; padding-left: 10px;">
+    {% for i in range(28, 35) %}
+    {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div class="stat-item"
+        style="display: flex; justify-content: space-between; padding: 8px 12px;">
+        <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
+        <span class="stat-value" style="font-size: 14px;">
+            {{ card.stats_info.detailed_stats[detailed_order[i]] }}
+        </span>
+</div>
+{% endif %}
+{% endfor %}
+</div>
+</div>
+</div>
+</div>
+
+<!-- 클럽 경력 + 시세 -->
+{% if card.basic_info.club_history or card.bp1 %}
+<div class="stat-section">
+    <div class="row">
+        <div class="col-md-6">
+            {% if card.basic_info.club_history %}
+            <h4>클럽 경력</h4>
+            <div class="stat-category" style="min-height: 230px;">
+                <div class="club-history" style="max-height: 200px; overflow-y: auto;">
+                    {% for club in card.basic_info.club_history %}
+                    <div class="club-item">
+                        <div
+                            style="display: grid; grid-template-columns: 150px 1fr 80px; align-items: center; gap: 10px;">
+                            <span style="color: var(--text-secondary);">{{ club.period }}</span>
+                            <strong style="color: var(--text-primary);">{{ club.club }}</strong>
+                            {% if club.rent %}
+                            <span style="color: var(--text-primary); justify-self: start; margin-left: 5px;">(임대)</span>
+                            {% else %}
+                            <span style="color: var(--text-muted); justify-self: start; margin-left: 5px;">-</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            {% if card.bp1 %}
+            <h4>시세</h4>
+            <div class="stat-category" style="min-height: 230px;">
+                <div class="price-table" style="max-height: 200px; overflow-y: auto;">
+                    {% for i in range(1, 14) %}
+                    {% set price = card['bp' ~ i] %}
+                    {% if price and price > 0 %}
+                    <div class="price-item d-flex justify-content-between align-items-center"
+                        style="padding: 5px 10px; border-bottom: 1px solid var(--border-color);">
+                        <span
+                            class="price-level {% if i == 1 %}enhance-level-1{% elif i <= 4 %}enhance-level-2-4{% elif i <= 7 %}enhance-level-5-7{% elif i <= 10 %}enhance-level-8-10{% else %}enhance-level-11-13{% endif %}"
+                            style="display: inline-block; width: 35px; height: 25px; 
+                                   text-align: center; line-height: 25px; 
+                                   border-radius: 4px; font-weight: bold; font-size: 13px;">
+                            {{ i }}
+                        </span>
+
+                        <span class="price-value"
+                            style="font-weight: 500; color: var(--text-primary); font-size: 14px;">
+                            {{ "{:,}".format(price) }} BP
+
+                            <span style="font-size: 12px; color: var(--text-muted); margin-left: 5px;">
+                                {% if price >= 10000000000000000 %}
+                                ({{ "%.1f경" % (price / 10000000000000000) }})
+                                {% elif price >= 1000000000000 %}
+                                ({{ "%.1f조" % (price / 1000000000000) }})
+                                {% elif price >= 100000000 %}
+                                ({{ "%.1f억" % (price / 100000000) }})
+                                {% elif price >= 10000 %}
+                                ({{ "%d만" % (price / 10000) }})
+                                {% else %}
+                                ({{ "{:,}".format(price) }})
+                                {% endif %}
+                            </span>
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const originalStats = {
+            positionOverall: {},
+            summaryStats: {},
+            detailedStats: {},
+            preferredPositions: [],
+            skillMoves: {{ card.game_info.skill_moves|default (1)
+    }}
+        };
+
+    const enhanceBonus = {
+        0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 6, 6: 8,
+        7: 11, 8: 15, 9: 17, 10: 19, 11: 21, 12: 24, 13: 27
+    };
+
+    function saveOriginalStats() {
+        document.querySelectorAll('.position-table > div').forEach(div => {
+            const posName = div.querySelector('div:first-child')?.textContent;
+            const posValue = div.querySelector('div:last-child')?.textContent;
+            if (posName && posValue) {
+                originalStats.positionOverall[posName] = parseInt(posValue);
+            }
+        });
+
+        document.querySelectorAll('.summary-table > div').forEach(div => {
+            const statName = div.querySelector('div:first-child')?.textContent;
+            const statValue = div.querySelector('div:last-child')?.textContent;
+            if (statName && statValue) {
+                originalStats.summaryStats[statName] = parseInt(statValue);
+            }
+        });
+
+        document.querySelectorAll('.stat-item').forEach(item => {
+            const statName = item.querySelector('span:first-child')?.textContent;
+            const statValue = item.querySelector('.stat-value')?.textContent;
+            if (statName && statValue) {
+                originalStats.detailedStats[statName] = parseInt(statValue);
+            }
+        });
+
+        document.querySelectorAll('.preferred-positions > span').forEach(span => {
+            const posText = span.querySelector('strong')?.textContent;
+            const posValue = span.querySelector('span')?.textContent;
+            if (posText && posValue) {
+                originalStats.preferredPositions.push({
+                    position: posText,
+                    value: parseInt(posValue),
+                    element: span.querySelector('span')
+                });
+            }
+        });
+    }
+
+    function applyInitialColors() {
+        document.querySelectorAll('.position-value').forEach(element => {
+            const value = parseInt(element.textContent);
+            if (!isNaN(value)) {
+                updateColorClass(element, value);
+            }
+        });
+
+        document.querySelectorAll('.summary-value').forEach(element => {
+            const value = parseInt(element.textContent);
+            if (!isNaN(value)) {
+                updateColorClass(element, value);
+            }
+        });
+
+        document.querySelectorAll('.stat-value').forEach(element => {
+            const value = parseInt(element.textContent);
+            if (!isNaN(value)) {
+                updateColorClass(element, value);
+            }
+        });
+    }
+
+    function updateStats() {
+        const enhanceLevel = parseInt(document.getElementById('enhanceLevel').value);
+        const adaptLevel = parseInt(document.getElementById('adaptLevel').value);
+        const teamColor = parseInt(document.getElementById('teamColor').value);
+
+        const enhancementBonus = enhanceBonus[enhanceLevel];
+        const adaptBonus = adaptLevel > 0 ? adaptLevel - 1 : 0;
+        const teamColorBonus = teamColor;
+        const totalBonus = enhancementBonus + adaptBonus + teamColorBonus;
+
+        document.querySelectorAll('.position-table > div').forEach(div => {
+            const posName = div.querySelector('div:first-child')?.textContent;
+            const valueElement = div.querySelector('div:last-child');
+            if (posName && valueElement && originalStats.positionOverall[posName]) {
+                const newValue = originalStats.positionOverall[posName] + totalBonus;
+                valueElement.textContent = newValue;
+                updateColorClass(valueElement, newValue);
+            }
+        });
+
+        document.querySelectorAll('.summary-table > div').forEach(div => {
+            const statName = div.querySelector('div:first-child')?.textContent;
+            const valueElement = div.querySelector('div:last-child');
+            if (statName && valueElement && originalStats.summaryStats[statName]) {
+                const newValue = originalStats.summaryStats[statName] + totalBonus;
+                valueElement.textContent = newValue;
+                updateColorClass(valueElement, newValue);
+            }
+        });
+
+        document.querySelectorAll('.stat-item').forEach(item => {
+            const statName = item.querySelector('span:first-child')?.textContent;
+            const valueElement = item.querySelector('.stat-value');
+            if (statName && valueElement && originalStats.detailedStats[statName]) {
+                const newValue = originalStats.detailedStats[statName] + totalBonus;
+                valueElement.textContent = newValue;
+                updateColorClass(valueElement, newValue);
+            }
+        });
+
+        originalStats.preferredPositions.forEach(pos => {
+            if (pos.element) {
+                pos.element.textContent = pos.value + totalBonus;
+            }
+        });
+
+        updateSkillStars(enhanceLevel);
+    }
+
+    function updateSkillStars(enhanceLevel) {
+        const starContainers = document.querySelectorAll('.info-line > span');
+        let starContainer = null;
+
+        starContainers.forEach(span => {
+            if (span.innerHTML.includes('★')) {
+                starContainer = span;
+            }
+        });
+
+        if (!starContainer) return;
+
+        let starCount = originalStats.skillMoves;
+
+        if (enhanceLevel >= 5) starCount++;
+        if (enhanceLevel >= 8) starCount++;
+        if (enhanceLevel >= 13) starCount++;
+
+        starCount = Math.min(starCount, 6);
+
+        let stars = '';
+        for (let i = 0; i < starCount; i++) {
+            stars += '<span style="color: gold;">★</span>';
+        }
+        starContainer.innerHTML = stars;
+    }
+
+    function updateColorClass(element, value) {
+        let color;
+        if (value >= 160) color = '#40E0D0';
+        else if (value >= 150) color = '#FFE34D';
+        else if (value >= 140) color = '#FFD700';
+        else if (value >= 130) color = '#FF4444';
+        else if (value >= 120) color = '#FF88FF';
+        else if (value >= 110) color = '#DD77FF';
+        else if (value >= 100) color = '#9966FF';
+        else if (value >= 90) color = '#5599FF';
+        else if (value >= 80) color = '#66CCFF';
+        else if (value >= 70) color = '#4A4A4A';
+        else color = '#999999';
+
+        element.style.color = color;
+    }
+
+    saveOriginalStats();
+    applyInitialColors();
+
+    document.getElementById('enhanceLevel').addEventListener('change', updateStats);
+    document.getElementById('adaptLevel').addEventListener('change', updateStats);
+    document.getElementById('teamColor').addEventListener('change', updateStats);
+    });
+</script>
+{% endblock %}

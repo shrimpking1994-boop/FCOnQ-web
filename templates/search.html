@@ -1,0 +1,862 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+    /* 검색 페이지 전용 스타일만 */
+    .search-btn {
+        background: linear-gradient(135deg, #667eea 0%, var(--primary-color) 100%);
+        border: none;
+        padding: 12px 40px;
+        color: white;
+        font-weight: bold;
+        border-radius: 25px;
+        transition: all 0.3s;
+        height: fit-content;
+        white-space: nowrap;
+    }
+
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px var(--shadow-hover);
+    }
+
+    .player-search-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+    }
+
+    .player-name-input {
+        flex: 1;
+    }
+
+    .season-controls {
+        margin-bottom: 15px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .season-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 15px;
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .season-item {
+        cursor: pointer;
+        position: relative;
+        display: inline-block;
+    }
+
+    .season-checkbox {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .season-img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        border: 2px solid transparent;
+        border-radius: 5px;
+        padding: 2px;
+        background: var(--bg-main);
+        transition: all 0.3s;
+        display: block;
+    }
+
+    .season-item.selected .season-img {
+        border-color: var(--primary-color);
+        background: var(--primary-light);
+        transform: scale(1.1);
+    }
+
+    .season-item:hover .season-img {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px var(--shadow-main);
+    }
+
+    .position-filter-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 15px;
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .position-group {
+        min-width: 200px;
+    }
+
+    .position-group-title {
+        font-size: var(--fs-group);
+        font-weight: bold;
+        color: var(--text-dark);
+        margin-bottom: 10px;
+    }
+
+    .position-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .position-item {
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .position-checkbox {
+        display: none;
+    }
+
+    .position-btn {
+        display: inline-block;
+        padding: 8px 16px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-main);
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.3s;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .position-checkbox:checked+.position-btn {
+        background: var(--primary-color);
+        color: var(--bg-main);
+        border-color: var(--primary-color);
+        transform: scale(1.05);
+    }
+
+    .position-item:hover .position-btn {
+        border-color: var(--primary-color);
+        transform: scale(1.02);
+    }
+
+    .season-count {
+        background: var(--primary-color);
+        color: var(--bg-main);
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.9em;
+    }
+
+    .detail-filter-section {
+        padding: 20px;
+        background: var(--bg-secondary);
+        border-radius: 10px;
+    }
+
+    .filter-group {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-group:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .filter-group-title {
+        font-size: var(--fs-group);
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+    }
+
+    .range-inputs {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .range-inputs input {
+        max-width: 120px;
+    }
+
+    .team-color-group {
+        margin-bottom: 10px;
+    }
+
+    .body-type-options {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .body-type-item {
+        display: inline-block;
+    }
+
+    .body-type-checkbox {
+        display: none;
+    }
+
+    .body-type-label {
+        padding: 6px 14px;
+        border: 2px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+        color: var(--text-primary);
+        background: var(--bg-main);
+    }
+
+    .body-type-checkbox:checked+.body-type-label {
+        background: var(--primary-color);
+        color: var(--bg-main);
+        border-color: var(--primary-color);
+    }
+
+    .trait-select {
+        width: 100%;
+        min-height: 100px;
+    }
+
+    .foot-select-group {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .foot-select-group>div {
+        flex: 1;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection {
+        border: 1px solid #ced4da;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+    .select2-container--bootstrap-5.select2-container--open .select2-selection {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem var(--shadow-focus);
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option--selected {
+        background-color: var(--primary-color);
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option--highlighted {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .section-title {
+        font-size: var(--fs-section);
+        font-weight: bold;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .label-title {
+        font-size: var(--fs-label);
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    /* 다크모드 대응 - 입력 필드 스타일 */
+    .form-control,
+    .form-select {
+        background: var(--bg-main) !important;
+        /* ← 박스보다 밝은 배경 */
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .form-control::placeholder {
+        color: var(--text-secondary) !important;
+        opacity: 0.7;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background: var(--bg-main) !important;
+        border-color: var(--primary-color) !important;
+        color: var(--text-primary) !important;
+        box-shadow: 0 0 0 0.25rem var(--shadow-focus) !important;
+    }
+
+    /* 셀렉트 옵션 다크모드 (주발/약발 드롭다운) */
+    [data-theme="dark"] .form-select option {
+        background: #1a202c !important;
+        /* ← 어두운 배경 */
+        color: #e2e8f0 !important;
+    }
+
+    [data-theme="light"] .form-select option {
+        background: #ffffff !important;
+        color: #1a202c !important;
+    }
+
+    /* Select2 다크모드 대응 */
+    .select2-container--bootstrap-5 .select2-selection {
+        background: var(--bg-main) !important;
+        /* ← 밝은 배경 */
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__rendered {
+        color: var(--text-primary) !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__placeholder {
+        color: var(--text-secondary) !important;
+    }
+
+    /* Select2 드롭다운 다크모드 (투명 문제 해결) */
+    .select2-container--bootstrap-5 .select2-dropdown {
+        background: #1a202c !important;
+        /* ← 완전 불투명 */
+        border: 1px solid var(--border-color) !important;
+        z-index: 9999;
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option {
+        background: #1a202c !important;
+        /* ← 각 옵션도 불투명 */
+        color: #e2e8f0 !important;
+        padding: 8px 12px;
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option--highlighted {
+        background: #667eea !important;
+        /* ← 호버 시 파란색 */
+        color: #ffffff !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option--selected {
+        background: #4c51bf !important;
+        /* ← 선택 시 진한 파란색 */
+        color: #ffffff !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-search__field {
+        background: var(--bg-main) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Select2 검색창 다크모드 */
+    .select2-container--bootstrap-5 .select2-search--dropdown {
+        background: #1a202c !important;
+        padding: 8px;
+    }
+
+    /* 라이트모드 Select2 드롭다운 */
+    [data-theme="light"] .select2-dropdown {
+        background: #ffffff !important;
+    }
+
+    [data-theme="light"] .select2-results__option {
+        background: #ffffff !important;
+        color: #1a202c !important;
+    }
+
+    [data-theme="light"] .select2-results__option--highlighted {
+        background: #e6f2ff !important;
+        color: #667eea !important;
+    }
+</style>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+    rel="stylesheet" />
+
+<!-- ❌ 제목 삭제 -->
+<!-- ❌ 다크모드 버튼 삭제 -->
+
+<form action="/results" method="GET" id="searchForm">
+    <!-- 선수 이름 검색 + 검색 버튼 -->
+    <div class="mb-4">
+        <label class="form-label section-title">선수 이름</label>
+        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 10px;">
+            <div class="player-search-wrapper">
+                <div class="player-name-input">
+                    <input type="text" class="form-control form-control-lg" name="player_name"
+                        placeholder="선수 이름을 입력하세요" autocomplete="off">
+                </div>
+                <button type="submit" class="search-btn">검색</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 시즌 선택 -->
+    <div class="mb-4">
+        <label class="form-label section-title">시즌 선택</label>
+        <div class="season-controls">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAllCheckbox" checked>
+                <label class="form-check-label" for="selectAllCheckbox">
+                    전체 선택
+                </label>
+            </div>
+            <span class="season-count" id="seasonCount">0개 선택</span>
+        </div>
+        <div class="season-selector" id="seasonSelector">
+            {% for season in seasons %}
+            <div class="season-item" data-season-id="{{ season.season_id }}"
+                data-season-name="{{ season.season_name }}">
+                <input type="checkbox" name="seasons" value="{{ season.season_id }}" class="season-checkbox"
+                    id="season_{{ season.season_id }}">
+                <img src="{{ season.season_img_url }}" alt="{{ season.season_name }}" title="{{ season.season_name }}"
+                    class="season-img">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 포지션 선택 -->
+    <div class="mb-4">
+        <label class="form-label section-title">포지션 선택</label>
+        <div class="position-filter-container">
+            <div class="position-group">
+                <div class="position-group-title">공격수</div>
+                <div class="position-buttons">
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="ST" class="position-checkbox">
+                        <span class="position-btn">ST</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="CF" class="position-checkbox">
+                        <span class="position-btn">CF</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="RW" class="position-checkbox">
+                        <span class="position-btn">RW</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="LW" class="position-checkbox">
+                        <span class="position-btn">LW</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="position-group">
+                <div class="position-group-title">미드필더</div>
+                <div class="position-buttons">
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="CAM" class="position-checkbox">
+                        <span class="position-btn">CAM</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="LM" class="position-checkbox">
+                        <span class="position-btn">LM</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="RM" class="position-checkbox">
+                        <span class="position-btn">RM</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="CM" class="position-checkbox">
+                        <span class="position-btn">CM</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="CDM" class="position-checkbox">
+                        <span class="position-btn">CDM</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="position-group">
+                <div class="position-group-title">수비수</div>
+                <div class="position-buttons">
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="CB" class="position-checkbox">
+                        <span class="position-btn">CB</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="RB" class="position-checkbox">
+                        <span class="position-btn">RB</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="LB" class="position-checkbox">
+                        <span class="position-btn">LB</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="RWB" class="position-checkbox">
+                        <span class="position-btn">RWB</span>
+                    </label>
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="LWB" class="position-checkbox">
+                        <span class="position-btn">LWB</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="position-group">
+                <div class="position-group-title">골키퍼</div>
+                <div class="position-buttons">
+                    <label class="position-item">
+                        <input type="checkbox" name="positions" value="GK" class="position-checkbox">
+                        <span class="position-btn">GK</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상세 검색 조건 -->
+    <div class="mb-4">
+        <label class="form-label section-title">상세 검색 조건</label>
+        <div class="detail-filter-section">
+
+            <!-- 급여와 오버롤 -->
+            <div class="filter-group">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="filter-group-title">급여</div>
+                        <div class="range-inputs">
+                            <input type="number" class="form-control" name="min_salary" placeholder="최소">
+                            <span>~</span>
+                            <input type="number" class="form-control" name="max_salary" placeholder="최대">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="filter-group-title">오버롤</div>
+                        <div class="range-inputs">
+                            <input type="number" class="form-control" name="min_ovr" min="0" max="150" placeholder="최소">
+                            <span>~</span>
+                            <input type="number" class="form-control" name="max_ovr" min="0" max="150" placeholder="최대">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 주발 & 약발 -->
+            <div class="filter-group">
+                <div class="filter-group-title">주발 & 약발</div>
+                <div class="foot-select-group">
+                    <div>
+                        <label class="form-label label-title">주발</label>
+                        <select class="form-select" name="preferred_foot">
+                            <option value="">왼발 or 오른발</option>
+                            <option value="left">왼발</option>
+                            <option value="right">오른발</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label label-title">약발 (이상)</label>
+                        <select class="form-select" name="weak_foot_min">
+                            <option value="">1~5</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 신장과 몸무게 -->
+            <div class="filter-group">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="filter-group-title">신장</div>
+                        <div class="range-inputs">
+                            <input type="number" class="form-control" name="min_height" placeholder="최소">
+                            <span>~</span>
+                            <input type="number" class="form-control" name="max_height" placeholder="최대">
+                            <span>cm</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="filter-group-title">몸무게</div>
+                        <div class="range-inputs">
+                            <input type="number" class="form-control" name="min_weight" placeholder="최소">
+                            <span>~</span>
+                            <input type="number" class="form-control" name="max_weight" placeholder="최대">
+                            <span>kg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 팀컬러 선택 -->
+            <div class="filter-group">
+                <div class="filter-group-title">팀컬러 선택</div>
+                <div class="team-color-group">
+                    <label class="form-label label-title">국가 팀컬러</label>
+                    <select class="form-select teamcolor-select" name="nation_team_color" data-placeholder="국가를 선택하세요">
+                        <option value=""></option>
+                        {% for nation in nation_teamcolors %}
+                        <option value="{{ nation }}">{{ nation }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="team-color-group">
+                    <label class="form-label label-title">소속 팀컬러 1</label>
+                    <select class="form-select teamcolor-select" name="club_team_color_1" data-placeholder="클럽을 선택하세요">
+                        <option value=""></option>
+                        {% for club in club_teamcolors %}
+                        <option value="{{ club }}">{{ club }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="team-color-group">
+                    <label class="form-label label-title">소속 팀컬러 2</label>
+                    <select class="form-select teamcolor-select" name="club_team_color_2" data-placeholder="클럽을 선택하세요">
+                        <option value=""></option>
+                        {% for club in club_teamcolors %}
+                        <option value="{{ club }}">{{ club }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="team-color-group">
+                    <label class="form-label label-title">특성 팀컬러</label>
+                    <select class="form-select teamcolor-select" name="trait_team_color" data-placeholder="특성을 선택하세요">
+                        <option value=""></option>
+                        {% for trait in trait_teamcolors %}
+                        <option value="{{ trait }}">{{ trait }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- 체형 -->
+            <div class="filter-group">
+                <div class="filter-group-title">체형</div>
+                <div class="body-type-options">
+                    <label class="body-type-item">
+                        <input type="checkbox" name="body_types" value="마름" class="body-type-checkbox">
+                        <span class="body-type-label">마름</span>
+                    </label>
+                    <label class="body-type-item">
+                        <input type="checkbox" name="body_types" value="보통" class="body-type-checkbox">
+                        <span class="body-type-label">보통</span>
+                    </label>
+                    <label class="body-type-item">
+                        <input type="checkbox" name="body_types" value="건장" class="body-type-checkbox">
+                        <span class="body-type-label">건장</span>
+                    </label>
+                    <label class="body-type-item">
+                        <input type="checkbox" name="body_types" value="마름(고유)" class="body-type-checkbox">
+                        <span class="body-type-label">마름(고유)</span>
+                    </label>
+                    <label class="body-type-item">
+                        <input type="checkbox" name="body_types" value="보통(고유)" class="body-type-checkbox">
+                        <span class="body-type-label">보통(고유)</span>
+                    </label>
+                    <label class="body-type-item">
+                        <input type="checkbox" name="body_types" value="건장(고유)" class="body-type-checkbox">
+                        <span class="body-type-label">건장(고유)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 보유 고유 특성 -->
+            <div class="filter-group">
+                <div class="filter-group-title">고유 특성</div>
+                <div class="row g-2">
+                    <div class="col-3">
+                        <label class="form-label label-title">신규 특성</label>
+                        <select class="form-select trait-select" name="new_trait" data-placeholder="신규 특성 선택">
+                            <option value=""></option>
+                            {% for trait in new_traits %}
+                            <option value="{{ trait }}">{{ trait }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label label-title">일반 특성 1</label>
+                        <select class="form-select trait-select" name="normal_trait_1" data-placeholder="일반 특성 선택">
+                            <option value=""></option>
+                            {% for trait in normal_traits %}
+                            <option value="{{ trait }}">{{ trait }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label label-title">일반 특성 2</label>
+                        <select class="form-select trait-select" name="normal_trait_2" data-placeholder="일반 특성 선택">
+                            <option value=""></option>
+                            {% for trait in normal_traits %}
+                            <option value="{{ trait }}">{{ trait }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <label class="form-label label-title">일반 특성 3</label>
+                        <select class="form-select trait-select" name="normal_trait_3" data-placeholder="일반 특성 선택">
+                            <option value=""></option>
+                            {% for trait in normal_traits %}
+                            <option value="{{ trait }}">{{ trait }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 검색 버튼 -->
+        <div class="mt-5 text-center">
+            <button type="submit" class="search-btn">검색</button>
+        </div>
+    </div>
+</form>
+
+<!-- jQuery & Select2 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/ko.js"></script>
+
+<script>
+    // 시즌 선택 관리
+    class SeasonManager {
+        constructor() {
+            this.seasonItems = document.querySelectorAll('.season-item');
+            this.selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            this.seasonCount = document.getElementById('seasonCount');
+
+            this.init();
+        }
+
+        init() {
+            // 페이지 로드 시 모든 시즌 선택
+            this.selectAll();
+
+            // 시즌 아이템 클릭 이벤트
+            this.seasonItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.toggleSeason(item);
+                });
+            });
+
+            // 전체 선택 체크박스 이벤트
+            this.selectAllCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.selectAll();
+                } else {
+                    this.deselectAll();
+                }
+            });
+
+            // 폼 제출 시 처리
+            document.getElementById('searchForm').addEventListener('submit', (e) => {
+                const selectedCount = document.querySelectorAll('.season-checkbox:checked').length;
+                const totalCount = this.seasonItems.length;
+
+                // 먼저 모든 체크박스의 name 속성 복구
+                document.querySelectorAll('.season-checkbox').forEach(cb => {
+                    if (!cb.hasAttribute('name')) {
+                        cb.setAttribute('name', 'seasons');
+                    }
+                });
+
+                // 전체 선택이거나 80% 이상 선택 시 시즌 체크박스 비활성화
+                if (selectedCount >= totalCount * 0.8) {
+                    // 모든 시즌 체크박스의 name 속성 제거 (전송 안 함)
+                    document.querySelectorAll('.season-checkbox:checked').forEach(cb => {
+                        cb.removeAttribute('name');
+                    });
+                }
+
+                // 아무것도 선택 안 했을 때만 경고
+                if (selectedCount === 0) {
+                    e.preventDefault();
+                    alert('최소 하나 이상의 시즌을 선택해주세요.');
+                }
+            });
+        }
+
+        toggleSeason(item) {
+            const checkbox = item.querySelector('.season-checkbox');
+            const isChecked = checkbox.checked;
+
+            checkbox.checked = !isChecked;
+
+            if (!isChecked) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+
+            this.updateCount();
+            this.updateSelectAllCheckbox();
+        }
+
+        selectAll() {
+            this.seasonItems.forEach(item => {
+                const checkbox = item.querySelector('.season-checkbox');
+                checkbox.checked = true;
+                item.classList.add('selected');
+            });
+            this.updateCount();
+        }
+
+        deselectAll() {
+            this.seasonItems.forEach(item => {
+                const checkbox = item.querySelector('.season-checkbox');
+                checkbox.checked = false;
+                item.classList.remove('selected');
+            });
+            this.updateCount();
+        }
+
+        updateCount() {
+            const selectedCount = document.querySelectorAll('.season-checkbox:checked').length;
+            const totalCount = this.seasonItems.length;
+
+            this.seasonCount.textContent = `${selectedCount}/${totalCount}개 선택`;
+        }
+
+        updateSelectAllCheckbox() {
+            const selectedCount = document.querySelectorAll('.season-checkbox:checked').length;
+            const totalCount = this.seasonItems.length;
+
+            // 모두 선택되었으면 체크, 하나라도 해제되면 체크 해제
+            this.selectAllCheckbox.checked = (selectedCount === totalCount);
+
+            // 일부만 선택된 경우 indeterminate 상태
+            this.selectAllCheckbox.indeterminate = (selectedCount > 0 && selectedCount < totalCount);
+        }
+    }
+
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', () => {
+        new SeasonManager();
+
+        // Select2 초기화 - 팀컬러 선택
+        $('.teamcolor-select').select2({
+            theme: 'bootstrap-5',
+            language: 'ko',
+            allowClear: true,
+            width: '100%',
+            minimumInputLength: 0,
+            placeholder: function () {
+                return $(this).data('placeholder');
+            }
+        });
+
+        // Select2 초기화 - 고유 특성 선택
+        $('.trait-select').select2({
+            theme: 'bootstrap-5',
+            language: 'ko',
+            allowClear: true,
+            width: '100%',
+            minimumInputLength: 0,
+            placeholder: function () {
+                return $(this).data('placeholder');
+            }
+        });
+    });
+</script>
+{% endblock %}

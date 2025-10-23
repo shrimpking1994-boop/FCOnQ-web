@@ -1,0 +1,190 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+
+    <!-- 상단: 뒤로가기 + 시즌-이름 + 리뷰 작성 (한 줄) -->
+    <div style="background: var(--card-bg); padding: 20px 30px; border-radius: 12px; margin-bottom: 30px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+            <!-- 왼쪽: 뒤로가기 -->
+            <a href="javascript:history.back()" class="back-btn"
+                style="display: inline-block; padding: 10px 20px; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s; white-space: nowrap;">
+                ← 뒤로 가기
+            </a>
+
+            <!-- 중앙: 시즌 + 이름 -->
+            <div style="display: flex; align-items: center; gap: 15px; flex: 1; justify-content: center;">
+                <img src="{{ card.image_info.season_img }}" alt="{{ card.season_name }}"
+                    style="width: 60px; height: 60px; object-fit: contain;">
+                <h2 style="color: var(--text-primary); margin: 0; font-size: 2.5rem; font-weight: 700;">
+                    {{ card.player_name }}
+                </h2>
+            </div>
+
+            <!-- ✅ 오른쪽: 리뷰 작성 버튼 -->
+            {% if current_user.is_authenticated %}
+            <button id="toggleWriteBtn" onclick="toggleWriteForm()"
+                style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+                ✍️ 리뷰 작성
+            </button>
+            {% else %}
+            <button onclick="showLoginAlert()"
+                style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
+                ✍️ 리뷰 작성
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 후기 작성 폼 (기본 숨김) -->
+    {% if current_user.is_authenticated %}
+    <div id="writeForm"
+        style="display: none; background: var(--card-bg); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h4 style="color: var(--text-primary); margin: 0;">✍️ 후기 작성하기</h4>
+            <button onclick="toggleWriteForm()"
+                style="padding: 6px 12px; background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer;">
+                닫기
+            </button>
+        </div>
+
+        <form method="POST" action="/player_review/{{ card.spid }}/comment">
+            <!-- 작성자 -->
+            <div style="margin-bottom: 15px;">
+                <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 8px; display: block;">
+                    작성자
+                </label>
+                <input type="text" name="author" value="익명" maxlength="100" class="form-control"
+                    style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 6px;">
+                <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
+                    💡 추후 로그인 기능이 추가됩니다
+                </small>
+            </div>
+
+            <!-- 평점 (선택) -->
+            <div style="margin-bottom: 15px;">
+                <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 8px; display: block;">
+                    평점 (선택)
+                </label>
+                <select name="rating" class="form-select"
+                    style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 6px;">
+                    <option value="">선택 안 함</option>
+                    <option value="10">⭐ 10점 - 최고!</option>
+                    <option value="9">⭐ 9점 - 매우 좋음</option>
+                    <option value="8">⭐ 8점 - 좋음</option>
+                    <option value="7">⭐ 7점 - 괜찮음</option>
+                    <option value="6">⭐ 6점 - 보통</option>
+                    <option value="5">⭐ 5점 - 그저 그럼</option>
+                    <option value="4">⭐ 4점 - 아쉬움</option>
+                    <option value="3">⭐ 3점 - 별로</option>
+                    <option value="2">⭐ 2점 - 나쁨</option>
+                    <option value="1">⭐ 1점 - 최악</option>
+                </select>
+            </div>
+
+            <!-- 후기 내용 -->
+            <div style="margin-bottom: 20px;">
+                <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 8px; display: block;">
+                    후기 내용 <span style="color: #ff4444;">*</span>
+                </label>
+                <textarea name="content" required rows="5" placeholder="이 선수를 사용한 경험을 공유해주세요..." class="form-control"
+                    style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 6px; resize: vertical;"></textarea>
+            </div>
+
+            <!-- 작성 버튼 -->
+            <button type="submit" class="btn btn-success" style="padding: 10px 30px; font-weight: 600;">
+                작성 완료
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- 후기 목록 -->
+    <div style="background: var(--card-bg); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h3 style="color: var(--text-primary); margin-bottom: 20px;">
+            💬 선수 후기 ({{ reviews|length }})
+        </h3>
+
+        {% if reviews %}
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            {% for review in reviews %}
+            <div
+                style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; border-left: 3px solid var(--primary-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="color: var(--text-primary); font-weight: 600;">
+                            {{ review.author_name or review.author_email }}
+                        </span>
+                        {% if review.position %}
+                        <span
+                            style="background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem;">
+                            {{ review.position }}
+                        </span>
+                        {% endif %}
+                        {% if review.rating %}
+                        <span style="color: #fbbf24; font-weight: 600;">⭐ {{ review.rating }}/10</span>
+                        {% endif %}
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                        {{ review.created_at.strftime('%m-%d %H:%M') }}
+                    </span>
+                </div>
+                <p style="color: var(--text-primary); margin: 0; line-height: 1.6;">
+                    {{ review.content }}
+                </p>
+                <div style="margin-top: 10px;">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                        👍 {{ review.likes }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+            <div style="font-size: 3rem; margin-bottom: 10px;">💭</div>
+            <p>아직 작성된 후기가 없습니다</p>
+            <p style="font-size: 0.9rem;">첫 번째 후기를 작성해보세요!</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    function toggleWriteForm() {
+        const form = document.getElementById('writeForm');
+        const btn = document.getElementById('toggleWriteBtn');
+
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            btn.textContent = '❌ 닫기';
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            form.style.display = 'none';
+            btn.textContent = '✍️ 리뷰 작성';
+        }
+    }
+
+    // ✅ 새로 추가
+    function showLoginAlert() {
+        alert('선수 후기를 작성하려면 로그인이 필요합니다.\n\n구글 계정으로 간편하게 시작하세요!');
+        window.location.href = '/login';
+    }
+</script>
+
+<style>
+    /* 다크모드 셀렉트 옵션 */
+    [data-theme="dark"] .form-select option {
+        background: #2d3748;
+        color: #ffffff;
+    }
+
+    /* 버튼 호버 효과 */
+    #toggleWriteBtn:hover {
+        background: #059669 !important;
+        transform: translateY(-2px);
+    }
+</style>
+
+{% endblock %}

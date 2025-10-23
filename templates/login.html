@@ -1,0 +1,30 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 80px auto; text-align: center;">
+    <h2 style="color: var(--text-primary); margin-bottom: 30px;">로그인</h2>
+    
+    <div style="background: var(--card-bg); padding: 40px; border-radius: 12px; box-shadow: 0 5px 25px var(--shadow-main);">
+        <p style="color: var(--text-secondary); margin-bottom: 30px;">
+            소셜 계정으로 간편하게 시작하세요
+        </p>
+        
+        <a href="{{ url_for('google.login') }}" 
+           style="display: block; background: white; color: #333; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s; border: 1px solid #ddd;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                 style="width: 20px; height: 20px; vertical-align: middle; margin-right: 10px;">
+            구글로 시작하기
+        </a>
+        
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 20px;">
+            💡 로그인하면 선수 후기 작성이 가능합니다
+        </p>
+    </div>
+    
+    <p style="margin-top: 30px;">
+        <a href="/" style="color: var(--text-secondary); text-decoration: none;">
+            ← 메인으로 돌아가기
+        </a>
+    </p>
+</div>
+{% endblock %}

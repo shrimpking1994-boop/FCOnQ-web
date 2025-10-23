@@ -1,0 +1,678 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+    .back-btn {
+        background: var(--bg-main);
+        color: var(--primary-color);
+        padding: 10px 20px;
+        border-radius: 20px;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+        border: 2px solid var(--primary-color);
+        font-weight: 600;
+    }
+
+    .back-btn:hover {
+        background: var(--primary-color);
+        color: var(--bg-main);
+        transform: translateX(-5px);
+        box-shadow: 0 4px 15px var(--shadow-hover);
+    }
+
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .result-count {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .player-card {
+        background: var(--bg-main);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: 2px solid var(--border-color);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .player-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border-color: var(--primary-color);
+    }
+
+    .card-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .player-image {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+        border-radius: 10px;
+        background: var(--bg-secondary);
+        padding: 5px;
+    }
+
+    .overall-badge {
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        padding: 10px 18px;
+        border-radius: 15px;
+        display: inline-block;
+        min-width: 70px;
+        text-align: center;
+        box-shadow: 0 3px 10px var(--shadow-hover);
+    }
+
+    .season-badge {
+        background: var(--text-muted);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .position-badge {
+        background: #28a745;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .nation-badge {
+        background: #17a2b8;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .trait-badge {
+        background: #ffc107;
+        color: #333;
+        padding: 2px 8px;
+        border-radius: 5px;
+        font-size: 12px;
+        margin-right: 4px;
+    }
+
+    [data-theme="dark"] .trait-badge {
+        background: #d39e00;
+        color: var(--text-primary);
+    }
+
+    .player-info {
+        flex-grow: 1;
+    }
+
+    .player-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .salary-info {
+        text-align: right;
+        font-size: 16px;
+        color: var(--text-secondary);
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .no-results-icon {
+        font-size: 72px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+    }
+
+    .no-results h4,
+    .no-results p {
+        color: var(--text-secondary);
+    }
+
+    .player-header {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+        flex: 0 0 auto;
+    }
+
+    .season-icon {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+        transform: translateY(6px);
+    }
+
+    /* 비교 바 스타일 */
+    .comparison-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-main);
+        border-top: 2px solid var(--border-color);
+        box-shadow: 0 -5px 20px var(--shadow-main);
+        z-index: 999;
+        padding: 10px 20px;
+    }
+
+    .comparison-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        position: relative;
+    }
+
+    .comparison-slots {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .comparison-slot {
+        width: 100px;
+        height: 100px;
+        border: 2px dashed var(--border-color);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-secondary);
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .comparison-slot.drag-over {
+        border-color: var(--primary-color);
+        background: var(--primary-light);
+        transform: scale(1.05);
+    }
+
+    .comparison-slot.filled {
+        border-style: solid;
+        border-color: var(--primary-color);
+    }
+
+    .slot-placeholder {
+        color: var(--text-muted);
+        font-size: 11px;
+        text-align: center;
+    }
+
+    .slot-card {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .slot-card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 3px;
+    }
+
+    .slot-season-icon {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+    }
+
+    .slot-remove {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 22px;
+        height: 22px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+
+    .slot-remove:hover {
+        background: #c82333;
+    }
+
+    .vs-divider {
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--text-muted);
+        user-select: none;
+        padding: 0 5px;
+    }
+
+    .vs-divider.compare-button {
+        background: linear-gradient(135deg, #667eea 0%, var(--primary-color) 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+    }
+
+    .vs-divider.compare-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 5px 20px var(--shadow-hover);
+    }
+
+    .basket-items {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .basket-left {
+        justify-content: flex-end;
+        min-width: 380px;
+    }
+
+    .basket-right {
+        justify-content: flex-start;
+        min-width: 380px;
+    }
+
+    .clear-basket-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 20px;
+        background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        z-index: 10;
+    }
+
+    .clear-basket-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 3px 12px rgba(239, 83, 80, 0.4);
+    }
+
+    .clear-basket-btn:disabled {
+        background: linear-gradient(135deg, #999 0%, #777 100%);
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .basket-card {
+        flex-shrink: 0;
+        width: 75px;
+        height: 75px;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--bg-main);
+        cursor: grab;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .basket-card:hover {
+        transform: scale(1.08);
+        border-color: var(--primary-color);
+    }
+
+    .basket-card.dragging {
+        opacity: 0.5;
+    }
+
+    .basket-card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 3px;
+    }
+
+    .basket-season-icon {
+        position: absolute;
+        bottom: -4px;
+        left: -1px;
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+    }
+
+    .basket-remove {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 20px;
+        height: 20px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 12px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+
+    .basket-remove:hover {
+        background: #c82333;
+    }
+
+    .basket-counter {
+        position: absolute;
+        top: -25px;
+        right: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        color: var(--text-muted);
+        background: var(--bg-secondary);
+        padding: 3px 10px;
+        border-radius: 10px;
+    }
+
+    .add-to-basket-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        width: 70px;
+        height: 60px;
+        background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        padding: 5px;
+    }
+
+    .add-to-basket-btn .btn-icon {
+        font-size: 28px;
+        font-weight: bold;
+        line-height: 1;
+        margin-top: -6px;
+    }
+
+    .add-to-basket-btn .btn-text {
+        font-size: 9px;
+        font-weight: 500;
+        text-align: center;
+        line-height: 1.1;
+        margin-top: -2px;
+    }
+
+    .add-to-basket-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(255, 167, 38, 0.4);
+    }
+
+    .add-to-basket-btn.added {
+        background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+    }
+
+    .add-to-basket-btn.added .btn-icon {
+        font-size: 24px;
+    }
+
+    .add-to-basket-btn.added .btn-text {
+        font-size: 8px;
+    }
+
+    /* 페이지 하단 여백 */
+    .content-wrapper {
+        padding-bottom: 150px !important;
+    }
+</style>
+
+<div style="margin-bottom: 20px;">
+    <a href="javascript:history.back()" class="back-btn"
+        style="display: inline-block; padding: 10px 20px; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s;">
+        ← 검색 페이지로
+    </a>
+</div>
+
+<div class="result-header">
+    <div class="result-count">
+        검색 결과: {{ total_count }}개
+        {% if is_limited %}
+        <span style="font-size: 16px; color: var(--text-muted);">
+            (전체 {{ total_count }}개 중 상위 100개 표시)
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+{% if cards %}
+{% for card in cards %}
+<div class="player-card" onclick="location.href='/card/{{ card.spid }}'">
+    <div class="card-row">
+        {% if card.image %}
+        <img src="{{ card.image }}" alt="{{ card.player_name }}" class="player-image">
+        {% else %}
+        <div class="player-image d-flex align-items-center justify-content-center" style="color: var(--text-muted);">
+            <svg width="40" height="40" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+            </svg>
+        </div>
+        {% endif %}
+
+        <div class="player-info">
+            <div class="player-header">
+                {% if card.season_img %}
+                <img src="{{ card.season_img }}" alt="{{ card.season_name }}" class="season-icon">
+                {% endif %}
+                <span class="player-name">{{ card.player_name }}</span>
+
+                <div style="display: inline-flex; gap: 10px; margin-left: 8px;">
+                    {% if card.preferred_positions %}
+                    {% for pos in card.preferred_positions %}
+                    <span style="font-size: 20px;">
+                        {% if pos.position in ['ST', 'CF', 'RW', 'LW'] %}
+                        <strong style="color: #e74c3c;">{{ pos.position }}</strong>
+                        {% elif pos.position in ['CAM', 'LM', 'RM', 'CM', 'CDM'] %}
+                        <strong style="color: #27ae60;">{{ pos.position }}</strong>
+                        {% elif pos.position in ['CB', 'RB', 'LB', 'RWB', 'LWB', 'SW'] %}
+                        <strong style="color: #3498db;">{{ pos.position }}</strong>
+                        {% elif pos.position == 'GK' %}
+                        <strong style="color: #f39c12;">{{ pos.position }}</strong>
+                        {% else %}
+                        <strong style="color: var(--text-secondary);">{{ pos.position }}</strong>
+                        {% endif %}
+                        <span style="color: var(--text-primary); font-weight: bold;">{{ pos.overall }}</span>
+                    </span>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div
+                style="margin-top: 4px; font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-flex; align-items: center; justify-content: center;
+                    width: 22px; height: 25px; 
+                    background: var(--text-secondary);
+                    color: var(--bg-main);
+                    clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+                    font-weight: bold; font-size: 12px;">
+                    {{ card.salary|default(0) }}
+                </span>
+
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+
+                <span>{{ card.height|default('Unknown') }} {{ card.weight|default('Unknown') }} {{
+                    card.body_type|default('Unknown') }}</span>
+
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+
+                <span>
+                    {% set pref_foot = card.preferred_foot|default('') %}
+                    {% set weak_foot = card.weak_foot|default('') %}
+                    {% if 'L' in pref_foot %}
+                    <strong>{{ pref_foot }}</strong>-{{ weak_foot }}
+                    {% else %}
+                    {{ weak_foot }}-<strong>{{ pref_foot }}</strong>
+                    {% endif %}
+                </span>
+
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+
+                <span style="display: flex; align-items: center;">
+                    {% for i in range(card.skill_moves|default(1)|int) %}<span style="color: gold;">★</span>{% endfor %}
+                </span>
+
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+
+                <span style="display: flex; align-items: center; gap: 2px;">
+                    {% if card.traits %}
+                    {% set trait_mapping = {
+                    "아크로바틱 피니셔": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_50.png",
+                    "크로스 포쳐": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_51.png",
+                    "라인 브레이커": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_52.png",
+                    "와일드 태클러": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_53.png",
+                    "체이서": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_54.png",
+                    "2개의 심장": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_55.png",
+                    "파이터": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_56.png",
+                    "GK 빠른 반응": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_57.png",
+                    "선호 포지션 고집": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_00.png",
+                    "장거리 스로인": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_01.png",
+                    "파울 유도 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_03.png",
+                    "유리몸": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_04.png",
+                    "강철몸": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_05.png",
+                    "주발 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_06.png",
+                    "슬라이딩 태클 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_07.png",
+                    "개인 플레이 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_09.png",
+                    "트러블 메이커": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_11.png",
+                    "얼리 크로스 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_12.png",
+                    "예리한 감아차기": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_13.png",
+                    "화려한 개인기": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_14.png",
+                    "긴 패스 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_15.png",
+                    "중거리 슛 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_16.png",
+                    "스피드 드리블러": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_17.png",
+                    "플레이 메이커": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_18.png",
+                    "GK 공격 가담": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_19.png",
+                    "GK 능숙한 펀칭": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_20.png",
+                    "GK 멀리 던지기": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_21.png",
+                    "파워 헤더": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_22.png",
+                    "GK 침착한 1:1 수비":
+                    "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_23.png",
+                    "초 장거리 스로인": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_24.png",
+                    "아웃사이드 슈팅/크로스": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_25.png",
+                    "패스마스터": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_27.png",
+                    "승부욕": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_28.png",
+                    "화려한 걷어내기": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_29.png",
+                    "칩샷 선호": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_41.png",
+                    "테크니컬 드리블러": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_42.png",
+                    "스위퍼 키퍼": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_43.png",
+                    "GK 소극적 크로스 수비":
+                    "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_48.png",
+                    "GK 적극적 크로스 수비": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_49.png"
+                    } %}
+                    {% for trait in card.traits %}
+                    {% if trait in trait_mapping %}
+                    <img src="{{ trait_mapping[trait] }}" alt="{{ trait }}" title="{{ trait }}"
+                        style="width: 28px; height: 28px; object-fit: contain;">
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    <span style="color: var(--text-muted);">-</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <button class="add-to-basket-btn" data-spid="{{ card.spid }}" data-name="{{ card.player_name }}"
+            data-season="{{ card.season_name }}" data-image="{{ card.image }}" data-season-img="{{ card.season_img }}"
+            data-nation="{{ card.nation|default('Unknown') }}" data-nation-img="{{ card.nation_img|default('') }}"
+            onclick="event.stopPropagation(); addToBasket(this);">
+            <span class="btn-icon">+</span>
+            <span class="btn-text">비교 바구니</span>
+        </button>
+    </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="no-results">
+    <div class="no-results-icon">
+        <svg width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor">
+            <path fill-rule="evenodd"
+                d="M10.442 10.442a1 1 0 0 1 1.415 0l3.85 3.85a1 1 0 0 1-1.414 1.415l-3.85-3.85a1 1 0 0 1 0-1.415z" />
+            <path fill-rule="evenodd"
+                d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z" />
+        </svg>
+    </div>
+    <h4 class="text-muted">검색 결과가 없습니다</h4>
+    <p class="text-muted">다른 조건으로 검색해보세요.</p>
+</div>
+{% endif %}
+
+<div id="comparisonBar" class="comparison-bar">
+    <div class="comparison-wrapper">
+        <div class="basket-items basket-left" id="basketLeft"></div>
+
+        <div class="comparison-slots">
+            <div class="comparison-slot" id="slot1" data-slot="1">
+                <span class="slot-placeholder">드래그</span>
+            </div>
+
+            <div class="vs-divider" id="vsButton">VS</div>
+
+            <div class="comparison-slot" id="slot2" data-slot="2">
+                <span class="slot-placeholder">드래그</span>
+            </div>
+        </div>
+
+        <div class="basket-items basket-right" id="basketRight"></div>
+
+        <div class="basket-counter">
+            <span id="basketCount">0</span>/10
+        </div>
+
+        <button class="clear-basket-btn" id="clearBasketBtn" onclick="basket.clearAllBasket()">
+            바구니 비우기
+        </button>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/comparison.js') }}"></script>
+{% endblock %}

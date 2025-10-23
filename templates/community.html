@@ -1,0 +1,291 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 1400px; margin: 40px auto; padding: 0 20px;">
+
+    <!-- 상단: 카테고리 탭 + 글쓰기 버튼 -->
+    <div
+        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+
+        <!-- 카테고리 탭 -->
+        <div style="flex: 1;">
+            <!-- 첫 줄: 전체글 + 인기글 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <a href="/community{% if category %}?category={{ category }}{% endif %}"
+                    class="btn {% if not show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 6px;">
+                    📋전체글
+                </a>
+                <a href="/community?popular=true{% if category %}&category={{ category }}{% endif %}"
+                    class="btn {% if show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 6px;">
+                    🔥인기글
+                </a>
+            </div>
+
+            <!-- 둘째 줄: 나머지 카테고리들 -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="/community?category=잡담{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '잡담' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    잡담
+                </a>
+                <a href="/community?category=꿀팁{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '꿀팁' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    꿀팁
+                </a>
+                <a href="/community?category=스쿼드{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '스쿼드' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    스쿼드
+                </a>
+                <a href="/community?category=선수 후기{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '선수 후기' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    선수 후기
+                </a>
+                <a href="/community?category=전술{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '전술' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    전술
+                </a>
+                <a href="/community?category=강화/득템{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '강화/득템' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    강화/득템
+                </a>
+                <a href="/community?category=감독모드{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '감독모드' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    감독모드
+                </a>
+                <a href="/community?category=미니 페이스온{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '미니 페이스온' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    미니 페이스온
+                </a>
+                <a href="/community?category=명장면{% if show_popular %}&popular=true{% endif %}"
+                    class="btn {% if category == '명장면' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                    style="padding: 8px 20px; border-radius: 20px;">
+                    명장면
+                </a>
+            </div>
+        </div>
+
+        <!-- 글쓰기 버튼 -->
+        <a href="/community/write" class="btn btn-success" style="padding: 8px 24px; font-weight: 600;">
+            ✏️ 글쓰기
+        </a>
+    </div>
+
+    <!-- 게시글 목록 테이블 -->
+    <div class="table-responsive" style="background: var(--card-bg); border-radius: 12px; overflow: hidden;">
+        <table class="table table-hover" style="margin: 0; color: var(--text-primary);">
+            <thead style="background: var(--secondary-bg); border-bottom: 2px solid var(--border-color);">
+                <tr>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px;">번호</th>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px;">탭</th>
+                    <th style="padding: 15px 20px;">제목</th>
+                    <th style="width: 150px; text-align: center; padding: 15px 10px;">글쓴이</th>
+                    <th style="width: 120px; text-align: center; padding: 15px 10px;">날짜</th>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px;">조회</th>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px;">추천</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if posts %}
+                {% for post in posts %}
+                <tr style="cursor: pointer; border-bottom: 1px solid var(--border-color);"
+                    onclick="window.location='/community/post/{{ post.id }}?category={{ category or '' }}'">
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500;">
+                        {{ post.id }}
+                    </td>
+                    <td
+                        style="text-align: center; padding: 12px 10px; color: var(--text-primary); font-size: 0.9rem; white-space: nowrap;">
+                        {{ post.category }}
+                    </td>
+                    <td style="padding: 12px 20px;">
+                        <strong style="color: var(--text-primary); font-size: 1rem;">
+                            {{ post.title }}
+                            {% if post.has_image %}
+                            <span style="margin-left: 6px; font-size: 0.9rem;">🖼️</span>
+                            {% endif %}
+                            {% if post.has_video %}
+                            <span
+                                style="margin-left: {% if post.has_image %}-5px{% else %}2px{% endif %}; font-size: 0.9rem;">▶️</span>
+                            {% endif %}
+                        </strong>
+                    </td>
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
+                        {{ post.author }}
+                    </td>
+                    <td
+                        style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-size: 0.9rem;">
+                        {{ post.display_date }}
+                    </td>
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
+                        {{ post.views }}
+                    </td>
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
+                        {{ post.likes }}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 1.2rem; margin-bottom: 10px;">📝</div>
+                        <div>아직 작성된 글이 없습니다</div>
+                        <a href="/community/write" class="btn btn-primary" style="margin-top: 20px;">첫 글 작성하기</a>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 페이지네이션 + 필터 + 글쓰기 -->
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px;">
+
+        <!-- 왼쪽: 전체글/인기글 버튼 -->
+        <div style="display: flex; gap: 10px;">
+            <a href="/community{% if category %}?category={{ category }}{% endif %}"
+                class="btn {% if not show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                style="padding: 8px 20px; border-radius: 6px;">
+                📋전체글
+            </a>
+            <a href="/community?popular=true{% if category %}&category={{ category }}{% endif %}"
+                class="btn {% if show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                style="padding: 8px 20px; border-radius: 6px;">
+                🔥인기글
+            </a>
+        </div>
+
+        <!-- 가운데: 페이지네이션 -->
+        {% if total_pages > 1 %}
+        <nav>
+            <ul class="pagination justify-content-center" style="margin: 0;">
+                {% if current_page > 1 %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="/community?{% if show_popular %}popular=true&{% endif %}{% if category %}category={{ category }}&{% endif %}page={{ current_page - 1 }}">이전</a>
+                </li>
+                {% endif %}
+
+                {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {% if p == current_page %}active{% endif %}">
+                    <a class="page-link"
+                        href="/community?{% if show_popular %}popular=true&{% endif %}{% if category %}category={{ category }}&{% endif %}page={{ p }}">{{
+                        p }}</a>
+                </li>
+                {% endfor %}
+
+                {% if current_page < total_pages %} <li class="page-item">
+                    <a class="page-link"
+                        href="/community?{% if show_popular %}popular=true&{% endif %}{% if category %}category={{ category }}&{% endif %}page={{ current_page + 1 }}">다음</a>
+                    </li>
+                    {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        <!-- 오른쪽: 글쓰기 버튼 -->
+        <a href="/community/write" class="btn btn-success" style="padding: 8px 24px; font-weight: 600;">
+            ✏️ 글쓰기
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- 검색 영역 -->
+<div class="container" style="max-width: 1400px; margin: 30px auto 0; padding: 0 20px;">
+    <div style="display: flex; gap: 10px; align-items: center; max-width: 600px; margin: 0 auto;">
+        <select name="search_type" id="searchType" class="form-select"
+            style="width: 140px; background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 8px;">
+            <option value="title_content" {% if search_type=='title_content' %}selected{% endif %}>제목+내용</option>
+            <option value="title" {% if search_type=='title' %}selected{% endif %}>제목</option>
+            <option value="content" {% if search_type=='content' %}selected{% endif %}>내용</option>
+            <option value="author" {% if search_type=='author' %}selected{% endif %}>글쓴이</option>
+            <option value="comment" {% if search_type=='comment' %}selected{% endif %}>댓글</option>
+        </select>
+
+        <input type="text" id="searchKeyword" placeholder="검색어를 입력하세요" value="{{ keyword }}"
+            style="flex: 1; background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 8px;">
+
+        <button onclick="searchPosts()" class="btn btn-primary" style="padding: 8px 20px; white-space: nowrap;">
+            🔍 검색
+        </button>
+    </div>
+</div>
+
+
+
+
+<style>
+    .table-hover tbody tr:hover {
+        background: var(--hover-bg) !important;
+    }
+
+    .btn-outline-secondary {
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    .btn-outline-secondary:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    /* 검색 타입 드롭다운 다크모드 대응 */
+    [data-theme="dark"] .form-select option {
+        background: #2d3748;
+        color: #ffffff;
+    }
+</style>
+
+<script>
+    function searchPosts() {
+        const searchType = document.getElementById('searchType').value;
+        const keyword = document.getElementById('searchKeyword').value.trim();
+
+        if (!keyword) {
+            alert('검색어를 입력해주세요');
+            return;
+        }
+
+        // 현재 카테고리와 인기글 상태 가져오기
+        const currentCategory = '{{ category }}';
+        const showPopular = {% if show_popular %} true{% else %} false{% endif %};
+
+    // URL 파라미터 구성
+    let url = '/community?';
+
+    // 인기글 상태 추가
+    if (showPopular) {
+        url += 'popular=true&';
+    }
+
+    // 카테고리 추가
+    if (currentCategory) {
+        url += `category=${currentCategory}&`;
+    }
+
+    // 검색 조건 추가
+    url += `search_type=${searchType}&keyword=${encodeURIComponent(keyword)}`;
+
+    window.location.href = url;
+    }
+
+    // 엔터키 검색
+    document.getElementById('searchKeyword').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            searchPosts();
+        }
+    });
+</script>
+
+{% endblock %}

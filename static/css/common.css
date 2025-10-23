@@ -1,0 +1,61 @@
+/* CSS 변수 시스템 */
+:root {
+    /* 메인 색상 */
+    --gradient-start: #667eea;
+    --gradient-end: #764ba2;
+    --primary-color: #764ba2;
+    --primary-light: #f0e6ff;
+
+    /* 배경색 */
+    --bg-main: white;
+    --bg-secondary: #f8f9fa;
+
+    /* 텍스트 색상 */
+    --text-primary: #212529;
+    --text-secondary: #495057;
+    --text-muted: #6c757d;
+    --text-dark: #414447;
+
+    /* 테두리 */
+    --border-color: #dee2e6;
+
+    /* 그림자 */
+    --shadow-main: rgba(0, 0, 0, 0.2);
+    --shadow-hover: rgba(102, 126, 234, 0.4);
+    --shadow-focus: rgba(118, 75, 162, 0.25);
+
+    /* 폰트 크기 */
+    --fs-title: 2.25rem;
+    --fs-section: 1.5rem;
+    --fs-group: 1.12rem;
+    --fs-label: 0.895rem;
+}
+
+/* 다크모드 색상 */
+[data-theme="dark"] {
+    --gradient-start: #4a5568;
+    --gradient-end: #2d3748;
+    --primary-color: #9f7aea;
+    --primary-light: #44337a;
+    
+    --bg-main: #1a202c;
+    --bg-secondary: #2d3748;
+    
+    --text-primary: #e2e8f0;
+    --text-secondary: #cbd5e0;
+    --text-muted: #94a3b8;
+    --text-dark: #cbd5e0;
+    
+    --border-color: #4a5568;
+    
+    --shadow-main: rgba(0, 0, 0, 0.4);
+    --shadow-hover: rgba(159, 122, 234, 0.3);
+    --shadow-focus: rgba(159, 122, 234, 0.2);
+    
+    --bs-body-color: #e2e8f0;
+}
+
+/* 다크모드 체크박스 라벨 */
+[data-theme="dark"] .form-check-label {
+    color: var(--text-primary);
+}
