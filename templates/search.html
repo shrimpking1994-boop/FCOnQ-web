@@ -400,15 +400,6 @@
     <!-- 시즌 선택 -->
     <div class="mb-4">
         <label class="form-label section-title">시즌 선택</label>
-        <div class="season-controls">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="selectAllCheckbox" checked>
-                <label class="form-check-label" for="selectAllCheckbox">
-                    전체 선택
-                </label>
-            </div>
-            <span class="season-count" id="seasonCount">0개 선택</span>
-        </div>
         <div class="season-selector" id="seasonSelector">
             {% for season in seasons %}
             <div class="season-item" data-season-id="{{ season.season_id }}"
@@ -722,15 +713,13 @@
     class SeasonManager {
         constructor() {
             this.seasonItems = document.querySelectorAll('.season-item');
-            this.selectAllCheckbox = document.getElementById('selectAllCheckbox');
-            this.seasonCount = document.getElementById('seasonCount');
+            // selectAllCheckbox와 seasonCount 관련 코드 삭제
 
             this.init();
         }
 
         init() {
-            // 페이지 로드 시 모든 시즌 선택
-            this.selectAll();
+            // 페이지 로드 시 아무것도 선택하지 않음 (this.selectAll() 호출 제거)
 
             // 시즌 아이템 클릭 이벤트
             this.seasonItems.forEach(item => {
@@ -740,19 +729,11 @@
                 });
             });
 
-            // 전체 선택 체크박스 이벤트
-            this.selectAllCheckbox.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    this.selectAll();
-                } else {
-                    this.deselectAll();
-                }
-            });
+            // 전체 선택 체크박스 이벤트 삭제
 
             // 폼 제출 시 처리
             document.getElementById('searchForm').addEventListener('submit', (e) => {
                 const selectedCount = document.querySelectorAll('.season-checkbox:checked').length;
-                const totalCount = this.seasonItems.length;
 
                 // 먼저 모든 체크박스의 name 속성 복구
                 document.querySelectorAll('.season-checkbox').forEach(cb => {
@@ -761,19 +742,14 @@
                     }
                 });
 
-                // 전체 선택이거나 80% 이상 선택 시 시즌 체크박스 비활성화
-                if (selectedCount >= totalCount * 0.8) {
-                    // 모든 시즌 체크박스의 name 속성 제거 (전송 안 함)
-                    document.querySelectorAll('.season-checkbox:checked').forEach(cb => {
+                // 시즌이 선택되지 않았을 때는 name 속성 제거 (전체 검색)
+                if (selectedCount === 0) {
+                    document.querySelectorAll('.season-checkbox').forEach(cb => {
                         cb.removeAttribute('name');
                     });
                 }
 
-                // 아무것도 선택 안 했을 때만 경고
-                if (selectedCount === 0) {
-                    e.preventDefault();
-                    alert('최소 하나 이상의 시즌을 선택해주세요.');
-                }
+                // 경고 메시지 제거 (시즌 선택 안 해도 검색 가능)
             });
         }
 
@@ -789,8 +765,7 @@
                 item.classList.remove('selected');
             }
 
-            this.updateCount();
-            this.updateSelectAllCheckbox();
+            // updateCount()와 updateSelectAllCheckbox() 호출 제거
         }
 
         selectAll() {
@@ -809,24 +784,6 @@
                 item.classList.remove('selected');
             });
             this.updateCount();
-        }
-
-        updateCount() {
-            const selectedCount = document.querySelectorAll('.season-checkbox:checked').length;
-            const totalCount = this.seasonItems.length;
-
-            this.seasonCount.textContent = `${selectedCount}/${totalCount}개 선택`;
-        }
-
-        updateSelectAllCheckbox() {
-            const selectedCount = document.querySelectorAll('.season-checkbox:checked').length;
-            const totalCount = this.seasonItems.length;
-
-            // 모두 선택되었으면 체크, 하나라도 해제되면 체크 해제
-            this.selectAllCheckbox.checked = (selectedCount === totalCount);
-
-            // 일부만 선택된 경우 indeterminate 상태
-            this.selectAllCheckbox.indeterminate = (selectedCount > 0 && selectedCount < totalCount);
         }
     }
 

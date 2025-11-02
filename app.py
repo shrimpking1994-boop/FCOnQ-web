@@ -3,30 +3,46 @@ FC온라인 선수 카드 웹 애플리케이션
 Flask + PostgreSQL
 """
 
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from authlib.integrations.flask_client import OAuth
 import os
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from datetime import timedelta
+from dotenv import load_dotenv  # ← 추가!
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import json
 import hashlib
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from flask_dance.contrib.google import make_google_blueprint, google
-from werkzeug.security import generate_password_hash, check_password_hash
+
+# .env 파일 로드  # ← 추가!
+load_dotenv()       # ← 추가!
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'fconq-super-secret-key-change-later-12345')  # ⚠️ 나중에 변경 필요
 
-# ✅ 로그인 매니저 초기화
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'  # 로그인 필요 시 리디렉션할 페이지
+# Flask 세션 설정 (OAuth에 필요)
+app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-change-in-production')
+app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+
+# OAuth 설정
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=os.getenv('GOOGLE_CLIENT_ID'),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET'),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
 
 # DB 연결 설정
 DB_CONFIG = {
-    "host": os.environ.get("DB_HOST", "localhost"),
-    "database": os.environ.get("DB_NAME", "fconline"),
-    "user": os.environ.get("DB_USER", "postgres"),
-    "password": os.environ.get("DB_PASSWORD", "9787")
+    "host": "localhost",
+    "database": "fconline",
+    "user": "postgres",
+    "password": "9787"  # 여기에 실제 비밀번호 입력!
 }
 
 # IP 해싱 함수
@@ -35,9 +51,35 @@ def hash_ip(ip_address):
     secret = "fconline_secret_key_2025"  # 비밀키 (변경 가능)
     return hashlib.sha256(f"{ip_address}{secret}".encode()).hexdigest()
 
+def format_ip_display(ip):
+    """IP를 디시인사이드 스타일로 표시 (앞부분만)"""
+    if not ip:
+        return ''
+    
+    if '.' in ip:
+        parts = ip.split('.')
+        if len(parts) >= 2:
+            return f"({parts[0]}.{parts[1]})"
+    
+    return f"({ip[:8]})"
+
+def hash_password(password):
+    """비밀번호를 해시 처리"""
+    if not password:
+        return None
+    import hashlib
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password, password_hash):
+    """비밀번호 검증"""
+    if not password or not password_hash:
+        return False
+    return hash_password(password) == password_hash
+
+
 # 시즌 정렬 순서 (공식 홈페이지 기준)
 SEASON_ORDER = [
-    100, 110, 101, 113, 114, 111, 848, 850, 846, 845, 849, 840,
+    100, 110, 101, 113, 114, 111, 851, 848, 850, 846, 845, 849, 840,
     839, 836, 829, 828, 827, 826, 825, 821, 815, 818,
     814, 813, 802, 801, 290, 291, 289, 283, 284, 272,
     273, 274, 270, 268, 265, 264, 835, 811, 281, 261,
@@ -48,47 +90,173 @@ SEASON_ORDER = [
     844, 820, 287, 267, 250, 230, 215, 834, 810, 280,
     260, 242, 221, 234, 225, 806, 293, 294, 295, 298,
     297, 247, 516, 514, 512, 510, 507, 504, 830, 805,
-    277, 257, 239, 515, 513, 511, 508, 506, 503, 502,
-    501, 500, 300, 323, 322, 321, 320, 319, 318, 317,
+    277, 257, 239, 517, 515, 513, 511, 508, 506, 503, 502,
+    501, 500, 300, 324, 323, 322, 321, 320, 319, 318, 317,
     812
 ]
-
-# ✅ User 클래스
-class User(UserMixin):
-    def __init__(self, id, email, name, profile_image=None):
-        self.id = id
-        self.email = email
-        self.name = name
-        self.profile_image = profile_image
-
-@login_manager.user_loader
-def load_user(user_id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-    user_data = cur.fetchone()
-    cur.close()
-    conn.close()
-    
-    if user_data:
-        return User(user_data['id'], user_data['email'], user_data['name'], user_data.get('profile_image'))
-    return None
-
-
-# ✅ 구글 OAuth 블루프린트
-google_bp = make_google_blueprint(
-    client_id=os.environ.get("GOOGLE_CLIENT_ID", "581851547657-gbtk81a83k7nr188p347ardjciufkudd.apps.googleusercontent.com"),
-    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET", "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"),
-    redirect_to="google_authorized",
-    scope=["openid", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"]
-)
-app.register_blueprint(google_bp, url_prefix="/login")
-
 
 def get_db_connection():
     """DB 연결 생성"""
     conn = psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
     return conn
+
+def build_search_conditions(player_names, selected_seasons, selected_positions, min_ovr, max_ovr,
+                            min_salary, max_salary, preferred_foot, weak_foot_min, min_height, max_height,
+                            min_weight, max_weight, selected_body_types, selected_traits, nation_team_color,
+                            club_team_color_1, club_team_color_2, trait_team_color):
+    """검색 조건 SQL 문자열과 파라미터 생성 (재사용 가능)"""
+    conditions = ""
+    params = []
+    
+    # 선수 이름
+    if player_names:
+        name_conditions = []
+        for name in player_names:
+            name_conditions.append("player_name ILIKE %s")
+            params.append(f'%{name}%')
+        conditions += f" AND ({' OR '.join(name_conditions)})"
+    
+    # 시즌 필터링 (선택된 경우만)
+    if selected_seasons:
+        season_conditions = []
+        for season_id in selected_seasons:
+            season_conditions.append("LEFT(spid::text, 3) = %s")
+            params.append(str(season_id))
+        conditions += f" AND ({' OR '.join(season_conditions)})"
+    # 시즌 미선택 시 조건 추가 안 함 (전체 검색)    
+    
+    # 포지션 필터링
+    if selected_positions:
+        position_conditions = []
+        for pos in selected_positions:
+            position_conditions.append("""
+                EXISTS (
+                    SELECT 1 
+                    FROM jsonb_array_elements(
+                        player_cards.full_data->'stats_info'->'main_overall'->'preferred_positions'             
+                    ) AS pp
+                    WHERE pp->>'position' = %s
+                )
+            """)
+            params.append(pos)
+        conditions += f" AND ({' OR '.join(position_conditions)})"
+    
+    # 오버롤
+    if min_ovr:
+        conditions += " AND overall >= %s"
+        params.append(int(min_ovr))
+    if max_ovr:
+        conditions += " AND overall <= %s"
+        params.append(int(max_ovr))
+    
+    # 급여
+    if min_salary:
+        conditions += " AND CAST(player_cards.full_data->'game_info'->>'salary' AS INTEGER) >= %s"
+        params.append(int(min_salary))
+    if max_salary:
+        conditions += " AND CAST(player_cards.full_data->'game_info'->>'salary' AS INTEGER) <= %s"
+        params.append(int(max_salary))
+    
+    # 주발
+    if preferred_foot:
+        if preferred_foot == 'left':
+            conditions += " AND player_cards.full_data->'game_info'->>'preferred_foot' ILIKE %s"
+            params.append('%L%')
+        elif preferred_foot == 'right':
+            conditions += " AND player_cards.full_data->'game_info'->>'preferred_foot' ILIKE %s"
+            params.append('%R%')
+    
+    # 약발
+    if weak_foot_min:
+        conditions += """ AND (
+            SELECT CAST(regexp_replace(
+                player_cards.full_data->'game_info'->>'weak_foot', 
+                '[^0-9]', '', 'g'
+            ) AS INTEGER)
+        ) >= %s"""
+        params.append(int(weak_foot_min))
+    
+    # 키
+    if min_height:
+        conditions += """ AND CAST(regexp_replace(
+            player_cards.full_data->'basic_info'->>'height', 
+            '[^0-9]', '', 'g'
+        ) AS INTEGER) >= %s"""
+        params.append(int(min_height))
+    if max_height:
+        conditions += """ AND CAST(regexp_replace(
+            player_cards.full_data->'basic_info'->>'height', 
+            '[^0-9]', '', 'g'
+        ) AS INTEGER) <= %s"""
+        params.append(int(max_height))
+    
+    # 몸무게
+    if min_weight:
+        conditions += """ AND CAST(regexp_replace(
+            player_cards.full_data->'basic_info'->>'weight', 
+            '[^0-9]', '', 'g'
+        ) AS INTEGER) >= %s"""
+        params.append(int(min_weight))
+    if max_weight:
+        conditions += """ AND CAST(regexp_replace(
+            player_cards.full_data->'basic_info'->>'weight', 
+            '[^0-9]', '', 'g'
+        ) AS INTEGER) <= %s"""
+        params.append(int(max_weight))
+    
+    # 체형
+    if selected_body_types:
+        body_type_conditions = []
+        for body_type in selected_body_types:
+            body_type_conditions.append("player_cards.full_data->'basic_info'->>'body_type' = %s")
+            params.append(body_type)
+        conditions += f" AND ({' OR '.join(body_type_conditions)})"
+    
+    # 특성
+    if selected_traits:
+        for trait in selected_traits:
+            conditions += """ AND EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements_text(player_cards.full_data->'game_info'->'traits') AS trait
+                WHERE trait = %s
+            )"""
+            params.append(trait)
+    
+    # 국가 팀컬러
+    if nation_team_color:
+        conditions += " AND player_cards.full_data->'basic_info'->>'nation' LIKE %s"
+        params.append(f'%{nation_team_color}%')
+    
+    # 클럽 팀컬러 1
+    if club_team_color_1:
+        conditions += """ AND EXISTS (
+           SELECT 1
+            FROM jsonb_array_elements(player_cards.full_data->'basic_info'->'club_history') AS club_hist
+            WHERE club_hist->>'club' = %s
+        )"""
+        params.append(club_team_color_1)
+    
+    # 클럽 팀컬러 2
+    if club_team_color_2:
+        conditions += """ AND EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(player_cards.full_data->'basic_info'->'club_history') AS club_hist
+            WHERE club_hist->>'club' = %s
+        )"""
+        params.append(club_team_color_2)
+    
+    # 특성 팀컬러
+    if trait_team_color:
+        conditions += """ AND RIGHT(player_cards.spid::text, 6) IN (
+            SELECT player_id
+            FROM special_teamcolor_players
+            WHERE teamcolor_id = (
+                SELECT id FROM special_teamcolors WHERE name = %s
+            )
+        )"""
+        params.append(trait_team_color)
+    
+    return conditions, params
 
 
 @app.route('/')
@@ -210,6 +378,7 @@ def community_list():
         
         post['has_image'] = '<img' in post['content']
         post['has_video'] = '<iframe' in post['content'] or 'youtube.com' in post['content'] or 'youtu.be' in post['content']
+        post['ip_display'] = format_ip_display(post.get('author_ip'))
     
     cur.close()
     conn.close()
@@ -232,14 +401,20 @@ def community_write():
         title = request.form.get('title')
         content = request.form.get('content')
         author = request.form.get('author', '익명')
+        password = request.form.get('password', '')  # 비밀번호 가져오기
+        # 프록시 환경 대응 (Render 등)
+        author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+        
+        # 비밀번호 해시 처리
+        password_hash = hash_password(password) if password else None
         
         conn = get_db_connection()
         cur = conn.cursor()
         
         cur.execute("""
-            INSERT INTO community.posts (category, title, content, author)
-            VALUES (%s, %s, %s, %s)
-        """, (category, title, content, author))
+            INSERT INTO community.posts (category, title, content, author, author_ip, password_hash)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (category, title, content, author, author_ip, password_hash))
         
         conn.commit()
         cur.close()
@@ -271,6 +446,10 @@ def community_post(post_id):
         conn.close()
         return "게시글을 찾을 수 없습니다", 404
     
+    # 메인 게시글 IP 표시 추가
+    post['ip_display'] = format_ip_display(post.get('author_ip'))
+    
+    
     # 댓글 조회
     cur.execute("""
         SELECT * FROM community.comments 
@@ -278,6 +457,9 @@ def community_post(post_id):
         ORDER BY created_at ASC
     """, (post_id,))
     comments = cur.fetchall()
+    
+    for comment in comments:
+        comment['ip_display'] = format_ip_display(comment.get('author_ip'))
     
     # URL에서 카테고리 파라미터 가져오기
     category_filter = request.args.get('category', '')
@@ -295,7 +477,7 @@ def community_post(post_id):
         
         # 특정 카테고리만
         cur.execute("""
-            SELECT id, category, title, author, created_at, views, likes, content
+            SELECT id, category, title, author, author_ip, created_at, views, likes, content
             FROM community.posts
             WHERE category = %s
             ORDER BY created_at DESC
@@ -308,7 +490,7 @@ def community_post(post_id):
         
         # 전체 게시글
         cur.execute("""
-            SELECT id, category, title, author, created_at, views, likes, content
+            SELECT id, category, title, author, author_ip, created_at, views, likes, content
             FROM community.posts
             ORDER BY created_at DESC
             LIMIT %s OFFSET %s
@@ -329,7 +511,9 @@ def community_post(post_id):
             
         # 이미지/영상 감지 추가
         p['has_image'] = '<img' in p['content']
-        p['has_video'] = '<iframe' in p['content'] or 'youtube.com' in p['content'] or 'youtu.be' in p['content']    
+        p['has_video'] = '<iframe' in p['content'] or 'youtube.com' in p['content'] or 'youtu.be' in p['content']
+        # IP 표시 추가
+        p['ip_display'] = format_ip_display(p.get('author_ip'))
     
     cur.close()
     conn.close()
@@ -348,14 +532,166 @@ def add_comment(post_id):
     """댓글 작성"""
     content = request.form.get('content')
     author = request.form.get('author', '익명')
+    password = request.form.get('password', '')  # 비밀번호 가져오기
+    # 프록시 환경 대응 (Render 등)
+    author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+    
+    # 비밀번호 해시 처리
+    password_hash = hash_password(password) if password else None
     
     conn = get_db_connection()
     cur = conn.cursor()
     
     cur.execute("""
-        INSERT INTO community.comments (post_id, content, author)
-        VALUES (%s, %s, %s)
-    """, (post_id, content, author))
+        INSERT INTO community.comments (post_id, content, author, author_ip, password_hash)
+        VALUES (%s, %s, %s, %s, %s)
+    """, (post_id, content, author, author_ip, password_hash))
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return redirect(f'/community/post/{post_id}')
+
+@app.route('/community/post/<int:post_id>/delete', methods=['POST'])
+def delete_post(post_id):
+    """게시글 삭제"""
+    password = request.form.get('password', '')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 게시글 조회
+    cur.execute("SELECT password_hash FROM community.posts WHERE id = %s", (post_id,))
+    post = cur.fetchone()
+    
+    if not post:
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'message': '게시글을 찾을 수 없습니다'}), 404
+    
+    # 비밀번호 확인
+    if not verify_password(password, post['password_hash']):
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
+    
+    # 댓글 먼저 삭제
+    cur.execute("DELETE FROM community.comments WHERE post_id = %s", (post_id,))
+    
+    # 게시글 삭제
+    cur.execute("DELETE FROM community.posts WHERE id = %s", (post_id,))
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': '게시글이 삭제되었습니다'})
+
+@app.route('/community/comment/<int:comment_id>/delete', methods=['POST'])
+def delete_comment(comment_id):
+    """댓글 삭제"""
+    password = request.form.get('password', '')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 댓글 조회
+    cur.execute("SELECT password_hash, post_id FROM community.comments WHERE id = %s", (comment_id,))
+    comment = cur.fetchone()
+    
+    if not comment:
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'message': '댓글을 찾을 수 없습니다'}), 404
+    
+    # 비밀번호 확인
+    if not verify_password(password, comment['password_hash']):
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
+    
+    # 댓글 삭제
+    cur.execute("DELETE FROM community.comments WHERE id = %s", (comment_id,))
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': '댓글이 삭제되었습니다', 'post_id': comment['post_id']})
+
+
+@app.route('/community/post/<int:post_id>/edit')
+def edit_post_page(post_id):
+    """게시글 수정 페이지"""
+    password = request.args.get('password', '')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 게시글 조회
+    cur.execute("SELECT * FROM community.posts WHERE id = %s", (post_id,))
+    post = cur.fetchone()
+    
+    if not post:
+        cur.close()
+        conn.close()
+        return "게시글을 찾을 수 없습니다", 404
+    
+    # 비밀번호 확인
+    if not verify_password(password, post['password_hash']):
+        cur.close()
+        conn.close()
+        return """
+            <script>
+                alert('비밀번호가 일치하지 않습니다');
+                history.back();
+            </script>
+        """
+    
+    cur.close()
+    conn.close()
+    
+    return render_template('community_edit.html', post=post)
+
+
+@app.route('/community/post/<int:post_id>/edit', methods=['POST'])
+def edit_post_submit(post_id):
+    """게시글 수정 처리"""
+    category = request.form.get('category')
+    title = request.form.get('title')
+    content = request.form.get('content')
+    password = request.form.get('password', '')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 게시글 조회
+    cur.execute("SELECT password_hash FROM community.posts WHERE id = %s", (post_id,))
+    post = cur.fetchone()
+    
+    if not post:
+        cur.close()
+        conn.close()
+        return "게시글을 찾을 수 없습니다", 404
+    
+    # 비밀번호 확인
+    if not verify_password(password, post['password_hash']):
+        cur.close()
+        conn.close()
+        return """
+            <script>
+                alert('비밀번호가 일치하지 않습니다');
+                history.back();
+            </script>
+        """
+    
+    # 게시글 수정
+    cur.execute("""
+        UPDATE community.posts 
+        SET category = %s, title = %s, content = %s 
+        WHERE id = %s
+    """, (category, title, content, post_id))
     
     conn.commit()
     cur.close()
@@ -387,22 +723,20 @@ def search():
             ordered_seasons.append(seasons_dict[sid])
     
     # 포지션 목록
-    cur.execute("SELECT DISTINCT position FROM player_cards ORDER BY position")
+    cur.execute("SELECT position FROM positions ORDER BY position")
     positions = [row['position'] for row in cur.fetchall()]
-    
-    # 국적 목록 (기존 코드 - 이제 사용 안 함)
-    cur.execute("""
-        SELECT DISTINCT full_data->'basic_info'->>'nation' as nation 
-        FROM player_cards 
-        WHERE full_data->'basic_info'->>'nation' IS NOT NULL
-        ORDER BY nation
-    """)
-    nations_old = [row['nation'] for row in cur.fetchall() if row['nation'] and row['nation'] != 'Unknown']
+   
     
     # 팀컬러 데이터 가져오기
     # 1. 국가 팀컬러
-    cur.execute("SELECT nation_name FROM nation_teamcolors ORDER BY nation_name")
-    nation_teamcolors = [row['nation_name'] for row in cur.fetchall()]
+    cur.execute("""
+        SELECT nation_name 
+        FROM nation_teamcolors 
+        ORDER BY nation_name
+    """)
+    nation_data = [row['nation_name'] for row in cur.fetchall()]
+    nations_old = nation_data  # 기존 호환성
+    nation_teamcolors = nation_data  # 팀컬러 필터용    
     
     # 2. 소속 팀컬러
     cur.execute("SELECT club_name FROM club_teamcolors ORDER BY club_name")
@@ -467,10 +801,35 @@ def results():
     
     # 페이지네이션 파라미터
     page = 1
-    per_page = 100
+    per_page = 200
     offset = 0
     
-    # 기본 쿼리
+    # 특성 리스트 생성
+    selected_traits = []
+    if new_trait:
+        selected_traits.append(new_trait)
+    if normal_trait_1:
+        selected_traits.append(normal_trait_1)
+    if normal_trait_2:
+        selected_traits.append(normal_trait_2)
+    if normal_trait_3:
+        selected_traits.append(normal_trait_3)
+    
+    # 검색 조건 생성 (헬퍼 함수 사용)
+    search_conditions, search_params = build_search_conditions(
+        player_names, selected_seasons, selected_positions, min_ovr, max_ovr,
+        min_salary, max_salary, preferred_foot, weak_foot_min, min_height, max_height,
+        min_weight, max_weight, selected_body_types, selected_traits, nation_team_color,
+        club_team_color_1, club_team_color_2, trait_team_color
+    )
+    
+    # COUNT 쿼리 실행
+    count_query = "SELECT COUNT(*) FROM player_cards WHERE 1=1" + search_conditions
+    cur.execute(count_query, search_params)
+    total_count = cur.fetchone()['count']
+    total_pages = max(1, (total_count + per_page - 1) // per_page) if total_count > 0 else 1
+    
+    # 메인 쿼리 실행
     query = """
     SELECT spid, player_name, season_name, overall, position,
            full_data->'image_info'->>'mini_faceon' as image,
@@ -488,334 +847,14 @@ def results():
            full_data->'game_info'->'traits' as traits
     FROM player_cards
     WHERE 1=1
+    """ + search_conditions + """
+    ORDER BY overall DESC, player_name
+    LIMIT %s OFFSET %s
     """
-    params = []
     
-    # 검색 조건 추가
-    if player_names:
-        name_conditions = []
-        for name in player_names:
-            name_conditions.append("player_name ILIKE %s")
-            params.append(f'%{name}%')
-        query += f" AND ({' OR '.join(name_conditions)})"
-    
-    # 시즌 필터링 - 전체의 80% 이상 선택 시 필터 미적용
-    total_seasons = 131  # 전체 시즌 수
-    if selected_seasons and len(selected_seasons) < int(total_seasons * 0.8):
-    # season_id로 spid 앞 3자리 매칭
-        season_conditions = []
-        for season_id in selected_seasons:
-            season_conditions.append("LEFT(spid::text, 3) = %s")
-            params.append(str(season_id))
-        query += f" AND ({' OR '.join(season_conditions)})"
-    # 80% 이상이거나 비어있으면 모든 시즌 검색
-    
-    # 포지션 필터링 - main_overall 경로 사용
-    if selected_positions:
-        position_conditions = []
-        for pos in selected_positions:
-            position_conditions.append("""
-                EXISTS (
-                    SELECT 1 
-                    FROM jsonb_array_elements(
-                        player_cards.full_data->'stats_info'->'main_overall'->'preferred_positions'             
-                    ) AS pp
-                    WHERE pp->>'position' = %s
-                )
-            """)
-            params.append(pos)
-        
-        query += f" AND ({' OR '.join(position_conditions)})"
-    
-    if min_ovr:
-        query += " AND overall >= %s"
-        params.append(int(min_ovr))
-        
-    if max_ovr:
-        query += " AND overall <= %s"
-        params.append(int(max_ovr))
-        
-    if min_salary:
-        query += " AND CAST(player_cards.full_data->'game_info'->>'salary' AS INTEGER) >= %s"
-        params.append(int(min_salary))
-    
-    if max_salary:
-        query += " AND CAST(player_cards.full_data->'game_info'->>'salary' AS INTEGER) <= %s"
-        params.append(int(max_salary))
-        
-    if preferred_foot:
-        if preferred_foot == 'left':
-            query += " AND player_cards.full_data->'game_info'->>'preferred_foot' ILIKE %s"
-            params.append('%L%')
-        elif preferred_foot == 'right':
-            query += " AND player_cards.full_data->'game_info'->>'preferred_foot' ILIKE %s"
-            params.append('%R%')
-            
-    if weak_foot_min:
-        query += """ AND (
-            SELECT CAST(regexp_replace(
-                player_cards.full_data->'game_info'->>'weak_foot', 
-                '[^0-9]', '', 'g'
-            ) AS INTEGER)
-        ) >= %s"""
-        params.append(int(weak_foot_min)) 
-        
-    if min_height:
-        query += """ AND CAST(regexp_replace(
-            player_cards.full_data->'basic_info'->>'height', 
-            '[^0-9]', '', 'g'
-        ) AS INTEGER) >= %s"""
-        params.append(int(min_height))
-
-    if max_height:
-        query += """ AND CAST(regexp_replace(
-            player_cards.full_data->'basic_info'->>'height', 
-            '[^0-9]', '', 'g'
-        ) AS INTEGER) <= %s"""
-        params.append(int(max_height))
-
-    if min_weight:
-        query += """ AND CAST(regexp_replace(
-            player_cards.full_data->'basic_info'->>'weight', 
-            '[^0-9]', '', 'g'
-        ) AS INTEGER) >= %s"""
-        params.append(int(min_weight))
-
-    if max_weight:
-        query += """ AND CAST(regexp_replace(
-            player_cards.full_data->'basic_info'->>'weight', 
-            '[^0-9]', '', 'g'
-        ) AS INTEGER) <= %s"""
-        params.append(int(max_weight))
-        
-    if selected_body_types:
-        body_type_conditions = []
-        for body_type in selected_body_types:
-            body_type_conditions.append("player_cards.full_data->'basic_info'->>'body_type' = %s")
-            params.append(body_type)
-        query += f" AND ({' OR '.join(body_type_conditions)})"
-        
-    selected_traits = []
-    if new_trait:
-        selected_traits.append(new_trait)
-    if normal_trait_1:
-        selected_traits.append(normal_trait_1)
-    if normal_trait_2:
-        selected_traits.append(normal_trait_2)
-    if normal_trait_3:
-        selected_traits.append(normal_trait_3)
-
-    if selected_traits:
-        for trait in selected_traits:
-            query += """ AND EXISTS (
-                SELECT 1
-                FROM jsonb_array_elements_text(player_cards.full_data->'game_info'->'traits') AS trait
-                WHERE trait = %s
-            )"""
-            params.append(trait) 
-            
-    if nation_team_color:
-        query += " AND player_cards.full_data->'basic_info'->>'nation' LIKE %s"
-        params.append(f'%{nation_team_color}%')
-        
-    if club_team_color_1:
-        query += """ AND EXISTS (
-           SELECT 1
-            FROM jsonb_array_elements(player_cards.full_data->'basic_info'->'club_history') AS club_hist
-            WHERE club_hist->>'club' = %s
-        )"""
-        params.append(club_team_color_1)
-         
-    if club_team_color_2:
-        query += """ AND EXISTS (
-            SELECT 1
-            FROM jsonb_array_elements(player_cards.full_data->'basic_info'->'club_history') AS club_hist
-            WHERE club_hist->>'club' = %s
-        )"""
-        params.append(club_team_color_2)
-        
-    if trait_team_color:
-        query += """ AND RIGHT(player_cards.spid::text, 6) IN (
-            SELECT player_id
-            FROM special_teamcolor_players
-            WHERE teamcolor_id = (
-                SELECT id FROM special_teamcolors WHERE name = %s
-            )
-        )"""
-        params.append(trait_team_color)    
-                                              
-    
-    # 전체 카드 수 계산
-    count_query = """
-    SELECT COUNT(*)
-    FROM player_cards
-    WHERE 1=1
-    """
-    count_params = []
-    
-    # 검색 조건 재적용
-    if player_names:
-       name_conditions = []
-       for name in player_names:
-           name_conditions.append("player_name ILIKE %s")
-           count_params.append(f'%{name}%')
-       count_query += f" AND ({' OR '.join(name_conditions)})"   
-    
-    total_seasons = 131
-    if selected_seasons and len(selected_seasons) < int(total_seasons * 0.8):
-    # season_id로 spid 앞 3자리 매칭
-        season_conditions = []
-        for season_id in selected_seasons:
-            season_conditions.append("LEFT(spid::text, 3) = %s")
-            count_params.append(str(season_id))
-        count_query += f" AND ({' OR '.join(season_conditions)})"
-    
-    if selected_positions:
-        position_conditions = []
-        for pos in selected_positions:
-            position_conditions.append("""
-                EXISTS (
-                    SELECT 1 
-                    FROM jsonb_array_elements(
-                        player_cards.full_data->'stats_info'->'main_overall'->'preferred_positions'
-                    ) AS pp
-                    WHERE pp->>'position' = %s
-                )
-            """)
-            count_params.append(pos)
-        count_query += f" AND ({' OR '.join(position_conditions)})"
-    
-    if min_ovr:
-        count_query += " AND overall >= %s"
-        count_params.append(int(min_ovr))
-        
-    if max_ovr:
-        count_query += " AND overall <= %s"
-        count_params.append(int(max_ovr))
-        
-    if min_salary:
-        count_query += " AND CAST(player_cards.full_data->'game_info'->>'salary' AS INTEGER) >= %s"
-        count_params.append(int(min_salary))
-    
-    if max_salary:
-        count_query += " AND CAST(player_cards.full_data->'game_info'->>'salary' AS INTEGER) <= %s"
-        count_params.append(int(max_salary))
-        
-    if preferred_foot:
-        if preferred_foot == 'left':
-            count_query += " AND player_cards.full_data->'game_info'->>'preferred_foot' ILIKE %s"
-            count_params.append('%L%')
-        elif preferred_foot == 'right':
-            count_query += " AND player_cards.full_data->'game_info'->>'preferred_foot' ILIKE %s"
-            count_params.append('%R%')
-
-    if weak_foot_min:
-        count_query += """ AND (
-            SELECT CAST(regexp_replace(
-                player_cards.full_data->'game_info'->>'weak_foot', 
-                '[^0-9]', '', 'g'
-            ) AS INTEGER)
-        ) >= %s"""
-        count_params.append(int(weak_foot_min))
-        
-    if min_height:
-        count_query += """ AND CAST(regexp_replace(
-            player_cards.full_data->'basic_info'->>'height', 
-            '[^0-9]', '', 'g'
-        ) AS INTEGER) >= %s"""
-        count_params.append(int(min_height))
-
-    if max_height:
-        count_query += """ AND CAST(regexp_replace(
-            player_cards.full_data->'basic_info'->>'height', 
-            '[^0-9]', '', 'g'
-        ) AS INTEGER) <= %s"""
-        count_params.append(int(max_height))
-
-    if min_weight:
-        count_query += """ AND CAST(regexp_replace(
-            player_cards.full_data->'basic_info'->>'weight', 
-            '[^0-9]', '', 'g'
-        ) AS INTEGER) >= %s"""
-        count_params.append(int(min_weight))
-
-    if max_weight:
-        count_query += """ AND CAST(regexp_replace(
-            player_cards.full_data->'basic_info'->>'weight', 
-            '[^0-9]', '', 'g'
-        ) AS INTEGER) <= %s"""
-        count_params.append(int(max_weight))
-        
-    if selected_body_types:
-        body_type_conditions = []
-        for body_type in selected_body_types:
-            body_type_conditions.append("player_cards.full_data->'basic_info'->>'body_type' = %s")
-            count_params.append(body_type)
-        count_query += f" AND ({' OR '.join(body_type_conditions)})"
-        
-    selected_traits = []
-    if new_trait:
-        selected_traits.append(new_trait)
-    if normal_trait_1:
-        selected_traits.append(normal_trait_1)
-    if normal_trait_2:
-        selected_traits.append(normal_trait_2)
-    if normal_trait_3:
-        selected_traits.append(normal_trait_3)
-
-    if selected_traits:
-        for trait in selected_traits:
-            count_query += """ AND EXISTS (
-                SELECT 1
-                FROM jsonb_array_elements_text(player_cards.full_data->'game_info'->'traits') AS trait
-                WHERE trait = %s
-            )"""
-            count_params.append(trait)
-            
-    if nation_team_color:
-        count_query += " AND player_cards.full_data->'basic_info'->>'nation' LIKE %s"
-        count_params.append(f'%{nation_team_color}%')  
-        
-    if club_team_color_1:
-        count_query += """ AND EXISTS (
-            SELECT 1
-            FROM jsonb_array_elements(player_cards.full_data->'basic_info'->'club_history') AS club_hist
-            WHERE club_hist->>'club' = %s
-        )"""
-        count_params.append(club_team_color_1)   
-        
-    if club_team_color_2:
-        count_query += """ AND EXISTS (
-            SELECT 1
-            FROM jsonb_array_elements(player_cards.full_data->'basic_info'->'club_history') AS club_hist
-            WHERE club_hist->>'club' = %s
-        )"""
-        count_params.append(club_team_color_2)    
-        
-    if trait_team_color:
-        count_query += """ AND RIGHT(player_cards.spid::text, 6) IN (
-            SELECT player_id
-            FROM special_teamcolor_players
-            WHERE teamcolor_id = (
-                SELECT id FROM special_teamcolors WHERE name = %s
-            )
-        )"""
-        count_params.append(trait_team_color)     
-        
-                          
-    cur.execute(count_query, count_params)
-    
-    total_count = cur.fetchone()['count']
-    total_pages = max(1, (total_count + per_page - 1) // per_page) if total_count > 0 else 1
-    
-    # 정렬 및 페이지네이션 적용
-    query += " ORDER BY overall DESC, player_name"
-    query += " LIMIT %s OFFSET %s"
-    params.extend([per_page, offset])
-    
-    cur.execute(query, params)
-    cards = cur.fetchall()
-    
+    query_params = search_params + [per_page, offset]
+    cur.execute(query, query_params)
+    cards = cur.fetchall()     
     cur.close()
     conn.close()
     
@@ -960,37 +999,7 @@ def test_db():
     
     return jsonify(results)
 
-@app.route('/api/stats')
-def api_stats():
-    """통계 API"""
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    # 선수별 최고 오버롤
-    cur.execute("""
-        SELECT player_name, MAX(overall) as max_overall, COUNT(*) as card_count
-        FROM player_cards
-        GROUP BY player_name
-        ORDER BY max_overall DESC
-    """)
-    player_stats = cur.fetchall()
-    
-    # 시즌별 카드 수
-    cur.execute("""
-        SELECT season_name, COUNT(*) as count
-        FROM player_cards
-        GROUP BY season_name
-        ORDER BY count DESC
-    """)
-    season_stats = cur.fetchall()
-    
-    cur.close()
-    conn.close()
-    
-    return jsonify({
-        'player_stats': player_stats,
-        'season_stats': season_stats
-    })
+
     
     
 @app.route('/community/vote/<int:post_id>/<vote_type>', methods=['POST'])
@@ -1096,16 +1105,17 @@ def player_review(spid):
         conn.close()
         return "선수 카드를 찾을 수 없습니다", 404
     
-    # ✅ 후기 조회 (사용자 이름 포함)
+    # 후기 조회 (최신순)
     cur.execute("""
-        SELECT pr.*, u.name as author_name, u.email as author_email
-        FROM player_reviews pr
-        JOIN users u ON pr.user_id = u.id
-        WHERE pr.spid = %s
-        ORDER BY pr.created_at DESC
+        SELECT * FROM player_reviews
+        WHERE spid = %s
+        ORDER BY created_at DESC
     """, (spid,))
-    
     reviews = cur.fetchall()
+    
+    # IP 표시 추가
+    for review in reviews:
+        review['ip_display'] = format_ip_display(review.get('author_ip'))    
     
     cur.close()
     conn.close()
@@ -1113,24 +1123,27 @@ def player_review(spid):
     return render_template('player_review.html', card=card, reviews=reviews)
 
 
-@app.route('/player_review/<int:spid>/comment', methods=['POST'])
-@login_required  # ✅ 로그인 필수
-def add_player_review(spid):
+@app.route('/player_review/<spid>/write', methods=['POST'])
+def write_player_review(spid):
     """선수 후기 작성"""
+    rating = request.form.get('rating')
+    rating = int(rating) if rating else None
     content = request.form.get('content')
-    rating = request.form.get('rating') or None
+    author = request.form.get('author', '익명')
+    password = request.form.get('password', '')
+    # 프록시 환경 대응 (Render 등)
+    author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
     
-    if not content:
-        return redirect(f'/player_review/{spid}')
+    # 비밀번호 해시 처리
+    password_hash = hash_password(password) if password else None
     
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # ✅ user_id 사용 (current_user에서 가져옴)
     cur.execute("""
-        INSERT INTO player_reviews (spid, user_id, content, rating)
-        VALUES (%s, %s, %s, %s)
-    """, (spid, current_user.id, content, rating))
+        INSERT INTO player_reviews (spid, rating, content, author, author_ip, password_hash)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (spid, rating, content, author, author_ip, password_hash))
     
     conn.commit()
     cur.close()
@@ -1138,84 +1151,209 @@ def add_player_review(spid):
     
     return redirect(f'/player_review/{spid}')
 
-
-@app.route('/login')
-def login():
-    """로그인 페이지"""
-    return render_template('login.html')
-
-@app.route('/login/google/authorized')
-def google_authorized():
-    """구글 로그인 콜백"""
-    if not google.authorized:
-        return redirect(url_for('login'))
+@app.route('/player_review/<int:review_id>/delete', methods=['POST'])
+def delete_player_review(review_id):
+    """선수 후기 삭제"""
+    password = request.form.get('password', '')
     
-    # 구글에서 사용자 정보 가져오기
-    resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return redirect(url_for('login'))
-    
-    user_info = resp.json()
-    email = user_info['email']
-    name = user_info.get('name', '')
-    profile_image = user_info.get('picture', '')
-    oauth_id = user_info['id']
-    
-    # DB에서 사용자 확인/생성
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # 기존 사용자 확인
-    cur.execute("SELECT * FROM users WHERE email = %s", (email,))
-    user = cur.fetchone()
+    # 후기 조회
+    cur.execute("SELECT password_hash, spid FROM player_reviews WHERE id = %s", (review_id,))
+    review = cur.fetchone()
     
-    if user:
-        # 기존 사용자 - 마지막 로그인 시간 업데이트
-        cur.execute("""
-            UPDATE users 
-            SET last_login = CURRENT_TIMESTAMP, profile_image = %s
-            WHERE id = %s
-        """, (profile_image, user['id']))
-        conn.commit()
-        user_id = user['id']
-    else:
-        # 신규 사용자 - 생성
-        cur.execute("""
-            INSERT INTO users (email, name, profile_image, oauth_provider, oauth_id, last_login)
-            VALUES (%s, %s, %s, 'google', %s, CURRENT_TIMESTAMP)
-            RETURNING id
-        """, (email, name, profile_image, oauth_id))
-        user_id = cur.fetchone()['id']
-        conn.commit()
+    if not review:
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'message': '후기를 찾을 수 없습니다'}), 404
     
+    # 비밀번호 확인
+    if not verify_password(password, review['password_hash']):
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
+    
+    # 후기 삭제
+    cur.execute("DELETE FROM player_reviews WHERE id = %s", (review_id,))
+    
+    conn.commit()
     cur.close()
     conn.close()
     
-    # Flask-Login으로 로그인 처리
-    user_obj = User(user_id, email, name, profile_image)
-    login_user(user_obj)
+    return jsonify({'success': True, 'message': '후기가 삭제되었습니다', 'spid': review['spid']})
+
+
+@app.route('/player_review/vote/<int:review_id>/<vote_type>', methods=['POST'])
+def vote_player_review(review_id, vote_type):
+    """선수 후기 추천/비추천"""
+    if vote_type not in ['like', 'dislike']:
+        return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
     
-    return redirect('/')
+    # IP 해시 생성
+    ip_hash = hash_ip(request.remote_addr)
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # 이미 투표했는지 확인
+        cur.execute("""
+            SELECT vote_type FROM player_review_votes 
+            WHERE review_id = %s AND ip_hash = %s
+        """, (review_id, ip_hash))
+        
+        existing_vote = cur.fetchone()
+        
+        if existing_vote:
+            return jsonify({
+                'success': False, 
+                'message': '이미 투표하셨습니다'
+            }), 400
+        
+        # 투표 기록 저장
+        cur.execute("""
+            INSERT INTO player_review_votes (review_id, ip_hash, vote_type)
+            VALUES (%s, %s, %s)
+        """, (review_id, ip_hash, vote_type))
+        
+        # 후기의 추천/비추천 수 업데이트
+        if vote_type == 'like':
+            cur.execute("""
+                UPDATE player_reviews 
+                SET likes = likes + 1 
+                WHERE id = %s
+            """, (review_id,))
+        else:
+            cur.execute("""
+                UPDATE player_reviews 
+                SET dislikes = dislikes + 1 
+                WHERE id = %s
+            """, (review_id,))
+        
+        conn.commit()
+        
+        # 업데이트된 정보 가져오기
+        cur.execute("""
+            SELECT likes, dislikes, (likes - dislikes) as net_votes 
+            FROM player_reviews 
+            WHERE id = %s
+        """, (review_id,))
+        
+        result = cur.fetchone()
+        
+        return jsonify({
+            'success': True,
+            'likes': result['likes'],
+            'dislikes': result['dislikes'],
+            'net_votes': result['net_votes']
+        })
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route('/login')
+def login():
+    """Google OAuth 로그인 시작"""
+    redirect_uri = url_for('auth_callback', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+
+@app.route('/auth/callback')
+def auth_callback():
+    """Google OAuth 콜백"""
+    try:
+        # Google로부터 토큰 받기
+        token = google.authorize_access_token()
+        
+        # 사용자 정보 가져오기
+        user_info = token.get('userinfo')
+        
+        if not user_info:
+            return "사용자 정보를 가져올 수 없습니다.", 400
+        
+        # DB에서 사용자 확인 또는 생성
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # 기존 사용자 확인
+        cur.execute("""
+            SELECT id, name, email, role, profile_image
+            FROM public.users
+            WHERE oauth_provider = 'google' AND oauth_id = %s
+        """, (user_info['sub'],))
+        
+        user = cur.fetchone()
+        
+        if user:
+            # 기존 사용자 - 마지막 로그인 시간 업데이트
+            cur.execute("""
+                UPDATE public.users
+                SET last_login = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (user['id'],))
+        else:
+            # 신규 사용자 - 생성
+            cur.execute("""
+                INSERT INTO public.users (email, name, profile_image, oauth_provider, oauth_id)
+                VALUES (%s, %s, %s, 'google', %s)
+                RETURNING id, name, email, role, profile_image
+            """, (
+                user_info.get('email'),
+                user_info.get('name'),
+                user_info.get('picture'),
+                user_info['sub']
+            ))
+            user = cur.fetchone()
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        # 세션에 사용자 정보 저장
+        session.permanent = True
+        session['user_id'] = user['id']
+        session['user_name'] = user['name']
+        session['user_email'] = user['email']
+        session['user_role'] = user['role']
+        session['user_profile_image'] = user['profile_image']
+        
+        # 메인 페이지로 리다이렉트
+        return redirect('/')
+        
+    except Exception as e:
+        print(f"OAuth 에러: {e}")
+        return f"로그인 중 오류가 발생했습니다: {str(e)}", 500
+
 
 @app.route('/logout')
-@login_required
 def logout():
     """로그아웃"""
-    logout_user()
+    session.clear()
     return redirect('/')
 
-@app.route('/profile')
-@login_required
-def profile():
-    """프로필 페이지 (테스트용)"""
-    return f"""
-    <h1>프로필</h1>
-    <p>이메일: {current_user.email}</p>
-    <p>이름: {current_user.name}</p>
-    <p><a href="/logout">로그아웃</a></p>
-    """
 
+@app.route('/auth/status')
+def auth_status():
+    """로그인 상태 확인 (API)"""
+    if 'user_id' in session:
+        return jsonify({
+            'logged_in': True,
+            'user': {
+                'name': session.get('user_name'),
+                'email': session.get('user_email'),
+                'role': session.get('user_role'),
+                'profile_image': session.get('user_profile_image')
+            }
+        })
+    else:
+        return jsonify({'logged_in': False})
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(debug=True, port=5000)

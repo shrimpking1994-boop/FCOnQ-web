@@ -3,9 +3,9 @@
 {% block content %}
 <div class="container" style="max-width: 900px; margin: 40px auto; padding: 0 20px;">
 
-    <h3 style="color: var(--text-primary); margin-bottom: 30px; font-weight: 600;">✏️ 글쓰기</h3>
+    <h3 style="color: var(--text-primary); margin-bottom: 30px; font-weight: 600;">✏️ 글 수정</h3>
 
-    <form method="POST" action="/community/write"
+    <form method="POST" action="/community/post/{{ post.id }}/edit"
         style="background: var(--card-bg); padding: 30px; border-radius: 12px;">
 
         <!-- 카테고리 선택 -->
@@ -19,15 +19,15 @@
                padding: 10px; 
                border-radius: 8px;">
                 <option value="">글 카테고리를 선택하세요</option>
-                <option value="잡담">잡담</option>
-                <option value="꿀팁">꿀팁</option>
-                <option value="스쿼드">스쿼드</option>
-                <option value="선수 후기">선수 후기</option>ㄴ
-                <option value="전술">전술</option>
-                <option value="강화/득템">강화/득템</option>
-                <option value="감독모드">감독모드</option>
-                <option value="미니 페이스온">미니 페이스온</option>
-                <option value="명장면">명장면</option>
+                <option value="잡담" {% if post.category == '잡담' %}selected{% endif %}>잡담</option>
+                <option value="꿀팁" {% if post.category == '꿀팁' %}selected{% endif %}>꿀팁</option>
+                <option value="스쿼드" {% if post.category == '스쿼드' %}selected{% endif %}>스쿼드</option>
+                <option value="선수 후기" {% if post.category == '선수 후기' %}selected{% endif %}>선수 후기</option>
+                <option value="전술" {% if post.category == '전술' %}selected{% endif %}>전술</option>
+                <option value="강화/득템" {% if post.category == '강화/득템' %}selected{% endif %}>강화/득템</option>
+                <option value="감독모드" {% if post.category == '감독모드' %}selected{% endif %}>감독모드</option>
+                <option value="미니 페이스온" {% if post.category == '미니 페이스온' %}selected{% endif %}>미니 페이스온</option>
+                <option value="명장면" {% if post.category == '명장면' %}selected{% endif %}>명장면</option>
             </select>
         </div>
 
@@ -36,27 +36,20 @@
             <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
                 제목 <span style="color: #ff4444;">*</span>
             </label>
-            <input type="text" name="title" required maxlength="200" placeholder="제목을 입력하세요" class="form-control"
+            <input type="text" name="title" required maxlength="200" value="{{ post.title }}" class="form-control"
                 style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px;">
         </div>
 
-        <!-- 작성자 입력 (임시) -->
+        <!-- 비밀번호 입력 (확인용) -->
         <div class="mb-4">
             <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
-                작성자 <span style="color: #ff4444;">*</span>
+                비밀번호 확인 <span style="color: #ff4444;">*</span>
             </label>
-            <input type="text" name="author" value="익명" required maxlength="100" class="form-control"
+            <input type="password" name="password" required maxlength="50" placeholder="비밀번호를 다시 입력하세요" class="form-control"
                 style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px;">
-        </div>
-
-        <!-- 비밀번호 입력 -->
-        <div class="mb-4">
-            <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
-                비밀번호 <span style="color: #ff4444;">*</span>
-            </label>
-            <input type="password" name="password" required maxlength="50" placeholder="삭제 시 필요한 비밀번호"
-                class="form-control"
-                style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px;">
+            <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
+                🔒 수정을 완료하려면 비밀번호를 다시 입력해주세요
+            </small>
         </div>
 
         <!-- 내용 입력 -->
@@ -72,8 +65,8 @@
 
         <!-- 버튼 -->
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
-            <a href="/community" class="btn btn-secondary" style="padding: 10px 30px;">취소</a>
-            <button type="submit" class="btn btn-success" style="padding: 10px 30px; font-weight: 600;">작성완료</button>
+            <a href="/community/post/{{ post.id }}" class="btn btn-secondary" style="padding: 10px 30px;">취소</a>
+            <button type="submit" class="btn btn-success" style="padding: 10px 30px; font-weight: 600;">수정완료</button>
         </div>
 
     </form>
@@ -102,6 +95,9 @@
         }
     });
 
+    // 기존 내용 로드
+    quill.root.innerHTML = `{{ post.content | safe }}`;
+
     // 폼 제출 시 에디터 내용을 hidden input에 저장
     document.querySelector('form').onsubmit = function () {
         var content = document.querySelector('#content');
@@ -125,13 +121,12 @@
 </script>
 
 <style>
-    /* 셀렉트 박스 다크모드 대응 */
+    /* community_write.html과 동일한 스타일 */
     [data-theme="dark"] .form-select option {
         background: #2d3748;
         color: #ffffff;
     }
 
-    /* Quill 에디터 다크모드 스타일 */
     .ql-toolbar {
         background: var(--secondary-bg) !important;
         border-color: var(--border-color) !important;
@@ -175,7 +170,6 @@
         color: var(--text-secondary) !important;
     }
 
-    /* 툴바 버튼 색상 */
     .ql-stroke {
         stroke: var(--text-primary) !important;
     }
@@ -188,7 +182,6 @@
         color: var(--text-primary) !important;
     }
 
-    /* 에디터 내 영상 크기 조정 */
     .ql-editor iframe {
         max-width: 100% !important;
         width: 100% !important;
@@ -198,14 +191,12 @@
         margin: 20px 0 !important;
     }
 
-    /* 구형 브라우저 대응 */
     @supports not (aspect-ratio: 16 / 9) {
         .ql-editor iframe {
             height: 450px !important;
         }
     }
 
-    /* 모바일 대응 */
     @media (max-width: 768px) {
         @supports not (aspect-ratio: 16 / 9) {
             .ql-editor iframe {
@@ -215,3 +206,4 @@
     }
 </style>
 {% endblock %}
+```

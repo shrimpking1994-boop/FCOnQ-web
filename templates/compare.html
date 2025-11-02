@@ -425,7 +425,12 @@
     }
 </style>
 
-<a href="javascript:history.back()" class="back-btn">← 뒤로 가기</a>
+<div style="margin-bottom: 30px;">
+    <a href="javascript:history.back()" class="back-btn"
+        style="display: inline-block; padding: 10px 20px; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s; white-space: nowrap;">
+        ← 뒤로 가기
+    </a>
+</div>
 <!-- 상단 헤더: 이미지, 이름 -->
 <div class="header-section">
     <!-- 왼쪽 플레이어 헤더 -->
@@ -728,7 +733,7 @@
             <div class="simulator-controls-left">
                 <div class="simulator-wrapper">
                     <select class="form-select simulator-select" id="enhanceLevel1" data-card="1">
-                        <option value="0" selected>강화</option>
+                        <option value="0" selected>🔥 강화</option>
                         <option value="1" class="enhance-level-1">+1</option>
                         <option value="2" class="enhance-level-2-4">+2</option>
                         <option value="3" class="enhance-level-2-4">+3</option>
@@ -748,7 +753,7 @@
 
                 <div class="simulator-wrapper">
                     <select class="form-select simulator-select" id="adaptLevel1" data-card="1">
-                        <option value="0" selected>적응도</option>
+                        <option value="0" selected>💫 적응도</option>
                         <option value="1">Lv.1</option>
                         <option value="2">Lv.2</option>
                         <option value="3">Lv.3</option>
@@ -760,7 +765,7 @@
 
                 <div class="simulator-wrapper">
                     <select class="form-select simulator-select" id="teamColor1" data-card="1">
-                        <option value="0" selected>팀컬러</option>
+                        <option value="0" selected>🤝 팀컬러</option>
                         <option value="1">+1</option>
                         <option value="2">+2</option>
                         <option value="3">+3</option>
@@ -783,8 +788,36 @@
         <div class="simulator-section">
             <div class="simulator-controls-right">
                 <div class="simulator-wrapper">
+                    <select class="form-select simulator-select" id="teamColor2" data-card="2">
+                        <option value="0" selected>🤝 팀컬러</option>
+                        <option value="1">+1</option>
+                        <option value="2">+2</option>
+                        <option value="3">+3</option>
+                        <option value="4">+4</option>
+                        <option value="5">+5</option>
+                        <option value="6">+6</option>
+                        <option value="7">+7</option>
+                        <option value="8">+8</option>
+                        <option value="9">+9</option>
+                    </select>
+                    <span class="select-arrow">▼</span>
+                </div>
+
+                <div class="simulator-wrapper">
+                    <select class="form-select simulator-select" id="adaptLevel2" data-card="2">
+                        <option value="0" selected>💫 적응도</option>
+                        <option value="1">Lv.1</option>
+                        <option value="2">Lv.2</option>
+                        <option value="3">Lv.3</option>
+                        <option value="4">Lv.4</option>
+                        <option value="5">Lv.5</option>
+                    </select>
+                    <span class="select-arrow">▼</span>
+                </div>
+
+                <div class="simulator-wrapper">
                     <select class="form-select simulator-select" id="enhanceLevel2" data-card="2">
-                        <option value="0" selected>강화</option>
+                        <option value="0" selected>🔥 강화</option>
                         <option value="1" class="enhance-level-1">+1</option>
                         <option value="2" class="enhance-level-2-4">+2</option>
                         <option value="3" class="enhance-level-2-4">+3</option>
@@ -798,34 +831,6 @@
                         <option value="11" class="enhance-level-11-13">+11</option>
                         <option value="12" class="enhance-level-11-13">+12</option>
                         <option value="13" class="enhance-level-11-13">+13</option>
-                    </select>
-                    <span class="select-arrow">▼</span>
-                </div>
-
-                <div class="simulator-wrapper">
-                    <select class="form-select simulator-select" id="adaptLevel2" data-card="2">
-                        <option value="0" selected>적응도</option>
-                        <option value="1">Lv.1</option>
-                        <option value="2">Lv.2</option>
-                        <option value="3">Lv.3</option>
-                        <option value="4">Lv.4</option>
-                        <option value="5">Lv.5</option>
-                    </select>
-                    <span class="select-arrow">▼</span>
-                </div>
-
-                <div class="simulator-wrapper">
-                    <select class="form-select simulator-select" id="teamColor2" data-card="2">
-                        <option value="0" selected>팀컬러</option>
-                        <option value="1">+1</option>
-                        <option value="2">+2</option>
-                        <option value="3">+3</option>
-                        <option value="4">+4</option>
-                        <option value="5">+5</option>
-                        <option value="6">+6</option>
-                        <option value="7">+7</option>
-                        <option value="8">+8</option>
-                        <option value="9">+9</option>
                     </select>
                     <span class="select-arrow">▼</span>
                 </div>

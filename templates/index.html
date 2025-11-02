@@ -147,55 +147,106 @@
         .easter-egg:hover {
             opacity: 1;
         }
+
+        /* 로그인 버튼 스타일 */
+        .login-section {
+            position: absolute;
+            top: 20px;
+            right: 140px;
+            /* 다크모드 버튼 너비(~100px) + 간격(10px) */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-btn {
+            /* Bootstrap btn-outline-light btn-sm 스타일 완전 복제 */
+            color: #f8f9fa;
+            border-color: #f8f9fa;
+            background-color: transparent;
+            border: 1px solid;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 0.2rem;
+            text-decoration: none;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            display: inline-block;
+            font-weight: 400;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .login-btn:hover {
+            color: #000;
+            background-color: #f8f9fa;
+            border-color: #f8f9fa;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .user-profile img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .user-name {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 0, 0, 0.3);
+        }
     </style>
 </head>
 
 <body>
     <!-- 헤더 -->
     <header class="main-header">
-        <!-- 헤더 -->
-        <header class="main-header">
-            <div class="container position-relative">
-                <!-- 다크모드 토글 + 로그인 버튼 -->
-                <div class="darkmode-toggle" style="display: flex; gap: 10px; align-items: center;">
-                    <!-- ✅ 로그인/프로필 버튼 추가 -->
-                    {% if current_user.is_authenticated %}
-                    <div class="dropdown" style="position: relative;">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="userDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false"
-                            style="display: flex; align-items: center; gap: 8px;">
-                            {% if current_user.profile_image %}
-                            <img src="{{ current_user.profile_image }}"
-                                style="width: 24px; height: 24px; border-radius: 50%;">
-                            {% endif %}
-                            {{ current_user.name or current_user.email }}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="/profile">프로필</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="/logout">로그아웃</a></li>
-                        </ul>
-                    </div>
-                    {% else %}
-                    <a href="/login" class="btn btn-outline-light btn-sm">
-                        🔐 로그인
-                    </a>
-                    {% endif %}
-
-                    <button id="darkModeToggle" class="btn btn-outline-light btn-sm">
-                        🌙 다크모드
-                    </button>
-                </div>
-
-                <!-- 사이트 제목 -->
-                <a href="/" style="text-decoration: none; color: inherit; display: block;">
-                    <h1 class="site-title">FCOnQ</h1>
-                    <p class="site-subtitle">[엪씨온큐]</p>
-                </a>
+        <div class="container position-relative">
+            <!-- 로그인 섹션 (왼쪽) -->
+            <div class="login-section" id="loginSection">
+                <!-- JavaScript로 동적 렌더링 -->
             </div>
-        </header>
+
+            <!-- 다크모드 토글 (오른쪽) -->
+            <div class="darkmode-toggle">
+                <button id="darkModeToggle" class="btn btn-outline-light btn-sm">
+                    🌙 다크모드
+                </button>
+            </div>
+
+            <!-- 사이트 제목 -->
+            <a href="/" style="text-decoration: none; color: inherit; display: block;">
+                <h1 class="site-title">FCOnQ</h1>
+                <p class="site-subtitle">[엪씨온큐]</p>
+            </a>
+        </div>
     </header>
 
     <!-- 네비게이션 -->
@@ -260,6 +311,50 @@
                     document.getElementById('nav-community').classList.add('active');
                 }
             });
+        });
+    </script>
+
+    <!-- 로그인 상태 체크 및 UI 렌더링 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const loginSection = document.getElementById('loginSection');
+
+            try {
+                // 로그인 상태 확인
+                const response = await fetch('/auth/status');
+                const data = await response.json();
+
+                if (data.logged_in) {
+                    // 로그인 상태 - 프로필 표시
+                    const user = data.user;
+                    loginSection.innerHTML = `
+                        <div class="user-profile">
+                            ${user.profile_image ?
+                            `<img src="${user.profile_image}" alt="${user.name}">` :
+                            '<span style="width: 32px; height: 32px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #5568d3;">👤</span>'
+                        }
+                            <span class="user-name">${user.name}</span>
+                            ${user.role === 'admin' ? '<span style="background: gold; color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">관리자</span>' : ''}
+                        </div>
+                        <button class="logout-btn" onclick="location.href='/logout'">로그아웃</button>
+                    `;
+                } else {
+                    // 비로그인 상태 - 로그인 버튼 표시
+                    loginSection.innerHTML = `
+                        <a href="/login" class="login-btn">
+                            🔐 로그인
+                        </a>
+                    `;
+                }
+            } catch (error) {
+                console.error('로그인 상태 확인 실패:', error);
+                // 에러 시 기본 로그인 버튼 표시
+                loginSection.innerHTML = `
+                    <a href="/login" class="login-btn">
+                        🔐 로그인
+                    </a>
+                `;
+            }
         });
     </script>
 </body>

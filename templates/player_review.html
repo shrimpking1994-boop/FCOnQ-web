@@ -21,23 +21,15 @@
                 </h2>
             </div>
 
-            <!-- ✅ 오른쪽: 리뷰 작성 버튼 -->
-            {% if current_user.is_authenticated %}
+            <!-- 오른쪽: 리뷰 작성 버튼 -->
             <button id="toggleWriteBtn" onclick="toggleWriteForm()"
                 style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
                 ✍️ 리뷰 작성
             </button>
-            {% else %}
-            <button onclick="showLoginAlert()"
-                style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; white-space: nowrap;">
-                ✍️ 리뷰 작성
-            </button>
-            {% endif %}
         </div>
     </div>
 
     <!-- 후기 작성 폼 (기본 숨김) -->
-    {% if current_user.is_authenticated %}
     <div id="writeForm"
         style="display: none; background: var(--card-bg); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -48,17 +40,24 @@
             </button>
         </div>
 
-        <form method="POST" action="/player_review/{{ card.spid }}/comment">
+        <form method="POST" action="/player_review/{{ card.spid }}/write">
             <!-- 작성자 -->
             <div style="margin-bottom: 15px;">
                 <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 8px; display: block;">
-                    작성자
+                    작성자 <span style="color: #ff4444;">*</span>
                 </label>
-                <input type="text" name="author" value="익명" maxlength="100" class="form-control"
+                <input type="text" name="author" value="익명" required maxlength="100" class="form-control"
                     style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 6px;">
-                <small style="color: var(--text-secondary); margin-top: 5px; display: block;">
-                    💡 추후 로그인 기능이 추가됩니다
-                </small>
+            </div>
+
+            <!-- 비밀번호 입력 -->
+            <div style="margin-bottom: 15px;">
+                <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 8px; display: block;">
+                    비밀번호 <span style="color: #ff4444;">*</span>
+                </label>
+                <input type="password" name="password" required maxlength="50" placeholder="삭제 시 필요한 비밀번호"
+                    class="form-control"
+                    style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 6px;">
             </div>
 
             <!-- 평점 (선택) -->
@@ -97,7 +96,6 @@
             </button>
         </form>
     </div>
-    {% endif %}
 
     <!-- 후기 목록 -->
     <div style="background: var(--card-bg); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
@@ -112,9 +110,8 @@
                 style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; border-left: 3px solid var(--primary-color);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 15px;">
-                        <span style="color: var(--text-primary); font-weight: 600;">
-                            {{ review.author_name or review.author_email }}
-                        </span>
+                        <span style="color: var(--text-primary); font-weight: 600;">{{ review.author }}</span>
+                        <span style="color: var(--text-muted); font-size: 0.85em;">{{ review.ip_display }}</span>
                         {% if review.position %}
                         <span
                             style="background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem;">
@@ -125,17 +122,33 @@
                         <span style="color: #fbbf24; font-weight: 600;">⭐ {{ review.rating }}/10</span>
                         {% endif %}
                     </div>
-                    <span style="color: var(--text-secondary); font-size: 0.9rem;">
-                        {{ review.created_at.strftime('%m-%d %H:%M') }}
-                    </span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                            {{ review.created_at.strftime('%m-%d %H:%M') }}
+                        </span>
+                        <button onclick="deleteReview({{ review.id }})" class="btn btn-sm btn-outline-danger"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            삭제
+                        </button>
+                    </div>
                 </div>
                 <p style="color: var(--text-primary); margin: 0; line-height: 1.6;">
                     {{ review.content }}
                 </p>
-                <div style="margin-top: 10px;">
-                    <span style="color: var(--text-secondary); font-size: 0.9rem;">
-                        👍 {{ review.likes }}
-                    </span>
+                <div style="margin-top: 15px; display: flex; align-items: center; gap: 15px;">
+                    <!-- 추천 버튼 -->
+                    <button onclick="voteReview({{ review.id }}, 'like')" class="vote-btn like-btn"
+                        style="background: none; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; color: var(--text-secondary);">
+                        <span style="font-size: 1.1rem;">👍</span>
+                        <span id="likes-{{ review.id }}">{{ review.likes }}</span>
+                    </button>
+
+                    <!-- 비추천 버튼 -->
+                    <button onclick="voteReview({{ review.id }}, 'dislike')" class="vote-btn dislike-btn"
+                        style="background: none; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; color: var(--text-secondary);">
+                        <span style="font-size: 1.1rem;">👎</span>
+                        <span id="dislikes-{{ review.id }}">{{ review.dislikes }}</span>
+                    </button>
                 </div>
             </div>
             {% endfor %}
@@ -159,6 +172,7 @@
         if (form.style.display === 'none') {
             form.style.display = 'block';
             btn.textContent = '❌ 닫기';
+            // 폼으로 스크롤
             form.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
             form.style.display = 'none';
@@ -166,10 +180,61 @@
         }
     }
 
-    // ✅ 새로 추가
-    function showLoginAlert() {
-        alert('선수 후기를 작성하려면 로그인이 필요합니다.\n\n구글 계정으로 간편하게 시작하세요!');
-        window.location.href = '/login';
+    // 선수 후기 투표 함수
+    function voteReview(reviewId, voteType) {
+        fetch(`/player_review/vote/${reviewId}/${voteType}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => {
+                // 응답 상태 확인
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // 숫자 업데이트
+                    document.getElementById(`likes-${reviewId}`).textContent = data.likes;
+                    document.getElementById(`dislikes-${reviewId}`).textContent = data.dislikes;
+
+                    // 성공 알림
+                    alert(voteType === 'like' ? '👍 추천했습니다!' : '👎 비추천했습니다!');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('투표 중 오류가 발생했습니다');
+            });
+    }
+
+    function deleteReview(reviewId) {
+        const password = prompt('비밀번호를 입력하세요:');
+        if (!password) return;
+
+        fetch(`/player_review/${reviewId}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `password=${encodeURIComponent(password)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                alert('삭제 중 오류가 발생했습니다');
+                console.error(error);
+            });
     }
 </script>
 
@@ -184,6 +249,28 @@
     #toggleWriteBtn:hover {
         background: #059669 !important;
         transform: translateY(-2px);
+    }
+
+    /* 투표 버튼 호버 효과 */
+    .vote-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px var(--shadow-main);
+    }
+
+    .like-btn:hover {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .dislike-btn:hover {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .vote-btn:active {
+        transform: translateY(0);
     }
 </style>
 
