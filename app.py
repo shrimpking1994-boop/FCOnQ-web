@@ -604,45 +604,55 @@ def add_comment(post_id):
 
 @app.route('/community/post/<int:post_id>/delete', methods=['POST'])
 def delete_post(post_id):
-    """게시글 삭제"""
+    """게시글 삭제 (Soft Delete)"""
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # 게시글 조회
-    cur.execute("SELECT password_hash, user_id FROM community.posts WHERE id = %s", (post_id,))
-    post = cur.fetchone()
-    
-    if not post:
+    try:
+        # 게시글 조회
+        cur.execute("SELECT password_hash, user_id FROM community.posts WHERE id = %s", (post_id,))
+        post = cur.fetchone()
+        
+        if not post:
+            cur.close()
+            conn.close()
+            return jsonify({'success': False, 'message': '게시글을 찾을 수 없습니다'}), 404
+        
+        # 권한 확인
+        deleted_by = None
+        if post['user_id']:
+            # 로그인 유저가 작성한 글: 세션 user_id 확인
+            if 'user_id' not in session or session['user_id'] != post['user_id']:
+                cur.close()
+                conn.close()
+                return jsonify({'success': False, 'message': '본인이 작성한 글만 삭제할 수 있습니다'}), 403
+            deleted_by = session.get('user_id')
+        else:
+            # 비로그인 유저가 작성한 글: 비밀번호 확인
+            password = request.form.get('password', '')
+            if not verify_password(password, post['password_hash']):
+                cur.close()
+                conn.close()
+                return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
+        
+        # Soft Delete: is_deleted를 true로 설정
+        cur.execute("""
+            UPDATE community.posts 
+            SET is_deleted = true, 
+                deleted_at = CURRENT_TIMESTAMP,
+                deleted_by = %s
+            WHERE id = %s
+        """, (deleted_by, post_id))
+        
+        conn.commit()
+        return jsonify({'success': True, 'message': '게시글이 삭제되었습니다'})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'삭제 중 오류가 발생했습니다: {str(e)}'}), 500
+    finally:
         cur.close()
         conn.close()
-        return jsonify({'success': False, 'message': '게시글을 찾을 수 없습니다'}), 404
-    
-    # 권한 확인
-    if post['user_id']:
-        # 로그인 유저가 작성한 글: 세션 user_id 확인
-        if 'user_id' not in session or session['user_id'] != post['user_id']:
-            cur.close()
-            conn.close()
-            return jsonify({'success': False, 'message': '본인이 작성한 글만 삭제할 수 있습니다'}), 403
-    else:
-        # 비로그인 유저가 작성한 글: 비밀번호 확인
-        password = request.form.get('password', '')
-        if not verify_password(password, post['password_hash']):
-            cur.close()
-            conn.close()
-            return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
-    
-    # 댓글 먼저 삭제
-    cur.execute("DELETE FROM community.comments WHERE post_id = %s", (post_id,))
-    
-    # 게시글 삭제
-    cur.execute("DELETE FROM community.posts WHERE id = %s", (post_id,))
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    return jsonify({'success': True, 'message': '게시글이 삭제되었습니다'})
 
 
 @app.route('/community/post/<int:post_id>/admin_delete', methods=['POST'])
@@ -721,42 +731,55 @@ def admin_delete_comment(comment_id):
 
 @app.route('/community/comment/<int:comment_id>/delete', methods=['POST'])
 def delete_comment(comment_id):
-    """댓글 삭제"""
+    """댓글 삭제 (Soft Delete)"""
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # 댓글 조회
-    cur.execute("SELECT password_hash, post_id, user_id FROM community.comments WHERE id = %s", (comment_id,))
-    comment = cur.fetchone()
-    
-    if not comment:
+    try:
+        # 댓글 조회
+        cur.execute("SELECT password_hash, post_id, user_id FROM community.comments WHERE id = %s", (comment_id,))
+        comment = cur.fetchone()
+        
+        if not comment:
+            cur.close()
+            conn.close()
+            return jsonify({'success': False, 'message': '댓글을 찾을 수 없습니다'}), 404
+        
+        # 권한 확인
+        deleted_by = None
+        if comment['user_id']:
+            # 로그인 유저가 작성한 댓글: 세션 user_id 확인
+            if 'user_id' not in session or session['user_id'] != comment['user_id']:
+                cur.close()
+                conn.close()
+                return jsonify({'success': False, 'message': '본인이 작성한 댓글만 삭제할 수 있습니다'}), 403
+            deleted_by = session.get('user_id')
+        else:
+            # 비로그인 유저가 작성한 댓글: 비밀번호 확인
+            password = request.form.get('password', '')
+            if not verify_password(password, comment['password_hash']):
+                cur.close()
+                conn.close()
+                return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
+        
+        # Soft Delete: is_deleted를 true로 설정
+        cur.execute("""
+            UPDATE community.comments 
+            SET is_deleted = true, 
+                deleted_at = CURRENT_TIMESTAMP,
+                deleted_by = %s
+            WHERE id = %s
+        """, (deleted_by, comment_id))
+        
+        conn.commit()
+        return jsonify({'success': True, 'message': '댓글이 삭제되었습니다', 'post_id': comment['post_id']})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'삭제 중 오류가 발생했습니다: {str(e)}'}), 500
+    finally:
         cur.close()
         conn.close()
-        return jsonify({'success': False, 'message': '댓글을 찾을 수 없습니다'}), 404
-    
-    # 권한 확인
-    if comment['user_id']:
-        # 로그인 유저가 작성한 댓글: 세션 user_id 확인
-        if 'user_id' not in session or session['user_id'] != comment['user_id']:
-            cur.close()
-            conn.close()
-            return jsonify({'success': False, 'message': '본인이 작성한 댓글만 삭제할 수 있습니다'}), 403
-    else:
-        # 비로그인 유저가 작성한 댓글: 비밀번호 확인
-        password = request.form.get('password', '')
-        if not verify_password(password, comment['password_hash']):
-            cur.close()
-            conn.close()
-            return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
-    
-    # 댓글 삭제
-    cur.execute("DELETE FROM community.comments WHERE id = %s", (comment_id,))
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    return jsonify({'success': True, 'message': '댓글이 삭제되었습니다', 'post_id': comment['post_id']})
 
 
 @app.route('/community/post/<int:post_id>/edit')
@@ -1349,42 +1372,55 @@ def admin_delete_player_review(review_id):
 
 @app.route('/player_review/<int:review_id>/delete', methods=['POST'])
 def delete_player_review(review_id):
-    """선수 후기 삭제"""
+    """선수 후기 삭제 (Soft Delete)"""
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # 후기 조회
-    cur.execute("SELECT password_hash, spid, user_id FROM player_reviews WHERE id = %s", (review_id,))
-    review = cur.fetchone()
-    
-    if not review:
+    try:
+        # 후기 조회
+        cur.execute("SELECT password_hash, spid, user_id FROM player_reviews WHERE id = %s", (review_id,))
+        review = cur.fetchone()
+        
+        if not review:
+            cur.close()
+            conn.close()
+            return jsonify({'success': False, 'message': '후기를 찾을 수 없습니다'}), 404
+        
+        # 권한 확인
+        deleted_by = None
+        if review['user_id']:
+            # 로그인 유저가 작성한 후기: 세션 user_id 확인
+            if 'user_id' not in session or session['user_id'] != review['user_id']:
+                cur.close()
+                conn.close()
+                return jsonify({'success': False, 'message': '본인이 작성한 후기만 삭제할 수 있습니다'}), 403
+            deleted_by = session.get('user_id')
+        else:
+            # 비로그인 유저가 작성한 후기: 비밀번호 확인
+            password = request.form.get('password', '')
+            if not verify_password(password, review['password_hash']):
+                cur.close()
+                conn.close()
+                return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
+        
+        # Soft Delete: is_deleted를 true로 설정
+        cur.execute("""
+            UPDATE player_reviews 
+            SET is_deleted = true, 
+                deleted_at = CURRENT_TIMESTAMP,
+                deleted_by = %s
+            WHERE id = %s
+        """, (deleted_by, review_id))
+        
+        conn.commit()
+        return jsonify({'success': True, 'message': '후기가 삭제되었습니다', 'spid': review['spid']})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'삭제 중 오류가 발생했습니다: {str(e)}'}), 500
+    finally:
         cur.close()
         conn.close()
-        return jsonify({'success': False, 'message': '후기를 찾을 수 없습니다'}), 404
-    
-    # 권한 확인
-    if review['user_id']:
-        # 로그인 유저가 작성한 후기: 세션 user_id 확인
-        if 'user_id' not in session or session['user_id'] != review['user_id']:
-            cur.close()
-            conn.close()
-            return jsonify({'success': False, 'message': '본인이 작성한 후기만 삭제할 수 있습니다'}), 403
-    else:
-        # 비로그인 유저가 작성한 후기: 비밀번호 확인
-        password = request.form.get('password', '')
-        if not verify_password(password, review['password_hash']):
-            cur.close()
-            conn.close()
-            return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
-    
-    # 후기 삭제
-    cur.execute("DELETE FROM player_reviews WHERE id = %s", (review_id,))
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    return jsonify({'success': True, 'message': '후기가 삭제되었습니다', 'spid': review['spid']})
 
 
 @app.route('/player_review/vote/<int:review_id>/<vote_type>', methods=['POST'])
