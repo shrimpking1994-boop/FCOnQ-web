@@ -231,7 +231,7 @@
         }
 
         /* 드롭다운 메뉴 */
-        .dropdown-menu {
+        .profile-dropdown-menu {
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
@@ -247,7 +247,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .profile-dropdown.active .dropdown-menu {
+        .profile-dropdown.active .profile-dropdown-menu {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
@@ -392,10 +392,10 @@
                                 ${user.role === 'admin' ? '<span class="admin-badge">관리자</span>' : ''}
                                 <span class="dropdown-icon">▼</span>
                             </button>
-                            <div class="dropdown-menu">
+                            <div class="profile-dropdown-menu">
                                 <a href="/logout" class="dropdown-item">로그아웃</a>
                             </div>
-                        </div>
+                </div>
                     `;
 
                     // DOM 생성 대기 후 이벤트 리스너 추가
