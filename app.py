@@ -39,10 +39,10 @@ google = oauth.register(
 
 # DB 연결 설정
 DB_CONFIG = {
-    "host": "localhost",
-    "database": "fconline",
-    "user": "postgres",
-    "password": "9787"  # 여기에 실제 비밀번호 입력!
+    "host": os.getenv('DB_HOST', 'localhost'),
+    "database": os.getenv('DB_NAME', 'fconline'),
+    "user": os.getenv('DB_USER', 'postgres'),
+    "password": os.getenv('DB_PASSWORD', '9787')
 }
 
 # IP 해싱 함수
