@@ -88,9 +88,13 @@
         <div style="margin-bottom: 30px;">
             {% for comment in comments %}
             <div
-                style="padding: 20px; border-bottom: 1px solid var(--border-color); {% if loop.last %}border-bottom: none;{% endif %}">
+                style="padding: 20px; border-bottom: 1px solid var(--border-color); {% if loop.last %}border-bottom: none;{% endif %} {% if comment.is_deleted %}background: rgba(255, 0, 0, 0.05);{% endif %}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 6px;">
+                        {% if comment.is_deleted and session.get('user_role') == 'admin' %}
+                        <span
+                            style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-right: 4px;">삭제됨</span>
+                        {% endif %}
                         <strong style="color: var(--text-primary);">{{ comment.author }}</strong>
                         <span style="color: var(--text-muted); font-size: 0.85em;">{{ comment.ip_display }}</span>
                     </div>
@@ -98,10 +102,22 @@
                         <span style="color: var(--text-secondary); font-size: 0.85rem;">
                             {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
                         </span>
+                        {% if not comment.is_deleted %}
                         <button onclick="deleteComment({{ comment.id }})" class="btn btn-sm btn-outline-danger"
                             style="padding: 2px 10px; font-size: 0.8rem;">
                             삭제
                         </button>
+                        {% if session.get('user_role') == 'admin' %}
+                        <button onclick="adminDeleteComment({{ comment.id }})" class="btn btn-sm btn-danger"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            🔧 관리자삭제
+                        </button>
+                        {% endif %}
+                        {% else %}
+                        {% if session.get('user_role') == 'admin' %}
+                        <span style="color: #ef4444; font-size: 0.85rem;">삭제됨</span>
+                        {% endif %}
+                        {% endif %}
                     </div>
                 </div>
                 <div style="color: var(--text-primary); line-height: 1.6;">
@@ -376,6 +392,33 @@
             .catch(error => {
                 alert('삭제 중 오류가 발생했습니다');
                 console.error(error);
+            });
+    }
+
+    // 관리자 전용 댓글 삭제
+    function adminDeleteComment(commentId) {
+        if (!confirm('정말로 이 댓글을 삭제하시겠습니까?\n삭제된 댓글은 관리자만 볼 수 있습니다.')) {
+            return;
+        }
+
+        fetch(`/community/comment/${commentId}/admin_delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('댓글이 삭제되었습니다');
+                    location.reload();
+                } else {
+                    alert(data.message || '삭제 중 오류가 발생했습니다');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다');
             });
     }
 

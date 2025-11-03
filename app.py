@@ -473,12 +473,22 @@ def community_post(post_id):
     post['ip_display'] = format_ip_display(post.get('author_ip'))
     
     
-    # 댓글 조회
-    cur.execute("""
-        SELECT * FROM community.comments 
-        WHERE post_id = %s 
-        ORDER BY created_at ASC
-    """, (post_id,))
+    # 관리자 여부 확인
+    is_admin = session.get('user_role') == 'admin'
+
+    # 댓글 조회 (일반 사용자는 삭제되지 않은 댓글만)
+    if is_admin:
+        cur.execute("""
+            SELECT * FROM community.comments 
+            WHERE post_id = %s 
+            ORDER BY created_at ASC
+        """, (post_id,))
+    else:
+        cur.execute("""
+            SELECT * FROM community.comments 
+            WHERE post_id = %s AND is_deleted = false
+            ORDER BY created_at ASC
+        """, (post_id,))    
     comments = cur.fetchall()
     
     for comment in comments:
@@ -638,6 +648,45 @@ def admin_delete_post(post_id):
         
         conn.commit()
         return jsonify({'success': True, 'message': '게시글이 삭제되었습니다'})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'삭제 중 오류가 발생했습니다: {str(e)}'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route('/community/comment/<int:comment_id>/admin_delete', methods=['POST'])
+@admin_required
+def admin_delete_comment(comment_id):
+    """관리자 전용 댓글 삭제 (Soft Delete)"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # 댓글 존재 확인
+        cur.execute("SELECT id, post_id FROM community.comments WHERE id = %s", (comment_id,))
+        comment = cur.fetchone()
+        
+        if not comment:
+            return jsonify({'success': False, 'message': '댓글을 찾을 수 없습니다'}), 404
+        
+        # Soft Delete: is_deleted를 true로 설정
+        cur.execute("""
+            UPDATE community.comments 
+            SET is_deleted = true, 
+                deleted_at = CURRENT_TIMESTAMP,
+                deleted_by = %s
+            WHERE id = %s
+        """, (session.get('user_id'), comment_id))
+        
+        conn.commit()
+        return jsonify({
+            'success': True, 
+            'message': '댓글이 삭제되었습니다',
+            'post_id': comment['post_id']
+        })
         
     except Exception as e:
         conn.rollback()
