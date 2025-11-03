@@ -92,7 +92,20 @@
                     <th style="width: 80px; text-align: center; padding: 15px 10px;">조회</th>
                     <th style="width: 80px; text-align: center; padding: 15px 10px;">추천</th>
                     {% if session.get('user_role') == 'admin' %}
-                    <th style="width: 100px; text-align: center; padding: 15px 10px;">관리</th>
+                    <th style="width: 100px; text-align: center; padding: 15px 10px;">
+                        <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
+                            <button onclick="deleteSelectedPosts()" class="btn btn-sm btn-danger"
+                                style="padding: 4px 12px; font-size: 0.85rem; white-space: nowrap;">
+                                🗑️ 선택 삭제
+                            </button>
+                            <label
+                                style="font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()"
+                                    style="margin-right: 3px;">
+                                전체선택
+                            </label>
+                        </div>
+                    </th>
                     {% endif %}
                 </tr>
             </thead>
@@ -141,10 +154,8 @@
                     {% if session.get('user_role') == 'admin' %}
                     <td style="text-align: center; padding: 12px 10px;" onclick="event.stopPropagation();">
                         {% if not post.is_deleted %}
-                        <button onclick="adminDeletePost({{ post.id }})" class="btn btn-sm btn-danger"
-                            style="padding: 4px 12px; font-size: 0.85rem;">
-                            🗑️ 삭제
-                        </button>
+                        <input type="checkbox" class="post-checkbox" value="{{ post.id }}"
+                            style="width: 18px; height: 18px; cursor: pointer;">
                         {% else %}
                         <span style="color: #ef4444; font-size: 0.85rem;">삭제됨</span>
                         {% endif %}
@@ -291,6 +302,62 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('삭제 중 오류가 발생했습니다');
+            });
+    }
+
+    // 전체 선택/해제 토글
+    function toggleSelectAll() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.post-checkbox');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+        });
+    }
+
+    // 선택된 게시글 일괄 삭제
+    function deleteSelectedPosts() {
+        const checkboxes = document.querySelectorAll('.post-checkbox:checked');
+
+        if (checkboxes.length === 0) {
+            alert('삭제할 게시글을 선택해주세요');
+            return;
+        }
+
+        const postIds = Array.from(checkboxes).map(cb => cb.value);
+        const confirmMessage = `선택한 ${postIds.length}개의 게시글을 삭제하시겠습니까?\n삭제된 게시글은 관리자만 볼 수 있습니다.`;
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        // 각 게시글 순차적으로 삭제
+        let successCount = 0;
+        let errorCount = 0;
+
+        Promise.all(postIds.map(postId =>
+            fetch(`/community/post/${postId}/admin_delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    errorCount++;
+                })
+        ))
+            .then(() => {
+                alert(`삭제 완료\n성공: ${successCount}개 / 실패: ${errorCount}개`);
+                location.reload();
             });
     }
 
