@@ -136,19 +136,23 @@
         <!-- 댓글 작성 폼 -->
         <form method="POST" action="/community/comment/{{ post.id }}" style="margin-top: 30px;">
 
-            <!-- 작성자 입력 -->
+            <!-- 작성자 입력 (비로그인 시에만 표시) -->
+            {% if not session.get('user_id') %}
             <div class="mb-3">
                 <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
                     class="form-control"
                     style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 8px; max-width: 200px;">
             </div>
+            {% endif %}
 
-            <!-- 비밀번호 입력 -->
+            <!-- 비밀번호 입력 (비로그인 시에만 표시) -->
+            {% if not session.get('user_id') %}
             <div class="mb-3">
                 <input type="password" name="password" required maxlength="50" placeholder="비밀번호 (삭제 시 필요)"
                     class="form-control"
                     style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 8px; max-width: 200px;">
             </div>
+            {% endif %}
 
             <!-- 댓글 내용 -->
             <div class="mb-3">
