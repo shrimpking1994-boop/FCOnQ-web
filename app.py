@@ -1213,12 +1213,22 @@ def player_review(spid):
         conn.close()
         return "선수 카드를 찾을 수 없습니다", 404
     
-    # 후기 조회 (최신순)
-    cur.execute("""
-        SELECT * FROM player_reviews
-        WHERE spid = %s
-        ORDER BY created_at DESC
-    """, (spid,))
+    # 관리자 여부 확인
+    is_admin = session.get('user_role') == 'admin'
+
+    # 후기 조회 (일반 사용자는 삭제되지 않은 후기만)
+    if is_admin:
+        cur.execute("""
+            SELECT * FROM player_reviews
+            WHERE spid = %s
+            ORDER BY created_at DESC
+        """, (spid,))
+    else:
+        cur.execute("""
+            SELECT * FROM player_reviews
+            WHERE spid = %s AND is_deleted = false
+            ORDER BY created_at DESC
+        """, (spid,))
     reviews = cur.fetchall()
     
     # IP 표시 추가
@@ -1258,6 +1268,46 @@ def write_player_review(spid):
     conn.close()
     
     return redirect(f'/player_review/{spid}')
+
+
+@app.route('/player_review/<int:review_id>/admin_delete', methods=['POST'])
+@admin_required
+def admin_delete_player_review(review_id):
+    """관리자 전용 선수 후기 삭제 (Soft Delete)"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # 후기 존재 확인
+        cur.execute("SELECT id, spid FROM player_reviews WHERE id = %s", (review_id,))
+        review = cur.fetchone()
+        
+        if not review:
+            return jsonify({'success': False, 'message': '후기를 찾을 수 없습니다'}), 404
+        
+        # Soft Delete: is_deleted를 true로 설정
+        cur.execute("""
+            UPDATE player_reviews 
+            SET is_deleted = true, 
+                deleted_at = CURRENT_TIMESTAMP,
+                deleted_by = %s
+            WHERE id = %s
+        """, (session.get('user_id'), review_id))
+        
+        conn.commit()
+        return jsonify({
+            'success': True, 
+            'message': '후기가 삭제되었습니다',
+            'spid': review['spid']
+        })
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'삭제 중 오류가 발생했습니다: {str(e)}'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
 
 @app.route('/player_review/<int:review_id>/delete', methods=['POST'])
 def delete_player_review(review_id):

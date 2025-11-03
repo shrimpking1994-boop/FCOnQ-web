@@ -107,9 +107,13 @@
         <div style="display: flex; flex-direction: column; gap: 20px;">
             {% for review in reviews %}
             <div
-                style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; border-left: 3px solid var(--primary-color);">
+                style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; border-left: 3px solid var(--primary-color); {% if review.is_deleted %}background: rgba(255, 0, 0, 0.05) !important;{% endif %}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 15px;">
+                        {% if review.is_deleted and session.get('user_role') == 'admin' %}
+                        <span
+                            style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">삭제됨</span>
+                        {% endif %}
                         <span style="color: var(--text-primary); font-weight: 600;">{{ review.author }}</span>
                         <span style="color: var(--text-muted); font-size: 0.85em;">{{ review.ip_display }}</span>
                         {% if review.position %}
@@ -126,10 +130,22 @@
                         <span style="color: var(--text-secondary); font-size: 0.9rem;">
                             {{ review.created_at.strftime('%m-%d %H:%M') }}
                         </span>
+                        {% if not review.is_deleted %}
                         <button onclick="deleteReview({{ review.id }})" class="btn btn-sm btn-outline-danger"
                             style="padding: 2px 10px; font-size: 0.8rem;">
                             삭제
                         </button>
+                        {% if session.get('user_role') == 'admin' %}
+                        <button onclick="adminDeleteReview({{ review.id }})" class="btn btn-sm btn-danger"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            🔧 관리자삭제
+                        </button>
+                        {% endif %}
+                        {% else %}
+                        {% if session.get('user_role') == 'admin' %}
+                        <span style="color: #ef4444; font-size: 0.85rem;">삭제됨</span>
+                        {% endif %}
+                        {% endif %}
                     </div>
                 </div>
                 <p style="color: var(--text-primary); margin: 0; line-height: 1.6;">
@@ -234,6 +250,33 @@
             .catch(error => {
                 alert('삭제 중 오류가 발생했습니다');
                 console.error(error);
+            });
+    }
+
+    // 관리자 전용 선수 후기 삭제
+    function adminDeleteReview(reviewId) {
+        if (!confirm('정말로 이 후기를 삭제하시겠습니까?\n삭제된 후기는 관리자만 볼 수 있습니다.')) {
+            return;
+        }
+
+        fetch(`/player_review/${reviewId}/admin_delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('후기가 삭제되었습니다');
+                    location.reload();
+                } else {
+                    alert(data.message || '삭제 중 오류가 발생했습니다');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다');
             });
     }
 </script>
