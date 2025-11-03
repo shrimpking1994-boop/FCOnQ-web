@@ -4,6 +4,7 @@ Flask + PostgreSQL
 """
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from functools import wraps
 from authlib.integrations.flask_client import OAuth
 import os
 from datetime import timedelta
@@ -75,6 +76,15 @@ def verify_password(password, password_hash):
     if not password or not password_hash:
         return False
     return hash_password(password) == password_hash
+
+def admin_required(f):
+    """관리자 권한 확인 데코레이터"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get('user_role') != 'admin':
+            return jsonify({'success': False, 'message': '관리자 권한이 필요합니다'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # 시즌 정렬 순서 (공식 홈페이지 기준)
@@ -345,6 +355,13 @@ def community_list():
                 params.append(f'%{kw.replace(" ", "")}%')
             conditions.append(f"({' AND '.join(search_conditions)})")
     
+    # 관리자 여부 확인
+    is_admin = session.get('user_role') == 'admin'
+
+    # 일반 사용자는 삭제되지 않은 글만 보기
+    if not is_admin:
+        conditions.append("is_deleted = false")
+
     # 조건 적용
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
@@ -440,11 +457,17 @@ def community_post(post_id):
     # 게시글 조회
     cur.execute("SELECT * FROM community.posts WHERE id = %s", (post_id,))
     post = cur.fetchone()
-    
+
     if not post:
         cur.close()
         conn.close()
         return "게시글을 찾을 수 없습니다", 404
+
+    # 삭제된 게시글 접근 제한 (관리자는 제외)
+    if post.get('is_deleted') and session.get('user_role') != 'admin':
+        cur.close()
+        conn.close()
+        return "삭제된 게시글입니다", 403
     
     # 메인 게시글 IP 표시 추가
     post['ip_display'] = format_ip_display(post.get('author_ip'))
@@ -587,6 +610,42 @@ def delete_post(post_id):
     conn.close()
     
     return jsonify({'success': True, 'message': '게시글이 삭제되었습니다'})
+
+
+@app.route('/community/post/<int:post_id>/admin_delete', methods=['POST'])
+@admin_required
+def admin_delete_post(post_id):
+    """관리자 전용 게시글 삭제 (Soft Delete)"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # 게시글 존재 확인
+        cur.execute("SELECT id FROM community.posts WHERE id = %s", (post_id,))
+        post = cur.fetchone()
+        
+        if not post:
+            return jsonify({'success': False, 'message': '게시글을 찾을 수 없습니다'}), 404
+        
+        # Soft Delete: is_deleted를 true로 설정
+        cur.execute("""
+            UPDATE community.posts 
+            SET is_deleted = true, 
+                deleted_at = CURRENT_TIMESTAMP,
+                deleted_by = %s
+            WHERE id = %s
+        """, (session.get('user_id'), post_id))
+        
+        conn.commit()
+        return jsonify({'success': True, 'message': '게시글이 삭제되었습니다'})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'삭제 중 오류가 발생했습니다: {str(e)}'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
 
 @app.route('/community/comment/<int:comment_id>/delete', methods=['POST'])
 def delete_comment(comment_id):

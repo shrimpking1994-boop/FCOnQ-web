@@ -91,12 +91,15 @@
                     <th style="width: 120px; text-align: center; padding: 15px 10px;">날짜</th>
                     <th style="width: 80px; text-align: center; padding: 15px 10px;">조회</th>
                     <th style="width: 80px; text-align: center; padding: 15px 10px;">추천</th>
+                    {% if session.get('user_role') == 'admin' %}
+                    <th style="width: 100px; text-align: center; padding: 15px 10px;">관리</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% if posts %}
                 {% for post in posts %}
-                <tr style="cursor: pointer; border-bottom: 1px solid var(--border-color);"
+                <tr style="cursor: pointer; border-bottom: 1px solid var(--border-color); {% if post.is_deleted %}background: rgba(255, 0, 0, 0.05);{% endif %}"
                     onclick="window.location='/community/post/{{ post.id }}?category={{ category or '' }}'">
                     <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500;">
                         {{ post.id }}
@@ -107,6 +110,10 @@
                     </td>
                     <td style="padding: 12px 20px;">
                         <strong style="color: var(--text-primary); font-size: 1rem;">
+                            {% if post.is_deleted and session.get('user_role') == 'admin' %}
+                            <span
+                                style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">삭제됨</span>
+                            {% endif %}
                             {{ post.title }}
                             {% if post.has_image %}
                             <span style="margin-left: 6px; font-size: 0.9rem;">🖼️</span>
@@ -131,6 +138,18 @@
                     <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
                         {{ post.likes }}
                     </td>
+                    {% if session.get('user_role') == 'admin' %}
+                    <td style="text-align: center; padding: 12px 10px;" onclick="event.stopPropagation();">
+                        {% if not post.is_deleted %}
+                        <button onclick="adminDeletePost({{ post.id }})" class="btn btn-sm btn-danger"
+                            style="padding: 4px 12px; font-size: 0.85rem;">
+                            🗑️ 삭제
+                        </button>
+                        {% else %}
+                        <span style="color: #ef4444; font-size: 0.85rem;">삭제됨</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
                 {% else %}
@@ -249,6 +268,32 @@
 </style>
 
 <script>
+    function adminDeletePost(postId) {
+        if (!confirm('정말로 이 게시글을 삭제하시겠습니까?\n삭제된 게시글은 관리자만 볼 수 있습니다.')) {
+            return;
+        }
+
+        fetch(`/community/post/${postId}/admin_delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('게시글이 삭제되었습니다');
+                    location.reload();
+                } else {
+                    alert(data.message || '삭제 중 오류가 발생했습니다');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다');
+            });
+    }
+
     function searchPosts() {
         const searchType = document.getElementById('searchType').value;
         const keyword = document.getElementById('searchKeyword').value.trim();
