@@ -40,7 +40,8 @@
                 style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px;">
         </div>
 
-        <!-- 작성자 입력 (임시) -->
+        <!-- 작성자 입력 (비로그인 시에만 표시) -->
+        {% if not session.get('user_id') %}
         <div class="mb-4">
             <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
                 작성자 <span style="color: #ff4444;">*</span>
@@ -48,8 +49,21 @@
             <input type="text" name="author" value="익명" required maxlength="100" class="form-control"
                 style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px;">
         </div>
+        {% else %}
+        <!-- 로그인 상태: 작성자 표시 -->
+        <div class="mb-4">
+            <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
+                작성자
+            </label>
+            <div
+                style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px; opacity: 0.7;">
+                {{ session.get('user_name', '익명') }}
+            </div>
+        </div>
+        {% endif %}
 
-        <!-- 비밀번호 입력 -->
+        <!-- 비밀번호 입력 (비로그인 시에만 표시) -->
+        {% if not session.get('user_id') %}
         <div class="mb-4">
             <label style="color: var(--text-primary); font-weight: 500; margin-bottom: 10px; display: block;">
                 비밀번호 <span style="color: #ff4444;">*</span>
@@ -58,6 +72,7 @@
                 class="form-control"
                 style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px;">
         </div>
+        {% endif %}
 
         <!-- 내용 입력 -->
         <div class="mb-4">

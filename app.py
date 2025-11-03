@@ -417,21 +417,29 @@ def community_write():
         category = request.form.get('category')
         title = request.form.get('title')
         content = request.form.get('content')
-        author = request.form.get('author', '익명')
-        password = request.form.get('password', '')  # 비밀번호 가져오기
-        # 프록시 환경 대응 (Render 등)
-        author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
         
-        # 비밀번호 해시 처리
-        password_hash = hash_password(password) if password else None
+        # 로그인 여부 확인
+        if 'user_id' in session:
+            # 로그인 상태: 세션 정보 사용
+            author = session.get('user_name', '익명')
+            author_ip = None  # 로그인 유저는 IP 저장 안 함
+            password_hash = None  # 로그인 유저는 비밀번호 불필요
+            user_id = session.get('user_id')  # 작성자 ID 저장
+        else:
+            # 비로그인 상태: 폼 데이터 사용
+            author = request.form.get('author', '익명')
+            password = request.form.get('password', '')
+            author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+            password_hash = hash_password(password) if password else None
+            user_id = None
         
         conn = get_db_connection()
         cur = conn.cursor()
         
         cur.execute("""
-            INSERT INTO community.posts (category, title, content, author, author_ip, password_hash)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (category, title, content, author, author_ip, password_hash))
+            INSERT INTO community.posts (category, title, content, author, author_ip, password_hash, user_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (category, title, content, author, author_ip, password_hash, user_id))
         
         conn.commit()
         cur.close()
@@ -589,13 +597,11 @@ def add_comment(post_id):
 @app.route('/community/post/<int:post_id>/delete', methods=['POST'])
 def delete_post(post_id):
     """게시글 삭제"""
-    password = request.form.get('password', '')
-    
     conn = get_db_connection()
     cur = conn.cursor()
     
     # 게시글 조회
-    cur.execute("SELECT password_hash FROM community.posts WHERE id = %s", (post_id,))
+    cur.execute("SELECT password_hash, user_id FROM community.posts WHERE id = %s", (post_id,))
     post = cur.fetchone()
     
     if not post:
@@ -603,11 +609,20 @@ def delete_post(post_id):
         conn.close()
         return jsonify({'success': False, 'message': '게시글을 찾을 수 없습니다'}), 404
     
-    # 비밀번호 확인
-    if not verify_password(password, post['password_hash']):
-        cur.close()
-        conn.close()
-        return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
+    # 권한 확인
+    if post['user_id']:
+        # 로그인 유저가 작성한 글: 세션 user_id 확인
+        if 'user_id' not in session or session['user_id'] != post['user_id']:
+            cur.close()
+            conn.close()
+            return jsonify({'success': False, 'message': '본인이 작성한 글만 삭제할 수 있습니다'}), 403
+    else:
+        # 비로그인 유저가 작성한 글: 비밀번호 확인
+        password = request.form.get('password', '')
+        if not verify_password(password, post['password_hash']):
+            cur.close()
+            conn.close()
+            return jsonify({'success': False, 'message': '비밀번호가 일치하지 않습니다'}), 403
     
     # 댓글 먼저 삭제
     cur.execute("DELETE FROM community.comments WHERE post_id = %s", (post_id,))
