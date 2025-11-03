@@ -153,14 +153,12 @@
             position: absolute;
             top: 20px;
             right: 140px;
-            /* 다크모드 버튼 너비(~100px) + 간격(10px) */
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
         .login-btn {
-            /* Bootstrap btn-outline-light btn-sm 스타일 완전 복제 */
             color: #f8f9fa;
             border-color: #f8f9fa;
             background-color: transparent;
@@ -185,7 +183,6 @@
             border-color: #f8f9fa;
         }
 
-
         /* 프로필 드롭다운 컨테이너 */
         .profile-dropdown {
             position: relative;
@@ -193,7 +190,6 @@
 
         /* 프로필 버튼 (다크모드 버튼과 동일한 디자인) */
         .profile-btn {
-            /* darkModeToggle과 완전히 동일한 스타일 */
             color: #f8f9fa;
             border-color: #f8f9fa;
             background-color: transparent;
@@ -205,9 +201,10 @@
             transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-weight: 400;
             cursor: pointer;
+            height: 31px;
         }
 
         .profile-btn:hover {
@@ -217,8 +214,8 @@
         }
 
         .profile-btn img {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             border: 1px solid white;
         }
@@ -314,7 +311,6 @@
                 <a href="/community" class="nav-link-item" id="nav-community">커뮤니티</a>
             </li>
             <li>
-                <!-- ✅ "/" 대신 "/search" -->
                 <a href="/search" class="nav-link-item active" id="nav-playerdb">선수 DB</a>
             </li>
         </ul>
@@ -325,7 +321,6 @@
         <div class="container">
             <div class="content-wrapper">
                 {% block content %}
-                <!-- 각 페이지의 내용이 여기에 들어감 -->
                 <div style="text-align: center; padding: 100px 0;">
                     <h2 style="color: var(--text-primary);">환영합니다!</h2>
                     <p style="color: var(--text-secondary); margin-top: 20px;">
@@ -352,6 +347,8 @@
 
     <!-- 스크립트 -->
     <script src="{{ url_for('static', filename='js/darkmode.js') }}"></script>
+
+    <!-- 네비게이션 활성화 스크립트 -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const currentPath = window.location.pathname;
@@ -360,7 +357,6 @@
             navLinks.forEach(link => {
                 link.classList.remove('active');
 
-                // ✅ '/player_review' 추가
                 if (currentPath === '/' || currentPath === '/search' ||
                     currentPath.startsWith('/results') || currentPath.startsWith('/card') ||
                     currentPath.startsWith('/compare') || currentPath.startsWith('/player_review')) {
@@ -378,45 +374,53 @@
             const loginSection = document.getElementById('loginSection');
 
             try {
-                // 로그인 상태 확인
                 const response = await fetch('/auth/status');
                 const data = await response.json();
 
                 if (data.logged_in) {
-                    // 로그인 상태 - 프로필 드롭다운 표시
                     const user = data.user;
+
+                    // 프로필 드롭다운 HTML 생성
                     loginSection.innerHTML = `
-        <div class="profile-dropdown">
-            <button class="profile-btn">
-                ${user.profile_image ?
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <button class="profile-btn" id="profileBtn">
+                                ${user.profile_image ?
                             `<img src="${user.profile_image}" alt="${user.name}">` :
                             '👤'
                         }
-                <span>${user.name}</span>
-                ${user.role === 'admin' ? '<span class="admin-badge">관리자</span>' : ''}
-                <span class="dropdown-icon">▼</span>
-            </button>
-            <div class="dropdown-menu">
-                <a href="/logout" class="dropdown-item">로그아웃</a>
-            </div>
-        </div>
-    `;
+                                <span>${user.name}</span>
+                                ${user.role === 'admin' ? '<span class="admin-badge">관리자</span>' : ''}
+                                <span class="dropdown-icon">▼</span>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="/logout" class="dropdown-item">로그아웃</a>
+                            </div>
+                        </div>
+                    `;
 
-                    // 드롭다운 토글 이벤트
-                    const profileBtn = loginSection.querySelector('.profile-btn');
-                    const dropdown = loginSection.querySelector('.profile-dropdown');
+                    // DOM 생성 대기 후 이벤트 리스너 추가
+                    setTimeout(() => {
+                        const profileBtn = document.getElementById('profileBtn');
+                        const dropdown = document.getElementById('profileDropdown');
 
-                    profileBtn.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        dropdown.classList.toggle('active');
-                    });
+                        if (profileBtn && dropdown) {
+                            // 프로필 버튼 클릭 시 드롭다운 토글
+                            profileBtn.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                dropdown.classList.toggle('active');
+                            });
 
-                    // 외부 클릭 시 닫기
-                    document.addEventListener('click', function () {
-                        dropdown.classList.remove('active');
-                    });
+                            // 문서 전체 클릭 시 드롭다운 닫기
+                            document.addEventListener('click', function (e) {
+                                if (!dropdown.contains(e.target)) {
+                                    dropdown.classList.remove('active');
+                                }
+                            });
+                        }
+                    }, 0);
+
                 } else {
-                    // 비로그인 상태 - 로그인 버튼 표시
+                    // 비로그인 상태
                     loginSection.innerHTML = `
                         <a href="/login" class="login-btn">
                             🔐 로그인
@@ -425,7 +429,6 @@
                 }
             } catch (error) {
                 console.error('로그인 상태 확인 실패:', error);
-                // 에러 시 기본 로그인 버튼 표시
                 loginSection.innerHTML = `
                     <a href="/login" class="login-btn">
                         🔐 로그인
