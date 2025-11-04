@@ -830,8 +830,6 @@ def delete_comment(comment_id):
 @app.route('/community/post/<int:post_id>/edit')
 def edit_post_page(post_id):
     """게시글 수정 페이지"""
-    password = request.args.get('password', '')
-    
     conn = get_db_connection()
     cur = conn.cursor()
     
@@ -842,18 +840,23 @@ def edit_post_page(post_id):
     if not post:
         cur.close()
         conn.close()
-        return "게시글을 찾을 수 없습니다", 404
+        return redirect('/community')
     
-    # 비밀번호 확인
-    if not verify_password(password, post['password_hash']):
-        cur.close()
-        conn.close()
-        return """
-            <script>
-                alert('비밀번호가 일치하지 않습니다');
-                history.back();
-            </script>
-        """
+    # 권한 확인
+    if post['user_id']:
+        # 로그인 유저가 작성한 글: 세션 user_id 확인
+        if 'user_id' not in session or session['user_id'] != post['user_id']:
+            cur.close()
+            conn.close()
+            alert_message = "본인이 작성한 글만 수정할 수 있습니다"
+            return f"<script>alert('{alert_message}'); window.location='/community/post/{post_id}';</script>"
+    else:
+        # 비로그인 유저가 작성한 글: 비밀번호 확인
+        password = request.args.get('password', '')
+        if not verify_password(password, post['password_hash']):
+            cur.close()
+            conn.close()
+            return redirect(f'/community/post/{post_id}')
     
     cur.close()
     conn.close()

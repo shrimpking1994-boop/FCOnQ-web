@@ -390,12 +390,20 @@
     }
 
     function editPost(postId) {
+        // 로그인 여부 확인
+        const isLoggedIn = {{ 'true' if session.get('user_id') else 'false'
+    }};
+
+    if (!isLoggedIn) {
+        // 비로그인: 비밀번호 입력 필요
         const password = prompt('비밀번호를 입력하세요:');
         if (!password) return;
-
-        // 비밀번호를 쿼리 파라미터로 전달
         window.location.href = `/community/post/${postId}/edit?password=${encodeURIComponent(password)}`;
+    } else {
+        // 로그인: 비밀번호 입력 불필요
+        window.location.href = `/community/post/${postId}/edit`;
     }
+}
 
     function deleteComment(commentId) {
         // 로그인 여부 확인
