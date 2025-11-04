@@ -376,7 +376,13 @@ def community_list():
     total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
     
     # 페이징 적용
-    query += " ORDER BY created_at DESC LIMIT %s OFFSET %s"
+    query += """ 
+    ORDER BY 
+            is_notice DESC,
+            CASE WHEN is_notice = true THEN created_at END ASC,
+            CASE WHEN is_notice = false THEN created_at END DESC 
+        LIMIT %s OFFSET %s
+    """
     params.extend([per_page, (page - 1) * per_page])
     
     cur.execute(query, params)
@@ -653,6 +659,45 @@ def delete_post(post_id):
     finally:
         cur.close()
         conn.close()
+        
+@app.route('/community/post/<int:post_id>/toggle_notice', methods=['POST'])
+@admin_required
+def toggle_notice(post_id):
+    """관리자 전용: 공지글 고정/해제"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # 게시글 조회
+        cur.execute("SELECT is_notice, user_id FROM community.posts WHERE id = %s", (post_id,))
+        post = cur.fetchone()
+        
+        if not post:
+            return jsonify({'success': False, 'message': '게시글을 찾을 수 없습니다'}), 404
+        
+        # 관리자가 작성한 글만 공지로 설정 가능
+        if post['user_id'] != session.get('user_id'):
+            return jsonify({'success': False, 'message': '본인이 작성한 글만 공지로 설정할 수 있습니다'}), 403
+        
+        # is_notice 토글
+        new_notice_status = not post['is_notice']
+        cur.execute("""
+            UPDATE community.posts 
+            SET is_notice = %s 
+            WHERE id = %s
+        """, (new_notice_status, post_id))
+        
+        conn.commit()
+        
+        message = '공지글로 고정되었습니다' if new_notice_status else '공지글 고정이 해제되었습니다'
+        return jsonify({'success': True, 'message': message, 'is_notice': new_notice_status})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'오류가 발생했습니다: {str(e)}'}), 500
+    finally:
+        cur.close()
+        conn.close()        
 
 
 @app.route('/community/post/<int:post_id>/admin_delete', methods=['POST'])

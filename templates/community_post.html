@@ -28,6 +28,19 @@
 
             <!-- 버튼 그룹 -->
             <div style="display: flex; gap: 10px;">
+                <!-- 공지글 고정/해제 버튼 (관리자 + 본인 글만) -->
+                {% if session.get('user_role') == 'admin' and post.user_id == session.get('user_id') %}
+                <button onclick="toggleNotice({{ post.id }})" id="noticeBtn"
+                    class="btn {% if post.is_notice %}btn-warning{% else %}btn-outline-warning{% endif %}"
+                    style="padding: 6px 20px; border-radius: 20px;">
+                    {% if post.is_notice %}
+                    📌 공지글 고정 해제
+                    {% else %}
+                    📌 공지글로 고정
+                    {% endif %}
+                </button>
+                {% endif %}
+
                 <!-- 공유 버튼 -->
                 <button onclick="sharePost()" class="btn btn-outline-secondary"
                     style="padding: 6px 20px; border-radius: 20px;">
@@ -450,6 +463,29 @@
             searchPosts();
         }
     });
+
+    // 공지글 고정/해제
+    function toggleNotice(postId) {
+        fetch(`/community/post/${postId}/toggle_notice`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다');
+            });
+    }
 </script>
 
 

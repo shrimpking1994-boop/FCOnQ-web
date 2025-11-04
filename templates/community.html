@@ -112,14 +112,19 @@
             <tbody>
                 {% if posts %}
                 {% for post in posts %}
-                <tr style="cursor: pointer; border-bottom: 1px solid var(--border-color); {% if post.is_deleted %}background: rgba(255, 0, 0, 0.05);{% endif %}"
+                <tr style="cursor: pointer; border-bottom: 1px solid var(--border-color); 
+                              {% if post.is_deleted %}background: rgba(255, 0, 0, 0.05);
+                              {% elif post.is_notice %}background: rgba(255, 152, 0, 0.08);{% endif %}"
                     onclick="window.location='/community/post/{{ post.id }}?category={{ category or '' }}'">
                     <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500;">
                         {{ post.id }}
                     </td>
-                    <td
-                        style="text-align: center; padding: 12px 10px; color: var(--text-primary); font-size: 0.9rem; white-space: nowrap;">
-                        {{ post.category }}
+                    <td style="text-align: center; padding: 12px 10px; font-size: 0.9rem; white-space: nowrap;">
+                        {% if post.is_notice %}
+                        <span style="color: #ff9800; font-weight: 600;">📌 공지</span>
+                        {% else %}
+                        <span style="color: var(--text-primary);">{{ post.category }}</span>
+                        {% endif %}
                     </td>
                     <td style="padding: 12px 20px;">
                         <strong style="color: var(--text-primary); font-size: 1rem;">
