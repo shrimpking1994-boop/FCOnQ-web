@@ -133,12 +133,15 @@
                                 style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">삭제됨</span>
                             {% endif %}
                             {{ post.title }}
+                            {% if post.comment_count > 0 %}
+                            <span style="margin-left: 6px; color: #10b981; font-size: 0.9rem;">[{{ post.comment_count
+                                }}]</span>
+                            {% endif %}
                             {% if post.has_image %}
                             <span style="margin-left: 6px; font-size: 0.9rem;">🖼️</span>
                             {% endif %}
                             {% if post.has_video %}
-                            <span
-                                style="margin-left: {% if post.has_image %}-5px{% else %}2px{% endif %}; font-size: 0.9rem;">▶️</span>
+                            <span style="margin-left: 6px; font-size: 0.9rem;">▶️</span>
                             {% endif %}
                         </strong>
                     </td>

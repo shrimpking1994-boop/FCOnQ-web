@@ -388,6 +388,16 @@ def community_list():
     cur.execute(query, params)
     posts = cur.fetchall()
     
+    # 각 게시글의 댓글 수 조회
+    for post in posts:    
+        cur.execute("""
+            SELECT COUNT(*) as comment_count 
+            FROM community.comments 
+            WHERE post_id = %s AND is_deleted = false
+        """, (post['id'],))
+        comment_result = cur.fetchone()
+        post['comment_count'] = comment_result['comment_count'] if comment_result else 0
+    
     # 날짜 포맷 처리 + 이미지/영상 감지
     from datetime import datetime, date
     today = date.today()
@@ -561,6 +571,15 @@ def community_post(post_id):
         p['has_video'] = '<iframe' in p['content'] or 'youtube.com' in p['content'] or 'youtu.be' in p['content']
         # IP 표시 추가
         p['ip_display'] = format_ip_display(p.get('author_ip'))
+    
+        # 댓글 수 조회 추가
+        cur.execute("""
+            SELECT COUNT(*) as comment_count 
+            FROM community.comments 
+            WHERE post_id = %s AND is_deleted = false
+        """, (p['id'],))
+        comment_result = cur.fetchone()
+        p['comment_count'] = comment_result['comment_count'] if comment_result else 0    
     
     cur.close()
     conn.close()
