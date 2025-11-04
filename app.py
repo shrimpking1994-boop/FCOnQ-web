@@ -870,43 +870,66 @@ def edit_post_submit(post_id):
     category = request.form.get('category')
     title = request.form.get('title')
     content = request.form.get('content')
-    password = request.form.get('password', '')
     
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # 게시글 조회
-    cur.execute("SELECT password_hash FROM community.posts WHERE id = %s", (post_id,))
-    post = cur.fetchone()
-    
-    if not post:
-        cur.close()
-        conn.close()
-        return "게시글을 찾을 수 없습니다", 404
-    
-    # 비밀번호 확인
-    if not verify_password(password, post['password_hash']):
-        cur.close()
-        conn.close()
-        return """
+    try:
+        # 게시글 조회
+        cur.execute("SELECT password_hash, user_id FROM community.posts WHERE id = %s", (post_id,))
+        post = cur.fetchone()
+        
+        if not post:
+            cur.close()
+            conn.close()
+            return "게시글을 찾을 수 없습니다", 404
+        
+        # 권한 확인
+        if post['user_id']:
+            # 로그인 유저가 작성한 글: 세션 user_id 확인
+            if 'user_id' not in session or session['user_id'] != post['user_id']:
+                cur.close()
+                conn.close()
+                return """
+                    <script>
+                        alert('본인이 작성한 글만 수정할 수 있습니다');
+                        window.location='/community/post/""" + str(post_id) + """';
+                    </script>
+                """
+        else:
+            # 비로그인 유저가 작성한 글: 비밀번호 확인
+            password = request.form.get('password', '')
+            if not verify_password(password, post['password_hash']):
+                cur.close()
+                conn.close()
+                return """
+                    <script>
+                        alert('비밀번호가 일치하지 않습니다');
+                        history.back();
+                    </script>
+                """
+        
+        # 게시글 수정
+        cur.execute("""
+            UPDATE community.posts 
+            SET category = %s, title = %s, content = %s 
+            WHERE id = %s
+        """, (category, title, content, post_id))
+        
+        conn.commit()
+        return redirect(f'/community/post/{post_id}')
+        
+    except Exception as e:
+        conn.rollback()
+        return f"""
             <script>
-                alert('비밀번호가 일치하지 않습니다');
+                alert('수정 중 오류가 발생했습니다: {str(e)}');
                 history.back();
             </script>
-        """
-    
-    # 게시글 수정
-    cur.execute("""
-        UPDATE community.posts 
-        SET category = %s, title = %s, content = %s 
-        WHERE id = %s
-    """, (category, title, content, post_id))
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    return redirect(f'/community/post/{post_id}')
+        """, 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 @app.route('/search') 
