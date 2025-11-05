@@ -24,7 +24,7 @@
                 <span>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
                 <span>조회 {{ post.views }}</span>
                 <span>추천 {{ post.likes }}</span>
-                <span style="color: #10b981;">댓글 {{ comments|length }}</span>
+                <span>댓글 {{ comments|length }}</span>
             </div>
 
             <!-- 버튼 그룹 -->
@@ -224,14 +224,15 @@
                             style="color: var(--text-primary); text-decoration: none; font-weight: 500;">
                             {{ p.title }}
                             {% if p.comment_count > 0 %}
-                            <span style="margin-left: 6px; color: #10b981; font-size: 0.9rem;">[{{ p.comment_count
-                                }}]</span>
+                            <span style="margin-left: 0px; color: var(--text-primary); font-size: 0.9rem;">[{{
+                                p.comment_count }}]</span>
                             {% endif %}
                             {% if p.has_image %}
                             <span style="margin-left: 6px; font-size: 0.9rem;">🖼️</span>
                             {% endif %}
                             {% if p.has_video %}
-                            <span style="margin-left: 6px; font-size: 0.9rem;">▶️</span>
+                            <span
+                                style="margin-left: {% if p.has_image %}-5px{% else %}6px{% endif %}; font-size: 0.9rem;">▶️</span>
                             {% endif %}
                         </a>
                     </td>

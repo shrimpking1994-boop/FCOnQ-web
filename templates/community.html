@@ -127,23 +127,24 @@
                         {% endif %}
                     </td>
                     <td style="padding: 12px 20px;">
-                        <strong style="color: var(--text-primary); font-size: 1rem;">
+                        <span style="color: var(--text-primary); font-size: 1rem; font-weight: 500;">
                             {% if post.is_deleted and session.get('user_role') == 'admin' %}
                             <span
                                 style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">삭제됨</span>
                             {% endif %}
                             {{ post.title }}
                             {% if post.comment_count > 0 %}
-                            <span style="margin-left: 6px; color: #10b981; font-size: 0.9rem;">[{{ post.comment_count
-                                }}]</span>
+                            <span style="margin-left: 0px; color: var(--text-primary); font-size: 0.9rem;">[{{
+                                post.comment_count }}]</span>
                             {% endif %}
                             {% if post.has_image %}
                             <span style="margin-left: 6px; font-size: 0.9rem;">🖼️</span>
                             {% endif %}
                             {% if post.has_video %}
-                            <span style="margin-left: 6px; font-size: 0.9rem;">▶️</span>
+                            <span
+                                style="margin-left: {% if post.has_image %}-5px{% else %}6px{% endif %}; font-size: 0.9rem;">▶️</span>
                             {% endif %}
-                        </strong>
+                        </span>
                     </td>
                     <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
                         {{ post.author }} <span style="color: var(--text-muted); font-size: 0.85em;">{{ post.ip_display
