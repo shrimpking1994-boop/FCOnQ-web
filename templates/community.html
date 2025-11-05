@@ -9,7 +9,7 @@
 
         <!-- 카테고리 탭 -->
         <div style="flex: 1;">
-            <!-- 첫 줄: 전체글 + 인기글 1-->
+            <!-- 첫 줄: 전체글 + 인기글 -->
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <a href="/community{% if category %}?category={{ category }}{% endif %}"
                     class="btn {% if not show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
