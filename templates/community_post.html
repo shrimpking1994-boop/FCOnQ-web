@@ -101,6 +101,8 @@
         {% if comments %}
         <div style="margin-bottom: 30px;">
             {% for comment in comments %}
+            {% if not comment.parent_comment_id %}
+            <!-- 일반 댓글 -->
             <div
                 style="padding: 20px; border-bottom: 1px solid var(--border-color); {% if loop.last %}border-bottom: none;{% endif %} {% if comment.is_deleted %}background: rgba(255, 0, 0, 0.05);{% endif %}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -117,6 +119,10 @@
                             {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
                         </span>
                         {% if not comment.is_deleted %}
+                        <button onclick="showReplyForm({{ comment.id }})" class="btn btn-sm btn-outline-info"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            댓글
+                        </button>
                         <button onclick="deleteComment({{ comment.id }})" class="btn btn-sm btn-outline-danger"
                             style="padding: 2px 10px; font-size: 0.8rem;">
                             삭제
@@ -127,17 +133,85 @@
                             🔧 관리자삭제
                         </button>
                         {% endif %}
-                        {% else %}
-                        {% if session.get('user_role') == 'admin' %}
-                        <span style="color: #ef4444; font-size: 0.85rem;">삭제됨</span>
-                        {% endif %}
                         {% endif %}
                     </div>
                 </div>
                 <div style="color: var(--text-primary); line-height: 1.6;">
                     {{ comment.content }}
                 </div>
+
+                <!-- 대댓글 작성 폼 (숨겨진 상태) -->
+                <div id="replyForm-{{ comment.id }}"
+                    style="display: none; margin-top: 15px; padding-left: 20px; border-left: 3px solid var(--border-color);">
+                    <form method="POST" action="/community/comment/{{ post.id }}"
+                        style="padding: 15px; background: var(--secondary-bg); border-radius: 8px;">
+                        <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+
+                        {% if not session.get('user_id') %}
+                        <div class="mb-2">
+                            <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
+                                class="form-control"
+                                style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 6px; max-width: 200px; font-size: 0.9rem;">
+                        </div>
+                        <div class="mb-2">
+                            <input type="password" name="password" required maxlength="50" placeholder="비밀번호"
+                                class="form-control"
+                                style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 6px; max-width: 200px; font-size: 0.9rem;">
+                        </div>
+                        {% endif %}
+
+                        <textarea name="content" required rows="3" placeholder="답글을 입력하세요" class="form-control"
+                            style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 6px; resize: vertical; font-size: 0.9rem;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-success btn-sm" style="padding: 6px 20px;">등록</button>
+                            <button type="button" onclick="hideReplyForm({{ comment.id }})"
+                                class="btn btn-secondary btn-sm" style="padding: 6px 20px;">취소</button>
+                        </div>
+                    </form>
+                </div>
             </div>
+
+            <!-- 해당 댓글의 대댓글들 -->
+            {% for reply in comments %}
+            {% if reply.parent_comment_id == comment.id %}
+            <div
+                style="padding: 20px; padding-left: 60px; border-bottom: 1px solid var(--border-color); background: var(--secondary-bg); {% if reply.is_deleted %}opacity: 0.6;{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: var(--text-secondary); font-size: 1.2rem; margin-right: 4px;">ㄴ</span>
+                        {% if reply.is_deleted and session.get('user_role') == 'admin' %}
+                        <span
+                            style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-right: 4px;">삭제됨</span>
+                        {% endif %}
+                        <strong style="color: var(--text-primary);">{{ reply.author }}</strong>
+                        <span style="color: var(--text-muted); font-size: 0.85em;">{{ reply.ip_display }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--text-secondary); font-size: 0.85rem;">
+                            {{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </span>
+                        {% if not reply.is_deleted %}
+                        <button onclick="deleteComment({{ reply.id }})" class="btn btn-sm btn-outline-danger"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            삭제
+                        </button>
+                        {% if session.get('user_role') == 'admin' %}
+                        <button onclick="adminDeleteComment({{ reply.id }})" class="btn btn-sm btn-danger"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            🔧 관리자삭제
+                        </button>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="color: var(--text-primary); line-height: 1.6;">
+                    {{ reply.content }}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
             {% endfor %}
         </div>
         {% else %}
@@ -410,6 +484,22 @@
         window.location.href = `/community/post/${postId}/edit`;
     }
 }
+
+    // 대댓글 폼 표시
+    function showReplyForm(commentId) {
+        // 모든 대댓글 폼 숨기기
+        document.querySelectorAll('[id^="replyForm-"]').forEach(form => {
+            form.style.display = 'none';
+        });
+
+        // 해당 댓글의 대댓글 폼만 표시
+        document.getElementById('replyForm-' + commentId).style.display = 'block';
+    }
+
+    // 대댓글 폼 숨기기
+    function hideReplyForm(commentId) {
+        document.getElementById('replyForm-' + commentId).style.display = 'none';
+    }
 
     function deleteComment(commentId) {
         // 로그인 여부 확인
