@@ -211,9 +211,9 @@
             {% for reply in reviews %}
             {% if reply.parent_comment_id == review.id %}
             <div
-                style="padding: 20px; padding-left: 60px; background: var(--card-bg); {% if reply.is_deleted %}opacity: 0.6;{% endif %}; position: relative;">
+                style="padding: 10px; padding-top: 0; padding-left: 60px; background: var(--card-bg); {% if reply.is_deleted %}opacity: 0.6;{% endif %}; position: relative;">
                 <div
-                    style="position: absolute; left: 60px; right: 0; bottom: 0; height: 1px; background: var(--border-color);">
+                    style="position: absolute; left: 60px; right: 0; bottom: -6px; height: 1px; background: var(--border-color);">
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 6px;">
