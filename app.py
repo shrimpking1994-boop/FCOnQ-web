@@ -1715,6 +1715,29 @@ def auth_status():
         })
     else:
         return jsonify({'logged_in': False})
+    
+
+@app.route('/api/player_names')
+def get_player_names():
+    """선수 이름 리스트 반환 (자동완성용, 시즌 개수 포함)"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 선수 이름과 카드 개수를 함께 가져오기
+    cur.execute("""
+        SELECT player_name, COUNT(*) as card_count
+        FROM player_cards 
+        GROUP BY player_name
+        ORDER BY card_count DESC, player_name
+    """)
+    
+    players = [{"name": row['player_name'], "count": row['card_count']} for row in cur.fetchall()]
+    
+    cur.close()
+    conn.close()
+    
+    return jsonify(players)
+    
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

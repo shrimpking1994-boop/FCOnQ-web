@@ -388,9 +388,12 @@
         <label class="form-label section-title">선수 이름</label>
         <div style="padding: 15px; background: var(--bg-secondary); border-radius: 10px;">
             <div class="player-search-wrapper">
-                <div class="player-name-input">
-                    <input type="text" class="form-control form-control-lg" name="player_name"
-                        placeholder="선수 이름을 입력하세요" autocomplete="off">
+                <div class="player-name-input" style="position: relative;">
+                    <input type="text" class="form-control form-control-lg" name="player_name" id="playerNameInput"
+                        placeholder="부분 검색 및 ','를 통한 복수 검색 가능" autocomplete="off">
+                    <div id="autocompleteList"
+                        style="position: absolute; z-index: 1000; display: none; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; max-height: 300px; overflow-y: auto; width: calc(100% - 30px); margin-top: 5px; box-shadow: 0 4px 12px var(--shadow-main);">
+                    </div>
                 </div>
                 <button type="submit" class="search-btn">검색</button>
             </div>
@@ -812,6 +815,62 @@
             minimumInputLength: 0,
             placeholder: function () {
                 return $(this).data('placeholder');
+            }
+        });
+
+        // 선수 이름 자동완성
+        let playerNames = [];
+
+        fetch('/api/player_names')
+            .then(response => response.json())
+            .then(data => {
+                playerNames = data; // 이미 카드 개수 많은 순서로 정렬되어 옴
+            });
+
+        const input = document.getElementById('playerNameInput');
+        const autocompleteList = document.getElementById('autocompleteList');
+
+        if (input) {
+            input.addEventListener('input', function () {
+                const value = this.value.trim();
+
+                // 2글자 미만이면 숨기기
+                if (value.length < 2) {
+                    autocompleteList.style.display = 'none';
+                    return;
+                }
+
+                // 필터링
+                const filtered = playerNames
+                    .filter(player => player.name.includes(value))
+                    .slice(0, 10);
+
+                if (filtered.length === 0) {
+                    autocompleteList.style.display = 'none';
+                    return;
+                }
+
+                // 드롭다운 생성
+                autocompleteList.innerHTML = filtered.map(player =>
+                    `<div style="padding: 10px 15px; cursor: pointer; color: var(--text-primary); transition: background 0.2s;" 
+  onmouseover="this.style.background='var(--hover-bg)'" 
+  onmouseout="this.style.background='transparent'"
+  onclick="selectPlayer('${player.name}')">${player.name}</div>`
+                ).join('');
+
+                autocompleteList.style.display = 'block';
+            });
+        }
+
+        function selectPlayer(name) {
+            input.value = name;
+            autocompleteList.style.display = 'none';
+        }
+
+        // 바깥 클릭 시 닫기
+        document.addEventListener('click', function (e) {
+            if (input && !input.contains(e.target) && !autocompleteList.contains(e.target)) {
+                autocompleteList.style.display = 'none';
             }
         });
     });
