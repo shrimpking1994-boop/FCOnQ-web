@@ -1381,13 +1381,13 @@ def player_review(spid):
         cur.execute("""
             SELECT * FROM player_reviews
             WHERE spid = %s
-            ORDER BY created_at DESC
+            ORDER BY parent_comment_id NULLS FIRST, created_at DESC
         """, (spid,))
     else:
         cur.execute("""
             SELECT * FROM player_reviews
             WHERE spid = %s AND is_deleted = false
-            ORDER BY created_at DESC
+            ORDER BY parent_comment_id NULLS FIRST, created_at DESC
         """, (spid,))
     reviews = cur.fetchall()
     
@@ -1403,39 +1403,54 @@ def player_review(spid):
 
 @app.route('/player_review/<spid>/write', methods=['POST'])
 def write_player_review(spid):
-    """선수 후기 작성"""
-    rating = request.form.get('rating')
-    rating = int(rating) if rating else None
-    content = request.form.get('content')
-    
-    # 로그인 여부 확인
-    if 'user_id' in session:
-        # 로그인 상태: 세션 정보 사용
-        author = session.get('user_name', '익명')
-        author_ip = None  # 로그인 유저는 IP 저장 안 함
-        password_hash = None  # 로그인 유저는 비밀번호 불필요
-        user_id = session.get('user_id')
-    else:
-        # 비로그인 상태: 폼 데이터 사용
-        author = request.form.get('author', '익명')
-        password = request.form.get('password', '')
-        author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-        password_hash = hash_password(password) if password else None
-        user_id = None
-    
+    """선수 후기 작성 (로그인/비로그인)"""
     conn = get_db_connection()
     cur = conn.cursor()
     
-    cur.execute("""
-        INSERT INTO player_reviews (spid, rating, content, author, author_ip, password_hash, user_id)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """, (spid, rating, content, author, author_ip, password_hash, user_id))
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    return redirect(f'/player_review/{spid}')
+    try:
+        content = request.form.get('content', '').strip()
+        rating = request.form.get('rating')
+        rating = int(rating) if rating else None
+        parent_comment_id = request.form.get('parent_comment_id') or None
+        
+        if not content:
+            return jsonify({'success': False, 'message': '내용을 입력해주세요'}), 400
+        
+        # 로그인 여부 확인
+        if 'user_id' in session:
+            author = session.get('user_name', '회원')
+            user_id = session.get('user_id')
+            password_hash = None
+            ip_hash = None
+            author_ip = None
+        else:
+            author = request.form.get('author', '익명').strip()
+            password = request.form.get('password', '').strip()
+            
+            if not password:
+                return jsonify({'success': False, 'message': '비밀번호를 입력해주세요'}), 400
+            
+            user_id = None
+            password_hash = hash_password(password)
+            ip_hash = hash_ip(request.remote_addr)
+            author_ip = request.remote_addr
+        
+        # 후기 삽입
+        cur.execute("""
+            INSERT INTO player_reviews 
+            (spid, author, content, rating, user_id, password_hash, ip_hash, author_ip, parent_comment_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (spid, author, content, rating, user_id, password_hash, ip_hash, author_ip, parent_comment_id))
+        
+        conn.commit()
+        return redirect(url_for('player_review', spid=spid))
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'작성 중 오류: {str(e)}'}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 @app.route('/player_review/<int:review_id>/admin_delete', methods=['POST'])

@@ -121,6 +121,8 @@
         {% if reviews %}
         <div style="display: flex; flex-direction: column; gap: 20px;">
             {% for review in reviews %}
+            {% if not review.parent_comment_id %}
+            <!-- 일반 후기 -->
             <div
                 style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; border-left: 3px solid var(--primary-color); {% if review.is_deleted %}background: rgba(255, 0, 0, 0.05) !important;{% endif %}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -131,12 +133,6 @@
                         {% endif %}
                         <span style="color: var(--text-primary); font-weight: 600;">{{ review.author }}</span>
                         <span style="color: var(--text-muted); font-size: 0.85em;">{{ review.ip_display }}</span>
-                        {% if review.position %}
-                        <span
-                            style="background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem;">
-                            {{ review.position }}
-                        </span>
-                        {% endif %}
                         {% if review.rating %}
                         <span style="color: #fbbf24; font-weight: 600;">⭐ {{ review.rating }}/10</span>
                         {% endif %}
@@ -146,6 +142,10 @@
                             {{ review.created_at.strftime('%m-%d %H:%M') }}
                         </span>
                         {% if not review.is_deleted %}
+                        <button onclick="showReplyForm({{ review.id }})" class="btn btn-sm btn-outline-info"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            댓글
+                        </button>
                         <button onclick="deleteReview({{ review.id }})" class="btn btn-sm btn-outline-danger"
                             style="padding: 2px 10px; font-size: 0.8rem;">
                             삭제
@@ -156,32 +156,100 @@
                             🔧 관리자삭제
                         </button>
                         {% endif %}
-                        {% else %}
-                        {% if session.get('user_role') == 'admin' %}
-                        <span style="color: #ef4444; font-size: 0.85rem;">삭제됨</span>
-                        {% endif %}
                         {% endif %}
                     </div>
                 </div>
-                <p style="color: var(--text-primary); margin: 0; line-height: 1.6;">
+                <p style="color: var(--text-primary); margin: 0 0 15px 0; line-height: 1.6;">
                     {{ review.content }}
                 </p>
-                <div style="margin-top: 15px; display: flex; align-items: center; gap: 15px;">
-                    <!-- 추천 버튼 -->
+                <div style="display: flex; align-items: center; gap: 15px;">
                     <button onclick="voteReview({{ review.id }}, 'like')" class="vote-btn like-btn"
                         style="background: none; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; color: var(--text-secondary);">
                         <span style="font-size: 1.1rem;">👍</span>
                         <span id="likes-{{ review.id }}">{{ review.likes }}</span>
                     </button>
-
-                    <!-- 비추천 버튼 -->
                     <button onclick="voteReview({{ review.id }}, 'dislike')" class="vote-btn dislike-btn"
                         style="background: none; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; color: var(--text-secondary);">
                         <span style="font-size: 1.1rem;">👎</span>
                         <span id="dislikes-{{ review.id }}">{{ review.dislikes }}</span>
                     </button>
                 </div>
+
+                <!-- 대댓글 작성 폼 (숨겨진 상태) -->
+                <div id="replyForm-{{ review.id }}"
+                    style="display: none; margin-top: 15px; padding-left: 20px; border-left: 3px solid var(--border-color);">
+                    <form method="POST" action="/player_review/{{ card.spid }}/write"
+                        style="padding: 15px; background: var(--card-bg); border-radius: 8px;">
+                        <input type="hidden" name="parent_comment_id" value="{{ review.id }}">
+
+                        {% if not session.get('user_id') %}
+                        <div class="mb-2">
+                            <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
+                                class="form-control"
+                                style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 6px; max-width: 200px; font-size: 0.9rem;">
+                        </div>
+                        <div class="mb-2">
+                            <input type="password" name="password" required maxlength="50" placeholder="비밀번호"
+                                class="form-control"
+                                style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 6px; max-width: 200px; font-size: 0.9rem;">
+                        </div>
+                        {% endif %}
+
+                        <textarea name="content" required rows="3" placeholder="답글을 입력하세요" class="form-control"
+                            style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 6px; resize: vertical; font-size: 0.9rem;"></textarea>
+
+                        <div style="margin-top: 10px; display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-success btn-sm" style="padding: 6px 20px;">등록</button>
+                            <button type="button" onclick="hideReplyForm({{ review.id }})"
+                                class="btn btn-secondary btn-sm" style="padding: 6px 20px;">취소</button>
+                        </div>
+                    </form>
+                </div>
             </div>
+
+            <!-- 해당 후기의 대댓글들 -->
+            {% for reply in reviews %}
+            {% if reply.parent_comment_id == review.id %}
+            <div
+                style="padding: 20px; padding-left: 60px; background: var(--card-bg); {% if reply.is_deleted %}opacity: 0.6;{% endif %}; position: relative;">
+                <div
+                    style="position: absolute; left: 60px; right: 0; bottom: 0; height: 1px; background: var(--border-color);">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: var(--text-secondary); font-size: 1.2rem; margin-right: 4px;">ㄴ</span>
+                        {% if reply.is_deleted and session.get('user_role') == 'admin' %}
+                        <span
+                            style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-right: 4px;">삭제됨</span>
+                        {% endif %}
+                        <strong style="color: var(--text-primary);">{{ reply.author }}</strong>
+                        <span style="color: var(--text-muted); font-size: 0.85em;">{{ reply.ip_display }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--text-secondary); font-size: 0.85rem;">
+                            {{ reply.created_at.strftime('%m-%d %H:%M') }}
+                        </span>
+                        {% if not reply.is_deleted %}
+                        <button onclick="deleteReview({{ reply.id }})" class="btn btn-sm btn-outline-danger"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            삭제
+                        </button>
+                        {% if session.get('user_role') == 'admin' %}
+                        <button onclick="adminDeleteReview({{ reply.id }})" class="btn btn-sm btn-danger"
+                            style="padding: 2px 10px; font-size: 0.8rem;">
+                            🔧 관리자삭제
+                        </button>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="color: var(--text-primary); line-height: 1.6;">
+                    {{ reply.content }}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
             {% endfor %}
         </div>
         {% else %}
@@ -209,6 +277,19 @@
             form.style.display = 'none';
             btn.textContent = '✍️ 리뷰 작성';
         }
+    }
+
+    // 대댓글 폼 표시
+    function showReplyForm(reviewId) {
+        document.querySelectorAll('[id^="replyForm-"]').forEach(form => {
+            form.style.display = 'none';
+        });
+        document.getElementById('replyForm-' + reviewId).style.display = 'block';
+    }
+
+    // 대댓글 폼 숨기기
+    function hideReplyForm(reviewId) {
+        document.getElementById('replyForm-' + reviewId).style.display = 'none';
     }
 
     // 선수 후기 투표 함수
