@@ -1622,7 +1622,7 @@ def vote_player_review(review_id, vote_type):
 @app.route('/login')
 def login():
     """Google OAuth 로그인 시작"""
-    redirect_uri = 'https://fconq-web-1.onrender.com/auth/callback'
+    redirect_uri = url_for('auth_callback', _external=True)
     return google.authorize_redirect(redirect_uri)
 
 
