@@ -13,13 +13,6 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import json
 import hashlib
-from flask import Flask, send_from_directory
-
-app = Flask(__name__)
-
-@app.route('/google2de02d2553e94e2e.html')
-def serve_verification_file():
-    return send_from_directory('static', 'google2de02d2553e94e2e.html')
 
 # .env 파일 로드  # ← 추가!
 load_dotenv()       # ← 추가!
