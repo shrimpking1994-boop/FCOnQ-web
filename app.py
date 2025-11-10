@@ -7,7 +7,6 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from functools import wraps
 from authlib.integrations.flask_client import OAuth
 import os
-os.environ['AUTHLIB_INSECURE_TRANSPORT'] = '0'  # HTTPS 강제
 from datetime import timedelta
 from dotenv import load_dotenv  # ← 추가!
 import psycopg2
@@ -36,9 +35,7 @@ google = oauth.register(
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={
         'scope': 'openid email profile'
-    },
-    authorize_url='https://accounts.google.com/o/oauth2/v2/auth',
-    access_token_url='https://oauth2.googleapis.com/token'
+    }
 )
 
 # DB 연결 설정
