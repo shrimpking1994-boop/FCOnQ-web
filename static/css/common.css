@@ -9,6 +9,7 @@
     /* 배경색 */
     --bg-main: white;
     --bg-secondary: #f8f9fa;
+    --hover-bg: #e9ecef;
 
     /* 텍스트 색상 */
     --text-primary: #212529;
@@ -37,21 +38,22 @@
     --gradient-end: #2d3748;
     --primary-color: #9f7aea;
     --primary-light: #44337a;
-    
+
     --bg-main: #1a202c;
     --bg-secondary: #2d3748;
-    
+    --hover-bg: #4a5568;
+
     --text-primary: #e2e8f0;
     --text-secondary: #cbd5e0;
     --text-muted: #94a3b8;
     --text-dark: #cbd5e0;
-    
+
     --border-color: #4a5568;
-    
+
     --shadow-main: rgba(0, 0, 0, 0.4);
     --shadow-hover: rgba(159, 122, 234, 0.3);
     --shadow-focus: rgba(159, 122, 234, 0.2);
-    
+
     --bs-body-color: #e2e8f0;
 }
 

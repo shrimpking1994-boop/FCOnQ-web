@@ -836,6 +836,42 @@
         const autocompleteList = document.getElementById('autocompleteList');
 
         if (input) {
+            let currentFocus = -1; // 현재 포커스된 항목 인덱스
+
+            // 키보드 이벤트 처리
+            input.addEventListener('keydown', function (e) {
+                const items = autocompleteList.getElementsByTagName('div');
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentFocus++;
+                    if (currentFocus >= items.length) currentFocus = 0;
+                    setActive(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentFocus--;
+                    if (currentFocus < 0) currentFocus = items.length - 1;
+                    setActive(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentFocus > -1 && items[currentFocus]) {
+                        items[currentFocus].click();
+                    }
+                }
+            });
+
+            function setActive(items) {
+                if (!items) return;
+                // 모든 항목 초기화
+                for (let i = 0; i < items.length; i++) {
+                    items[i].style.background = 'transparent';
+                }
+                // 현재 항목 하이라이트
+                if (currentFocus >= 0 && currentFocus < items.length) {
+                    items[currentFocus].style.background = 'var(--hover-bg)';
+                }
+            }
+
             input.addEventListener('input', function () {
                 const value = this.value.trim();
 
@@ -861,21 +897,27 @@
                 }
 
                 // 드롭다운 생성
-                autocompleteList.innerHTML = filtered.map(player =>
-                    `<div style="padding: 10px 15px; cursor: pointer; color: var(--text-primary); transition: background 0.2s;" 
-  onmouseover="this.style.background='var(--hover-bg)'" 
-  onmouseout="this.style.background='transparent'"
+                autocompleteList.innerHTML = filtered.map((player, index) =>
+                    `<div class="autocomplete-item" data-index="${index}" style="padding: 10px 15px; cursor: pointer; color: var(--text-primary); transition: background 0.2s;" 
+  onmouseover="currentFocus=${index}; setActive(this.parentElement.getElementsByTagName('div'))" 
+  onmouseout="currentFocus=-1; this.style.background='transparent'"
   onclick="selectPlayer('${player.name}')">${player.name}</div>`
                 ).join('');
 
                 autocompleteList.style.display = 'block';
+                currentFocus = 0; // 첫 항목 자동 선택
+                const items = autocompleteList.getElementsByTagName('div');
+                setActive(items);
             });
         }
 
-        function selectPlayer(name) {
+        // selectPlayer 함수를 전역으로 이동
+        window.selectPlayer = function (name) {
+            const input = document.getElementById('playerNameInput');
+            const autocompleteList = document.getElementById('autocompleteList');
             input.value = name;
             autocompleteList.style.display = 'none';
-        }
+        };
 
         // 바깥 클릭 시 닫기
         document.addEventListener('click', function (e) {
