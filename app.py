@@ -7,11 +7,12 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from functools import wraps
 from authlib.integrations.flask_client import OAuth
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 from dotenv import load_dotenv  # ← 추가!
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import json
+import pytz
 import hashlib
 
 # .env 파일 로드  # ← 추가!
@@ -453,9 +454,9 @@ def community_write():
         cur = conn.cursor()
         
         cur.execute("""
-            INSERT INTO community.posts (category, title, content, author, author_ip, password_hash, user_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (category, title, content, author, author_ip, password_hash, user_id))
+            INSERT INTO community.posts (category, title, content, author, author_ip, password_hash, user_id, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (category, title, content, author, author_ip, password_hash, user_id, datetime.now(pytz.timezone('Asia/Seoul'))))        
         
         conn.commit()
         cur.close()
