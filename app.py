@@ -389,6 +389,14 @@ def community_list():
     cur.execute(query, params)
     posts = cur.fetchall()
     
+    # UTC를 KST로 변환
+    kst = pytz.timezone('Asia/Seoul')
+    for post in posts:
+        if post['created_at']:
+            # UTC로 저장된 시간을 KST로 변환
+            utc_time = post['created_at'].replace(tzinfo=pytz.UTC)
+            post['created_at'] = utc_time.astimezone(kst)    
+    
     # 각 게시글의 댓글 수 조회
     for post in posts:    
         cur.execute("""
@@ -456,7 +464,7 @@ def community_write():
         cur.execute("""
             INSERT INTO community.posts (category, title, content, author, author_ip, password_hash, user_id, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (category, title, content, author, author_ip, password_hash, user_id, datetime.now(pytz.timezone('Asia/Seoul'))))        
+        """, (category, title, content, author, author_ip,  password_hash, user_id, datetime.now(pytz.UTC)))        
         
         conn.commit()
         cur.close()
