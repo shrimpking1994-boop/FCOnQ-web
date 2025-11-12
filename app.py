@@ -1752,6 +1752,7 @@ def get_player_names():
         WHERE player_name ILIKE %s
         GROUP BY player_name
         ORDER BY card_count DESC, player_name
+        LIMIT 1000
     """, (f"%{term}%",))
     
     players = [{"name": row['player_name'], "count": row['card_count']} for row in cur.fetchall()]
