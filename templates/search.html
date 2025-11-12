@@ -818,31 +818,14 @@
             }
         });
 
-        // 선수 이름 자동완성
-        let playerNames = [];
-
         // 백그라운드에서 비동기로 로드
-        fetch('/api/player_names')
-            .then(response => response.json())
-            .then(data => {
-                playerNames = data;
-                console.log('자동완성 데이터 로드 완료');
-            })
-            .catch(error => {
-                console.error('자동완성 데이터 로드 실패:', error);
-            });
-
         const input = document.getElementById('playerNameInput');
         const autocompleteList = document.getElementById('autocompleteList');
+        let debounceTimer;
 
         if (input) {
             input.addEventListener('input', function () {
                 const value = this.value.trim();
-
-                // 데이터 아직 안 로드되었으면 무시
-                if (playerNames.length === 0) {
-                    return;
-                }
 
                 // 2글자 미만이면 숨기기
                 if (value.length < 2) {
@@ -850,25 +833,32 @@
                     return;
                 }
 
-                // 필터링
-                const filtered = playerNames
-                    .filter(player => player.name.includes(value))
-                    .slice(0, 10);
+                // 디바운싱 (250ms 대기)
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    // 서버에 검색 요청
+                    fetch(`/api/player_names?q=${encodeURIComponent(value)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                autocompleteList.style.display = 'none';
+                                return;
+                            }
 
-                if (filtered.length === 0) {
-                    autocompleteList.style.display = 'none';
-                    return;
-                }
+                            // 드롭다운 생성
+                            autocompleteList.innerHTML = data.map(player =>
+                                `<div style="padding: 10px 15px; cursor: pointer; color: var(--text-primary); transition: background 0.2s;" 
+                            onmouseover="this.style.background='var(--hover-bg)'" 
+                            onmouseout="this.style.background='transparent'"
+                            onclick="selectPlayer('${player.name}')">${player.name} (${player.count})</div>`
+                            ).join('');
 
-                // 드롭다운 생성
-                autocompleteList.innerHTML = filtered.map(player =>
-                    `<div style="padding: 10px 15px; cursor: pointer; color: var(--text-primary); transition: background 0.2s;" 
-  onmouseover="this.style.background='var(--hover-bg)'" 
-  onmouseout="this.style.background='transparent'"
-  onclick="selectPlayer('${player.name}')">${player.name}</div>`
-                ).join('');
-
-                autocompleteList.style.display = 'block';
+                            autocompleteList.style.display = 'block';
+                        })
+                        .catch(error => {
+                            console.error('자동완성 실패:', error);
+                        });
+                }, 250);
             });
         }
 
