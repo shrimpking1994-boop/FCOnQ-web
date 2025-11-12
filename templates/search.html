@@ -842,6 +842,11 @@
             input.addEventListener('keydown', function (e) {
                 const items = autocompleteList.getElementsByTagName('div');
 
+                // 드롭박스가 보이지 않으면 키보드 네비게이션 비활성화
+                if (autocompleteList.style.display === 'none') {
+                    return; // 폼 제출은 정상 작동
+                }
+
                 if (e.key === 'ArrowDown') {
                     e.preventDefault();
                     currentFocus++;
