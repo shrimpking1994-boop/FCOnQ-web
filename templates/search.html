@@ -850,8 +850,7 @@
                                 `<div style="padding: 10px 15px; cursor: pointer; color: var(--text-primary); transition: background 0.2s;" 
                             onmouseover="this.style.background='var(--hover-bg)'" 
                             onmouseout="this.style.background='transparent'"
-                            onclick="selectPlayer('${player.name}')">${player.name} (${player.count})</div>`
-                            ).join('');
+                            onclick="document.getElementById('playerNameInput').value='${player.name}'; document.getElementById('autocompleteList').style.display='none';">${player.name}</div>`
 
                             autocompleteList.style.display = 'block';
                         })
