@@ -523,6 +523,12 @@ def community_post(post_id):
             ORDER BY parent_comment_id NULLS FIRST, created_at ASC
         """, (post_id,))    
     comments = cur.fetchall()
+    # 댓글 시간 UTC → KST 변환
+    kst = pytz.timezone('Asia/Seoul')
+    for comment in comments:
+        if comment['created_at']:
+            utc_time = comment['created_at'].replace(tzinfo=pytz.UTC)
+            comment['created_at'] = utc_time.astimezone(kst)    
     
     for comment in comments:
         comment['ip_display'] = format_ip_display(comment.get('author_ip'))
@@ -639,9 +645,9 @@ def add_comment(post_id):
         # 댓글 삽입
         cur.execute("""
             INSERT INTO community.comments 
-            (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id))
+            (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, datetime.now(pytz.UTC)))
         
         conn.commit()
         return redirect(url_for('community_post', post_id=post_id))
