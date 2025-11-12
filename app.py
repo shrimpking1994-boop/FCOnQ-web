@@ -1405,6 +1405,12 @@ def player_review(spid):
             ORDER BY parent_comment_id NULLS FIRST, created_at DESC
         """, (spid,))
     reviews = cur.fetchall()
+    # 후기 시간 UTC → KST 변환
+    kst = pytz.timezone('Asia/Seoul')
+    for review in reviews:
+        if review['created_at']:
+            utc_time = review['created_at'].replace(tzinfo=pytz.UTC)
+            review['created_at'] = utc_time.astimezone(kst)    
     
     # IP 표시 추가
     for review in reviews:
@@ -1453,9 +1459,9 @@ def write_player_review(spid):
         # 후기 삽입
         cur.execute("""
             INSERT INTO player_reviews 
-            (spid, author, content, rating, user_id, password_hash, ip_hash, author_ip, parent_comment_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (spid, author, content, rating, user_id, password_hash, ip_hash, author_ip, parent_comment_id))
+            (spid, author, content, rating, user_id, password_hash, ip_hash, author_ip, parent_comment_id, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (spid, author, content, rating, user_id, password_hash, ip_hash, author_ip, parent_comment_id, datetime.now(pytz.UTC)))
         
         conn.commit()
         return redirect(url_for('player_review', spid=spid))
