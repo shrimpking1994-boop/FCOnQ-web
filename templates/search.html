@@ -372,6 +372,94 @@
         background: #e6f2ff !important;
         color: #667eea !important;
     }
+
+    /* 모바일 최적화 */
+    @media (max-width: 768px) {
+
+        /* 선수 이름 검색창 */
+        .player-name-input input {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            height: 36px;
+        }
+
+        /* 검색 버튼 */
+        .search-btn {
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            height: 36px;
+        }
+
+        /* 검색창 래퍼 */
+        .player-search-wrapper {
+            gap: 8px;
+        }
+
+        /* 시즌 선택 섹션 */
+        .season-selector {
+            gap: 6px;
+            padding: 12px;
+        }
+
+        /* 시즌 아이콘 크기 축소 */
+        .season-img {
+            width: 32px;
+            height: 32px;
+        }
+
+        /* 시즌 컨트롤 버튼들 */
+        .season-controls button {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* 포지션 필터 */
+        .position-filter-container {
+            gap: 15px;
+            padding: 12px;
+        }
+
+        .position-group {
+            min-width: 150px;
+        }
+
+        .position-group-title {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .position-btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* 세부 필터 섹션 */
+        .form-label {
+            font-size: 0.9rem;
+        }
+
+        .form-control,
+        .form-select {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* 특성 선택 */
+        .trait-buttons {
+            gap: 6px;
+        }
+
+        .trait-btn {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+
+        /* 섹션 타이틀 */
+        .section-title {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+    }
 </style>
 
 <!-- Select2 CSS -->
