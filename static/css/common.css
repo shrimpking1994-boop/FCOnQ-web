@@ -61,3 +61,18 @@
 [data-theme="dark"] .form-check-label {
     color: var(--text-primary);
 }
+
+/* 다크모드 체크박스 라벨 */
+[data-theme="dark"] .form-check-label {
+    color: var(--text-primary);
+}
+
+/* 모바일 최적화 - 폰트 크기 조정 */
+@media (max-width: 768px) {
+    :root {
+        --fs-title: 1.75rem;
+        --fs-section: 1.25rem;
+        --fs-group: 1rem;
+        --fs-label: 0.85rem;
+    }
+}

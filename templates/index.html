@@ -70,6 +70,30 @@
             box-shadow: 0 4px 15px var(--shadow-main);
         }
 
+        /* 상단 바 */
+        .top-bar {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            padding: 8px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar-content {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .darkmode-toggle {
+            display: flex;
+        }
+
         .site-title {
             font-size: 3rem;
             font-weight: bold;
@@ -84,13 +108,6 @@
             opacity: 0.9;
             margin-top: 5px;
             letter-spacing: 1px;
-        }
-
-        /* 다크모드 토글 */
-        .darkmode-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
         }
 
         /* 네비게이션 */
@@ -175,16 +192,6 @@
 
         .easter-egg:hover {
             opacity: 1;
-        }
-
-        /* 로그인 버튼 스타일 */
-        .login-section {
-            position: absolute;
-            top: 20px;
-            right: 140px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .login-btn {
@@ -306,25 +313,92 @@
             font-weight: bold;
             margin-left: 4px;
         }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+
+            /* 상단 바 */
+            .top-bar {
+                padding: 5px 0;
+            }
+
+            .top-bar-content {
+                gap: 5px;
+            }
+
+            /* 로그인/다크모드 버튼 크기 조정 */
+            .login-btn,
+            .profile-btn,
+            #darkModeToggle {
+                padding: 0.15rem 0.35rem;
+                font-size: 0.65rem;
+            }
+
+            .profile-btn img {
+                width: 14px;
+                height: 14px;
+            }
+
+            /* 헤더 */
+            .main-header {
+                padding: 20px 0 15px;
+            }
+
+            .site-title {
+                font-size: 2rem;
+                letter-spacing: 1px;
+            }
+
+            .site-subtitle {
+                font-size: 0.85rem;
+            }
+
+            /* 네비게이션 */
+            .nav-link-item {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+
+            /* 컨텐츠 */
+            .main-content {
+                padding: 20px 0;
+            }
+
+            .content-wrapper {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            /* 푸터 */
+            .footer-credits,
+            .footer-copyright {
+                font-size: 0.75rem;
+                padding: 0 10px;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- 상단 바 (로그인+다크모드) -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <div class="login-section" id="loginSection">
+                    <!-- JavaScript로 동적 렌더링 -->
+                </div>
+                <div class="darkmode-toggle">
+                    <button id="darkModeToggle" class="btn btn-outline-light btn-sm">
+                        🌙 다크모드
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 헤더 -->
     <header class="main-header">
         <div class="container position-relative">
-            <!-- 로그인 섹션 (왼쪽) -->
-            <div class="login-section" id="loginSection">
-                <!-- JavaScript로 동적 렌더링 -->
-            </div>
-
-            <!-- 다크모드 토글 (오른쪽) -->
-            <div class="darkmode-toggle">
-                <button id="darkModeToggle" class="btn btn-outline-light btn-sm">
-                    🌙 다크모드
-                </button>
-            </div>
-
             <!-- 사이트 제목 -->
             <a href="/" style="text-decoration: none; color: inherit; display: block;">
                 <h1 class="site-title">FCOnQ</h1>
