@@ -514,16 +514,15 @@
         }
 
         .player-info {
-            grid-column: 2;
-            grid-row: 1;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
+            /* 모든 줄 동일 간격 */
         }
 
-        /* 신체 정보에 상단 마진 추가 */
+        /* 마지막 줄 margin-top 제거 */
         .player-info>div:last-child {
-            margin-top: 2px;
+            margin-top: 0 !important;
         }
 
         /* 플레이어 헤더 */
@@ -580,7 +579,8 @@
         /* 신체 정보 라인 */
         .player-info>div:last-child {
             display: flex !important;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            /* 줄바꿈 방지 */
             gap: 6px !important;
             font-size: 0.8rem !important;
             align-items: center !important;
@@ -588,9 +588,9 @@
 
         /* 급여 아이콘 */
         .player-info>div:last-child>span:first-child {
-            width: 18px !important;
-            height: 20px !important;
-            font-size: 10px !important;
+            width: 16px !important;
+            height: 16px !important;
+            font-size: 9px !important;
         }
 
         /* 구분선 숨기기 */
