@@ -76,6 +76,7 @@
             margin: 0;
             text-align: center;
             letter-spacing: 2px;
+            padding: 0 150px;
         }
 
         .site-subtitle {
@@ -307,6 +308,59 @@
             margin-left: 4px;
         }
     </style>
+
+    /* 모바일 반응형 */
+    @media (max-width: 768px) {
+    .main-header {
+    padding: 20px 0 15px;
+    }
+
+    .site-title {
+    font-size: 2rem;
+    padding: 0 10px;
+    letter-spacing: 1px;
+    }
+
+    .site-subtitle {
+    font-size: 0.85rem;
+    }
+
+    /* 로그인/다크모드 버튼을 FCOnQ 아래로 이동 */
+    .login-section {
+    position: static;
+    justify-content: center;
+    margin-top: 15px;
+    }
+
+    .darkmode-toggle {
+    position: static;
+    text-align: center;
+    margin-top: 10px;
+    }
+
+    /* 네비게이션 */
+    .nav-link-item {
+    padding: 12px 25px;
+    font-size: 1rem;
+    }
+
+    /* 컨텐츠 */
+    .main-content {
+    padding: 20px 0;
+    }
+
+    .content-wrapper {
+    padding: 20px;
+    border-radius: 15px;
+    }
+
+    /* 푸터 */
+    .footer-credits,
+    .footer-copyright {
+    font-size: 0.75rem;
+    padding: 0 10px;
+    }
+    }
 </head>
 
 <body>

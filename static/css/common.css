@@ -61,3 +61,14 @@
 [data-theme="dark"] .form-check-label {
     color: var(--text-primary);
 }
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+    :root {
+        /* 모바일용 폰트 크기 조정 */
+        --fs-title: 1.75rem;
+        --fs-section: 1.25rem;
+        --fs-group: 1rem;
+        --fs-label: 0.85rem;
+    }
+}
