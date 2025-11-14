@@ -423,6 +423,301 @@
     .preferred-pos-item .overall {
         color: var(--text-primary);
     }
+
+    /* 모바일 최적화 */
+    @media (max-width: 768px) {
+
+        /* 뒤로가기 버튼 */
+        .back-btn {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        /* 헤더 섹션 */
+        .header-section {
+            grid-template-columns: 1fr auto 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* VS 텍스트 */
+        .vs-divider {
+            font-size: 32px;
+        }
+
+        /* 플레이어 이미지 */
+        .player-image {
+            width: 100px;
+            height: 100px;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* 시즌 아이콘 */
+        .season-icon {
+            width: 26px;
+            height: 26px;
+        }
+
+        /* 플레이어 이름 */
+        .player-name {
+            font-size: 1rem;
+        }
+
+        /* 급여 배지 */
+        .salary-badge {
+            width: 18px;
+            height: 20px;
+            font-size: 10px;
+        }
+
+        /* 비교 행 */
+        .comparison-row {
+            grid-template-columns: 1fr auto 1fr;
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        /* 좌우 값 */
+        .left-value,
+        .right-value {
+            font-size: 0.85rem;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        /* 중앙 라벨 */
+        .center-label {
+            font-size: 0.75rem;
+            width: 80px;
+            min-width: 80px;
+            max-width: 80px;
+            padding: 6px 8px;
+        }
+
+        /* 국기 */
+        .nation-flag {
+            width: 20px;
+            height: 15px;
+        }
+
+        /* 특성 아이콘 */
+        .trait-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* 가격 비교 컨테이너 */
+        .price-comparison-container {
+            max-height: 180px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+        }
+
+        /* 가격 비교 행 */
+        .price-comparison-row {
+            grid-template-columns: 1fr 45px 1fr;
+            gap: 10px;
+            padding: 8px 0;
+            padding-left: 0;
+        }
+
+        .price-left,
+        .price-right {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .price-comparison-container {
+            max-height: 180px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            margin-left: 8px;
+        }
+
+        .price-comparison-row {
+            grid-template-columns: 1fr 45px 1fr;
+            gap: 10px;
+            padding: 8px 0;
+            padding-left: 0;
+        }
+
+        .price-left,
+        .price-right {
+            padding-left: 5px;
+            padding-right: 5px;
+            font-size: 0.75rem;
+        }
+
+        /* 가격 표시 - 괄호 부분만 보이게 */
+        .price-display {
+            font-size: 0.75rem;
+            display: block;
+            position: relative;
+            height: 1.2em;
+            overflow: hidden;
+            line-height: 1.2em;
+        }
+
+        /* 왼쪽: 오른쪽 정렬 */
+        .price-left {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .price-left .price-display {
+            text-align: right;
+            font-size: 0.75rem;
+        }
+
+        /* 오른쪽: 왼쪽 정렬 */
+        .price-right {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .price-right .price-display {
+            text-align: left;
+            font-size: 0.75rem;
+        }
+
+        /* 괄호 부분을 왼쪽으로 당기기 */
+        .price-right {
+            text-align: left;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        /* 강화 배지 */
+        .enhance-badge {
+            width: 45px;
+            height: 26px;
+            font-size: 0.8rem;
+        }
+
+        /* 세부 스탯 버튼 */
+        .detail-stats-btn {
+            padding: 10px 18px;
+            font-size: 0.9rem;
+        }
+
+        /* 세부 스탯 드롭다운 */
+        .detail-stats-dropdown select {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* 포지션 표시 */
+        .position-display {
+            gap: 8px;
+        }
+
+        .position-box {
+            padding: 8px 12px;
+        }
+
+        .position-label {
+            font-size: 0.9rem;
+        }
+
+        .position-overall {
+            font-size: 1.8rem;
+        }
+
+        .position-name {
+            font-size: 0.75rem;
+        }
+
+        /* 스탯 테이블 */
+        .stats-row {
+            grid-template-columns: 1fr auto 1fr;
+            gap: 10px;
+            padding: 8px 0;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            width: 70px;
+            min-width: 70px;
+            padding: 6px 8px;
+        }
+
+        .stat-value {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* 작은 모바일 (480px 이하) */
+    @media (max-width: 480px) {
+
+        /* 헤더 간격 축소 */
+        .header-section {
+            gap: 10px;
+        }
+
+        /* VS 텍스트 */
+        .vs-divider {
+            font-size: 28px;
+        }
+
+        /* 플레이어 이미지 더 작게 */
+        .player-image {
+            width: 85px;
+            height: 85px;
+            padding: 6px;
+        }
+
+        /* 플레이어 이름 */
+        .player-name {
+            font-size: 0.9rem;
+        }
+
+        /* 시즌 아이콘 */
+        .season-icon {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* 비교 행 간격 */
+        .comparison-row {
+            gap: 8px;
+            padding: 8px 0;
+        }
+
+        /* 중앙 라벨 더 작게 */
+        .center-label {
+            font-size: 0.7rem;
+            width: 70px;
+            min-width: 70px;
+            max-width: 70px;
+            padding: 5px 6px;
+        }
+
+        /* 좌우 값 */
+        .left-value,
+        .right-value {
+            font-size: 0.8rem;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        /* 가격 비교 */
+        .price-comparison-row {
+            grid-template-columns: 1fr 40px 1fr;
+            gap: 8px;
+        }
+
+        .enhance-badge {
+            width: 40px;
+            height: 24px;
+            font-size: 0.75rem;
+        }
+
+        .price-display {
+            font-size: 0.7rem;
+        }
+    }
 </style>
 
 <div style="margin-bottom: 30px;">
@@ -676,7 +971,6 @@
                     {% else %}
                     ({{ "{:,}".format(price1) }})
                     {% endif %}
-                    {{ "{:,}".format(price1) }}
                 </span>
                 {% endif %}
             </div>
@@ -698,7 +992,6 @@
             <div class="price-right">
                 {% if price2 and price2 > 0 %}
                 <span class="price-display">
-                    {{ "{:,}".format(price2) }}
                     {% if price2 >= 10000000000000000 %}
                     ({{ "%.1f경" % (price2 / 10000000000000000) }})
                     {% elif price2 >= 1000000000000 %}
