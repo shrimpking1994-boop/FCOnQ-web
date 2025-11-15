@@ -743,32 +743,71 @@
             line-height: 1 !important;
         }
 
+        /* 세부 스탯 더 작게 */
         .stat-comparison-row {
-            gap: 8px;
-            padding: 6px 0;
+            gap: 12px;
+            padding: 5px 0;
         }
 
         .stat-left,
         .stat-right {
-            padding-left: 5px;
-            padding-right: 5px;
+            display: flex;
+            align-items: center;
+            gap: 1px;
+            padding: 0;
+            min-width: 50px;
+        }
+
+        /* 왼쪽: 차이값 오른쪽 정렬 */
+        .stat-left {
+            justify-content: flex-end;
+            padding-right: 8px;
+        }
+
+        /* 오른쪽: 차이값 왼쪽 정렬 */
+        .stat-right {
+            justify-content: flex-start;
+            padding-left: 8px;
         }
 
         .stat-center {
-            min-width: 70px;
+            min-width: 100px;
+            max-width: 100px;
         }
 
         .stat-label {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             padding: 5px 8px;
+            min-width: 100px;
+            max-width: 100px;
+            white-space: nowrap;
         }
 
         .stat-value {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
         }
 
         .stat-diff {
-            font-size: 0.7rem;
+            font-size: 0.62rem;
+            white-space: nowrap;
+        }
+
+        /* 선호 포지션 더 작게 */
+        .preferred-positions-left>div,
+        .preferred-positions-right>div {
+            padding: 6px 8px;
+            gap: 6px;
+        }
+
+        .preferred-positions-left>div>div:first-child,
+        .preferred-positions-right>div>div:first-child {
+            font-size: 12px !important;
+            min-width: 30px;
+        }
+
+        .preferred-positions-left .preferred-pos-value,
+        .preferred-positions-right .preferred-pos-value {
+            font-size: 20px !important;
         }
     }
 
