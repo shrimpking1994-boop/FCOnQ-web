@@ -508,27 +508,6 @@
             height: 24px;
         }
 
-        /* 가격 비교 컨테이너 */
-        .price-comparison-container {
-            max-height: 180px;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-        }
-
-        /* 가격 비교 행 */
-        .price-comparison-row {
-            grid-template-columns: 1fr 45px 1fr;
-            gap: 10px;
-            padding: 8px 0;
-            padding-left: 0;
-        }
-
-        .price-left,
-        .price-right {
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
         .price-comparison-container {
             max-height: 180px;
             padding: 10px 15px;
@@ -580,13 +559,6 @@
         .price-right .price-display {
             text-align: left;
             font-size: 0.75rem;
-        }
-
-        /* 괄호 부분을 왼쪽으로 당기기 */
-        .price-right {
-            text-align: left;
-            display: flex;
-            justify-content: flex-start;
         }
 
         /* 강화 배지 */
@@ -645,6 +617,75 @@
 
         .stat-value {
             font-size: 0.85rem;
+        }
+
+        /* 시뮬레이터 컨트롤 - 좌우 2열 배치 */
+        .simulators-wrapper {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .simulator-divider {
+            display: none;
+        }
+
+        .simulator-section {
+            display: flex;
+        }
+
+        .simulator-controls-left,
+        .simulator-controls-right {
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* 오른쪽만 순서 역전 (강화 → 적응도 → 팀컬러) */
+        .simulator-controls-right {
+            flex-direction: column-reverse;
+        }
+
+        .simulator-wrapper {
+            width: 100%;
+            min-width: auto;
+        }
+
+        .simulator-select {
+            width: 100%;
+            padding: 10px 30px 10px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* 세부 스탯 컨테이너 */
+        .stats-comparison-container {
+            padding: 10px;
+        }
+
+        .stat-comparison-row {
+            grid-template-columns: 1fr auto 1fr;
+            gap: 10px;
+            padding: 6px 0;
+        }
+
+        .stat-left,
+        .stat-right {
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            min-width: 60px;
+            padding: 5px 8px;
+        }
+
+        .stat-value {
+            font-size: 0.85rem;
+        }
+
+        .stat-diff {
+            font-size: 0.7rem;
         }
     }
 
