@@ -335,6 +335,26 @@
         background: var(--bg-secondary);
         border-radius: 10px;
         padding: 10px 20px;
+        display: grid;
+        grid-template-columns: 260px 1fr 260px;
+        gap: 20px;
+        align-items: start;
+    }
+
+    .preferred-positions-left {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding-top: 20px;
+        padding-left: 85px;
+    }
+
+    .preferred-positions-right {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding-top: 20px;
+        padding-right: 85px;
     }
 
     .stat-comparison-row {
@@ -657,14 +677,74 @@
             font-size: 0.85rem;
         }
 
-        /* 세부 스탯 컨테이너 */
         .stats-comparison-container {
             padding: 10px;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            grid-template-areas:
+                "pos-left pos-right"
+                "stats stats";
+        }
+
+        .preferred-positions-left {
+            grid-area: pos-left;
+        }
+
+        .preferred-positions-right {
+            grid-area: pos-right;
+        }
+
+        .stats-comparison-container>div:nth-child(2) {
+            grid-area: stats;
+            grid-column: 1 / -1;
+        }
+
+        /* 선호 포지션 모바일 최적화 */
+        .preferred-positions-left,
+        .preferred-positions-right {
+            padding: 10px 5px;
+            gap: 8px;
+        }
+
+        .preferred-positions-left>div,
+        .preferred-positions-right>div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        /* 왼쪽: 오른쪽 정렬 (119 CM) */
+        .preferred-positions-left>div {
+            flex-direction: row-reverse;
+            justify-content: flex-start;
+        }
+
+        /* 오른쪽: 왼쪽 정렬 (CM 119) */
+        .preferred-positions-right>div {
+            justify-content: flex-start;
+        }
+
+        /* 포지션명 작게 */
+        .preferred-positions-left>div>div:first-child,
+        .preferred-positions-right>div>div:first-child {
+            font-size: 14px !important;
+            font-weight: bold;
+            margin-bottom: 0 !important;
+            min-width: 35px;
+        }
+
+        /* 오버롤 숫자 작게 */
+        .preferred-positions-left .preferred-pos-value,
+        .preferred-positions-right .preferred-pos-value {
+            font-size: 24px !important;
+            line-height: 1 !important;
         }
 
         .stat-comparison-row {
-            grid-template-columns: 1fr auto 1fr;
-            gap: 10px;
+            gap: 8px;
             padding: 6px 0;
         }
 
@@ -674,9 +754,12 @@
             padding-right: 5px;
         }
 
+        .stat-center {
+            min-width: 70px;
+        }
+
         .stat-label {
             font-size: 0.75rem;
-            min-width: 60px;
             padding: 5px 8px;
         }
 
@@ -1173,10 +1256,9 @@
     </div>
 
     <!-- 세부 스탯 비교 리스트 -->
-    <div class="stats-comparison-container"
-        style="display: grid; grid-template-columns: 260px 1fr 260px; gap: 20px; align-items: start;">
+    <div class="stats-comparison-container">
         <!-- 왼쪽: 카드1 선호 포지션 -->
-        <div style="display: flex; flex-direction: column; gap: 15px; padding-top: 20px; padding-left: 85px;">
+        <div class="preferred-positions-left">
             {% for pos in card1.stats_info.main_overall.preferred_positions %}
             <div style="text-align: right;">
                 <div style="font-size: 20px; font-weight: bold; margin-bottom: -5px;
@@ -1241,7 +1323,7 @@
         </div>
 
         <!-- 오른쪽: 카드2 선호 포지션 -->
-        <div style="display: flex; flex-direction: column; gap: 15px; padding-top: 20px; padding-right: 85px;">
+        <div class="preferred-positions-right">
             {% for pos in card2.stats_info.main_overall.preferred_positions %}
             <div style="text-align: left;">
                 <div style="font-size: 20px; font-weight: bold; margin-bottom: -5px;
