@@ -131,7 +131,7 @@
                             <span
                                 style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">삭제됨</span>
                             {% endif %}
-                            {{ post.title }}
+                            <span class="post-title-text">{{ post.title }}</span>
                             {% if post.comment_count > 0 %}
                             <span style="margin-left: 0px; color: var(--text-primary); font-size: 0.9rem;">[{{
                                 post.comment_count }}]</span>
@@ -282,6 +282,232 @@
     [data-theme="dark"] .form-select option {
         background: #2d3748;
         color: #ffffff;
+    }
+
+    /* 제목 컬럼 전체 너비 */
+    .table tbody td:nth-child(3) {
+        max-width: 700px;
+    }
+
+    /* 제목 전체를 감싸는 span - 줄바꿈 방지 */
+    .table tbody td:nth-child(3)>span {
+        white-space: nowrap !important;
+    }
+
+    /* 제목 텍스트만 길이 제한 */
+    .post-title-text {
+        display: inline-block !important;
+        max-width: 500px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+    }
+
+    /* 모바일 대응 (768px 이하) */
+    @media (max-width: 768px) {
+
+        /* 상단/하단 전체글+인기글+글쓰기 버튼 */
+        .community-top-buttons,
+        .community-bottom-buttons {
+            gap: 6px !important;
+        }
+
+        .community-top-buttons .btn,
+        .community-bottom-buttons .btn {
+            padding: 5px 10px !important;
+            font-size: 0.8rem !important;
+        }
+
+        /* 글쓰기 버튼 */
+        .community-top-buttons .btn-success,
+        .community-bottom-buttons .btn-success {
+            padding: 5px 10px !important;
+            font-size: 0.8rem !important;
+            font-weight: 400 !important;
+        }
+
+        /* 글쓰기 버튼도 동일 크기로 */
+        .community-top-buttons .btn-success,
+        .community-bottom-buttons .btn-success {
+            padding: 5px 10px !important;
+            font-size: 0.8rem !important;
+            font-weight: 400 !important;
+        }
+
+        /* 카테고리 버튼 - 더 작게 */
+        .community-categories .btn {
+            padding: 4px 8px !important;
+            font-size: 0.75rem !important;
+        }
+
+        /* 테이블 모바일 최적화 */
+        .table-responsive {
+            overflow-x: visible !important;
+        }
+
+        .table thead {
+            display: none !important;
+        }
+
+        .table tbody tr {
+            display: block !important;
+            margin-bottom: 12px !important;
+            padding: 12px !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+        }
+
+        .table tbody td {
+            display: inline !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        /* 번호 숨기기 */
+        .table tbody td:nth-child(1) {
+            display: none !important;
+        }
+
+        /* 탭 - 둘째 줄 첫 번째 */
+        .table tbody td:nth-child(2) {
+            font-size: 0.75rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(2)::before {
+            content: '[';
+        }
+
+        .table tbody td:nth-child(2)::after {
+            content: '] ';
+        }
+
+        /* 제목 - 첫 줄 전체 */
+        .table tbody td:nth-child(3) {
+            display: block !important;
+            font-size: 0.95rem !important;
+            font-weight: 600 !important;
+            margin-bottom: 6px !important;
+            white-space: nowrap !important;
+        }
+
+        /* 제목 텍스트 길이 제한 */
+        .post-title-text {
+            max-width: 180px !important;
+        }
+
+        /* 글쓴이 */
+        .table tbody td:nth-child(4) {
+            font-size: 0.75rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(4)::after {
+            content: ' | ';
+        }
+
+        /* 날짜 */
+        .table tbody td:nth-child(5) {
+            font-size: 0.75rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(5)::after {
+            content: ' | ';
+        }
+
+        /* 조회 */
+        .table tbody td:nth-child(6) {
+            font-size: 0.75rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(6)::before {
+            content: '조회 ';
+        }
+
+        .table tbody td:nth-child(6)::after {
+            content: ' | ';
+        }
+
+        /* 추천 */
+        .table tbody td:nth-child(7) {
+            font-size: 0.75rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(7)::before {
+            content: '추천 ';
+        }
+
+        /* 페이지네이션 모바일 최적화 */
+        .pagination .page-item {
+            font-size: 0.85rem !important;
+        }
+
+        .pagination .page-link {
+            padding: 6px 10px !important;
+            font-size: 0.85rem !important;
+        }
+
+        /* 페이지 번호 6번째 이후 숨기기 (1,2,3,4,5만 표시) */
+        .pagination .page-item:nth-child(n+7):not(:last-child):not(:nth-last-child(2)) {
+            display: none !important;
+        }
+
+        /* 검색 영역 완전 수정 */
+        .container>div[style*="max-width: 600px"] {
+            max-width: 100% !important;
+            gap: 6px !important;
+            flex-wrap: nowrap !important;
+        }
+
+        #searchType {
+            width: 90px !important;
+            min-width: 90px !important;
+            font-size: 0.75rem !important;
+            padding: 6px 4px !important;
+        }
+
+        #searchKeyword {
+            flex: 1 !important;
+            min-width: 0 !important;
+            font-size: 0.75rem !important;
+            padding: 6px 8px !important;
+        }
+
+        button[onclick="searchPosts()"] {
+            flex-shrink: 0 !important;
+            font-size: 0.75rem !important;
+            padding: 6px 10px !important;
+            white-space: nowrap !important;
+        }
+
+        /* 첫 번째 게시글 위 선 제거 */
+        .table tbody tr:first-child {
+            margin-top: 0 !important;
+        }
+
+        /* 마지막 게시글 아래 여백 제거 */
+        .table tbody tr:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        /* 테이블 전체 border 제거 */
+        .table {
+            border: none !important;
+        }
+
+        .table tbody {
+            border: none !important;
+        }
+
+        /* table-responsive 스타일 완전 제거 */
+        .table-responsive[style*="border-radius"] {
+            border-radius: 0 !important;
+            overflow: visible !important;
+        }
     }
 </style>
 
