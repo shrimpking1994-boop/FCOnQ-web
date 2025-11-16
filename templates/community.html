@@ -3,74 +3,20 @@
 {% block content %}
 <div class="container" style="max-width: 1400px; margin: 40px auto; padding: 0 20px;">
 
-    <!-- 상단: 카테고리 탭 + 글쓰기 버튼 -->
-    <div
-        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
-
-        <!-- 카테고리 탭 -->
-        <div style="flex: 1;">
-            <!-- 첫 줄: 전체글 + 인기글 -->
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <a href="/community{% if category %}?category={{ category }}{% endif %}"
-                    class="btn {% if not show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 6px;">
-                    📋전체글
-                </a>
-                <a href="/community?popular=true{% if category %}&category={{ category }}{% endif %}"
-                    class="btn {% if show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 6px;">
-                    🔥인기글
-                </a>
-            </div>
-
-            <!-- 둘째 줄: 나머지 카테고리들 -->
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="/community?category=잡담{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '잡담' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    잡담
-                </a>
-                <a href="/community?category=꿀팁{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '꿀팁' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    꿀팁
-                </a>
-                <a href="/community?category=스쿼드{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '스쿼드' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    스쿼드
-                </a>
-                <a href="/community?category=선수 후기{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '선수 후기' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    선수 후기
-                </a>
-                <a href="/community?category=전술{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '전술' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    전술
-                </a>
-                <a href="/community?category=강화/득템{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '강화/득템' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    강화/득템
-                </a>
-                <a href="/community?category=감독모드{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '감독모드' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    감독모드
-                </a>
-                <a href="/community?category=미니 페이스온{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '미니 페이스온' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    미니 페이스온
-                </a>
-                <a href="/community?category=명장면{% if show_popular %}&popular=true{% endif %}"
-                    class="btn {% if category == '명장면' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
-                    style="padding: 8px 20px; border-radius: 20px;">
-                    명장면
-                </a>
-            </div>
+    <!-- 상단: 전체/인기글 + 글쓰기 버튼 -->
+    <div class="community-top-buttons"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px;">
+        <div style="display: flex; gap: 10px;">
+            <a href="/community{% if category %}?category={{ category }}{% endif %}"
+                class="btn {% if not show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                style="padding: 8px 20px; border-radius: 6px;">
+                📋전체글
+            </a>
+            <a href="/community?popular=true{% if category %}&category={{ category }}{% endif %}"
+                class="btn {% if show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                style="padding: 8px 20px; border-radius: 6px;">
+                🔥인기글
+            </a>
         </div>
 
         <!-- 글쓰기 버튼 -->
@@ -79,8 +25,61 @@
         </a>
     </div>
 
+    <!-- 카테고리 버튼들 -->
+    <div class="community-categories" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px;">
+        <a href="/community?category=잡담{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '잡담' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            잡담
+        </a>
+        <a href="/community?category=꿀팁{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '꿀팁' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            꿀팁
+        </a>
+        <a href="/community?category=스쿼드{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '스쿼드' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            스쿼드
+        </a>
+        <a href="/community?category=선수 후기{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '선수 후기' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            선수 후기
+        </a>
+        <a href="/community?category=전술{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '전술' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            전술
+        </a>
+        <a href="/community?category=강화/득템{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '강화/득템' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            강화/득템
+        </a>
+        <a href="/community?category=감독모드{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '감독모드' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            감독모드
+        </a>
+        <a href="/community?category=미니 페이스온{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '미니 페이스온' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            미니 페이스온
+        </a>
+        <a href="/community?category=명장면{% if show_popular %}&popular=true{% endif %}"
+            class="btn {% if category == '명장면' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            style="padding: 8px 20px; border-radius: 20px;">
+            명장면
+        </a>
+    </div>
+</div>
+
+<div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 20px;">
+
     <!-- 게시글 목록 테이블 -->
-    <div class="table-responsive" style="background: var(--card-bg); border-radius: 12px; overflow: hidden;">
+    <div class="table-responsive"
+        style="background: var(--card-bg); border-radius: 12px; overflow: hidden; margin: 0 -20px; padding: 0 20px;">
         <table class="table table-hover" style="margin: 0; color: var(--text-primary);">
             <thead style="background: var(--secondary-bg); border-bottom: 2px solid var(--border-color);">
                 <tr>
@@ -185,11 +184,9 @@
         </table>
     </div>
 
-    <!-- 페이지네이션 + 필터 + 글쓰기 -->
-    <div
-        style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px;">
-
-        <!-- 왼쪽: 전체글/인기글 버튼 -->
+    <!-- 하단: 전체/인기글 + 글쓰기 버튼 -->
+    <div class="community-bottom-buttons"
+        style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 10px;">
         <div style="display: flex; gap: 10px;">
             <a href="/community{% if category %}?category={{ category }}{% endif %}"
                 class="btn {% if not show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
@@ -203,8 +200,15 @@
             </a>
         </div>
 
-        <!-- 가운데: 페이지네이션 -->
-        {% if total_pages > 1 %}
+        <!-- 글쓰기 버튼 -->
+        <a href="/community/write" class="btn btn-success" style="padding: 8px 24px; font-weight: 600;">
+            ✏️ 글쓰기
+        </a>
+    </div>
+
+    <!-- 가운데: 페이지네이션 -->
+    {% if total_pages > 1 %}
+    <div style="margin-top: 30px;">
         <nav>
             <ul class="pagination justify-content-center" style="margin: 0;">
                 {% if current_page > 1 %}
@@ -229,16 +233,10 @@
                     {% endif %}
             </ul>
         </nav>
-        {% endif %}
-
-        <!-- 오른쪽: 글쓰기 버튼 -->
-        <a href="/community/write" class="btn btn-success" style="padding: 8px 24px; font-weight: 600;">
-            ✏️ 글쓰기
-        </a>
-
     </div>
-
+    {% endif %}
 </div>
+
 
 
 <!-- 검색 영역 -->
