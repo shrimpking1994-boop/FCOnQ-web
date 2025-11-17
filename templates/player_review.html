@@ -139,7 +139,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span style="color: var(--text-secondary); font-size: 0.9rem;">
-                            {{ review.created_at.strftime('%m-%d %H:%M') }}
+                            {{ review.created_at.strftime('%Y-%m-%d %H:%M') }}
                         </span>
                         {% if not review.is_deleted %}
                         <button onclick="showReplyForm({{ review.id }})" class="btn btn-sm btn-outline-info"
@@ -162,14 +162,14 @@
                 <p style="color: var(--text-primary); margin: 0 0 15px 0; line-height: 1.6;">
                     {{ review.content }}
                 </p>
-                <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
                     <button onclick="voteReview({{ review.id }}, 'like')" class="vote-btn like-btn"
-                        style="background: none; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; color: var(--text-secondary);">
+                        style="background: none; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; color: var(--text-secondary);">
                         <span style="font-size: 1.1rem;">👍</span>
                         <span id="likes-{{ review.id }}">{{ review.likes }}</span>
                     </button>
                     <button onclick="voteReview({{ review.id }}, 'dislike')" class="vote-btn dislike-btn"
-                        style="background: none; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; color: var(--text-secondary);">
+                        style="background: none; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 5px; color: var(--text-secondary);">
                         <span style="font-size: 1.1rem;">👎</span>
                         <span id="dislikes-{{ review.id }}">{{ review.dislikes }}</span>
                     </button>
@@ -419,6 +419,250 @@
 
     .vote-btn:active {
         transform: translateY(0);
+    }
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+
+        /* 컨테이너 여백 줄이기 */
+        .container[style*="max-width: 1200px"] {
+            margin: 20px auto !important;
+            padding: 0 12px !important;
+        }
+
+        /* 상단 헤더 패딩 줄이기 */
+        div[style*="padding: 20px 30px"][style*="margin-bottom: 30px"] {
+            padding: 12px 15px !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* 상단 헤더 양쪽 정렬 */
+        div[style*="padding: 20px 30px"]>div[style*="justify-content: space-between"] {
+            gap: 10px !important;
+        }
+
+        /* 뒤로가기 버튼 */
+        .back-btn {
+            padding: 10px 20px !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* 중앙 시즌+선수명 영역 숨기기 */
+        div[style*="flex: 1"][style*="justify-content: center"] {
+            display: none !important;
+        }
+
+        /* 리뷰 작성 버튼 */
+        #toggleWriteBtn {
+            padding: 10px 20px !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* 후기 작성 폼 패딩 줄이기 */
+        #writeForm[style*="padding: 30px"] {
+            padding: 20px 15px !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* 후기 작성 제목 크기 줄이기 */
+        #writeForm h4 {
+            font-size: 1.1rem !important;
+        }
+
+        /* 닫기 버튼 작게 */
+        #writeForm button[onclick="toggleWriteForm()"] {
+            padding: 4px 10px !important;
+            font-size: 0.8rem !important;
+        }
+
+        /* label 크기 줄이기 */
+        #writeForm label {
+            font-size: 0.9rem !important;
+            margin-bottom: 6px !important;
+        }
+
+        /* 입력 필드 크기 조정 */
+        #writeForm .form-control,
+        #writeForm .form-select {
+            padding: 10px !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* textarea 크기 조정 */
+        #writeForm textarea {
+            padding: 10px !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* 작성 완료 버튼 */
+        #writeForm .btn-success {
+            padding: 10px 24px !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* 폼 내 여백 줄이기 */
+        #writeForm div[style*="margin-bottom: 15px"] {
+            margin-bottom: 12px !important;
+        }
+
+        #writeForm div[style*="margin-bottom: 20px"] {
+            margin-bottom: 15px !important;
+        }
+
+        /* 후기 목록 패딩 줄이기 */
+        div[style*="padding: 30px"][style*="margin-bottom: 30px"]:not(#writeForm) {
+            padding: 20px 15px !important;
+        }
+
+        /* 후기 제목 크기 */
+        div[style*="padding: 30px"] h3 {
+            font-size: 1.2rem !important;
+            margin-bottom: 15px !important;
+        }
+
+        /* 후기 카드 패딩 줄이기 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"] {
+            padding: 15px !important;
+        }
+
+        /* 후기 헤더 영역 세로 배치 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"]>div[style*="justify-content: space-between"]:first-child {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+        }
+
+        /* 작성자 정보 영역 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"]>div>div[style*="gap: 15px"]:first-child {
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+
+        /* 작성자 이름 크기 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"] span[style*="font-weight: 600"] {
+            font-size: 0.9rem !important;
+        }
+
+        /* IP, 평점 크기 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"] span[style*="font-size: 0.85em"],
+        div[style*="padding: 20px"][style*="border-left: 3px solid"] span[style*="color: #fbbf24"] {
+            font-size: 0.8rem !important;
+        }
+
+        /* 날짜 및 버튼 영역 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"]>div>div[style*="gap: 10px"]:last-child {
+            width: 100% !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+        }
+
+        /* 날짜는 왼쪽, 버튼들은 오른쪽 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"]>div>div[style*="gap: 10px"]:last-child>span {
+            margin-right: auto !important;
+        }
+
+        /* 날짜 크기 더 줄이기 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"]>div>div[style*="gap: 10px"]:last-child>span[style*="font-size: 0.9rem"] {
+            font-size: 0.75rem !important;
+        }
+
+        /* 버튼 크기 줄이기 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"] .btn-sm {
+            padding: 2px 8px !important;
+            font-size: 0.75rem !important;
+        }
+
+        /* 후기 내용 크기 */
+        div[style*="padding: 20px"][style*="border-left: 3px solid"] p {
+            font-size: 0.9rem !important;
+            line-height: 1.5 !important;
+            margin-bottom: 12px !important;
+        }
+
+        /* 추천/비추천 버튼 */
+        .vote-btn {
+            padding: 2px 8px !important;
+            font-size: 0.75rem !important;
+            gap: 2px !important;
+        }
+
+        .vote-btn span:first-child {
+            font-size: 0.85rem !important;
+        }
+
+        /* 추천/비추천 버튼 간 간격 줄이기 */
+        div[style*="justify-content: flex-end"][style*="gap: 10px"] {
+            gap: 5px !important;
+        }
+
+        /* 대댓글 왼쪽 들여쓰기 더 줄이기 */
+        div[style*="padding-left: 60px"] {
+            padding-left: 25px !important;
+            padding-right: 12px !important;
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
+        }
+
+        /* 대댓글 구분선 위치 조정 */
+        div[style*="padding-left: 60px"]>div[style*="position: absolute"][style*="left: 60px"] {
+            left: 25px !important;
+        }
+
+        /* 대댓글 화살표 크기 */
+        div[style*="padding-left: 60px"] span[style*="font-size: 1.2rem"] {
+            font-size: 0.9rem !important;
+            margin-right: 2px !important;
+        }
+
+        /* 대댓글 작성자 정보 영역 */
+        div[style*="padding-left: 60px"]>div[style*="justify-content: space-between"] {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+            margin-bottom: 8px !important;
+        }
+
+        /* 대댓글 작성자 영역 */
+        div[style*="padding-left: 60px"]>div>div[style*="gap: 6px"]:first-child {
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+        }
+
+        /* 대댓글 작성자 이름 */
+        div[style*="padding-left: 60px"] strong {
+            font-size: 0.9rem !important;
+        }
+
+        /* 대댓글 IP */
+        div[style*="padding-left: 60px"] span[style*="font-size: 0.85em"] {
+            font-size: 0.8rem !important;
+        }
+
+        /* 대댓글 날짜 및 버튼 영역 */
+        div[style*="padding-left: 60px"]>div>div[style*="gap: 10px"]:last-child {
+            width: 100% !important;
+            display: flex !important;
+            gap: 6px !important;
+        }
+
+        /* 대댓글 날짜 */
+        div[style*="padding-left: 60px"]>div>div[style*="gap: 10px"]>span[style*="font-size: 0.85rem"] {
+            font-size: 0.75rem !important;
+            margin-right: auto !important;
+        }
+
+        /* 대댓글 버튼 */
+        div[style*="padding-left: 60px"] .btn-sm {
+            padding: 2px 8px !important;
+            font-size: 0.75rem !important;
+        }
+
+        /* 대댓글 내용 */
+        div[style*="padding-left: 60px"]>div[style*="line-height: 1.6"] {
+            font-size: 0.9rem !important;
+            line-height: 1.5 !important;
+        }
     }
 </style>
 
