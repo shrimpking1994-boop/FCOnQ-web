@@ -70,6 +70,11 @@
             {{ post.content | safe }}
         </div>
 
+
+
+    </div>
+
+    <div>
         <!-- 추천/비추천 버튼 -->
         <div
             style="text-align: center; padding: 30px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
@@ -85,7 +90,6 @@
                 </button>
             </div>
         </div>
-
     </div>
 
     <!-- 댓글 섹션 -->
@@ -809,6 +813,26 @@
         .btn-sm {
             padding: 3px 8px !important;
             font-size: 0.65rem !important;
+        }
+
+        /* 추천/비추천 버튼 영역 */
+        div[style*="text-align: center"][style*="border-top"] {
+            padding: 15px 0 !important;
+        }
+
+        div[style*="text-align: center"]>div[style*="display: flex"] {
+            gap: 8px !important;
+            justify-content: center !important;
+        }
+
+        /* 추천/비추천 버튼 */
+        #likeBtn,
+        #dislikeBtn {
+            min-width: 0 !important;
+            width: auto !important;
+            padding: 10px 15px !important;
+            font-size: 0.85rem !important;
+            flex-shrink: 1 !important;
         }
 
         /* 댓글/대댓글 작성날짜 */
