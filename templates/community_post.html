@@ -18,13 +18,15 @@
         <!-- 작성자 정보 -->
         <div
             style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 30px;">
-            <div style="display: flex; gap: 20px; color: var(--text-secondary); font-size: 0.95rem;">
-                <span><strong style="color: var(--text-primary);">{{ post.author }}</strong> <span
+            <div class="post-meta" style="display: flex; gap: 20px; color: var(--text-secondary); font-size: 0.95rem;">
+                <span class="meta-author"><strong style="color: var(--text-primary);">{{ post.author }}</strong> <span
                         style="color: var(--text-muted); font-size: 0.9em;">{{ post.ip_display }}</span></span>
-                <span>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                <span>조회 {{ post.views }}</span>
-                <span>추천 {{ post.likes }}</span>
-                <span>댓글 {{ comments|length }}</span>
+                <span class="meta-date">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                <span class="meta-stats">
+                    <span class="meta-views">조회 {{ post.views }}</span>
+                    <span class="meta-likes">추천 {{ post.likes }}</span>
+                    <span class="meta-comments">댓글 {{ comments|length }}</span>
+                </span>
             </div>
 
             <!-- 버튼 그룹 -->
@@ -73,16 +75,12 @@
             style="text-align: center; padding: 30px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
             <div style="display: flex; gap: 20px; justify-content: center; align-items: center;">
                 <button onclick="votePost({{ post.id }}, 'like')" id="likeBtn" class="btn btn-primary"
-                    style="padding: 12px 40px; font-size: 1.1rem; border-radius: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    style="padding: 15px 35px; font-size: 1.2rem; border-radius: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; min-width: 180px;">
                     👍 추천 (<span id="likeCount">{{ post.likes }}</span>)
                 </button>
 
-                <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">
-                    순추천: <span id="netVotes">{{ post.likes - (post.dislikes or 0) }}</span>
-                </div>
-
                 <button onclick="votePost({{ post.id }}, 'dislike')" id="dislikeBtn" class="btn btn-secondary"
-                    style="padding: 12px 40px; font-size: 1.1rem; border-radius: 25px; background: linear-gradient(135deg, #6c757d 0%, #495057 100%); border: none;">
+                    style="padding: 15px 35px; font-size: 1.2rem; border-radius: 30px; background: linear-gradient(135deg, #6c757d 0%, #495057 100%); border: none; min-width: 180px;">
                     👎 비추천 (<span id="dislikeCount">{{ post.dislikes or 0 }}</span>)
                 </button>
             </div>
@@ -176,9 +174,9 @@
             {% for reply in comments %}
             {% if reply.parent_comment_id == comment.id %}
             <div
-                style="padding: 20px; padding-left: 60px; background: var(--secondary-bg); {% if reply.is_deleted %}opacity: 0.6;{% endif %}; position: relative;">
+                style="padding: 20px; padding-left: 50px; background: var(--secondary-bg); {% if reply.is_deleted %}opacity: 0.6;{% endif %}; position: relative;">
                 <div
-                    style="position: absolute; left: 60px; right: 0; bottom: 0; height: 1px; background: var(--border-color);">
+                    style="position: absolute; left: 50px; right: 0; bottom: 0; height: 1px; background: var(--border-color);">
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 6px;">
@@ -297,9 +295,9 @@
                         {{ p.category }}
                     </td>
                     <td style="padding: 12px 20px;">
-                        <a href="/community/post/{{ p.id }}?category={{ current_category }}"
-                            style="color: var(--text-primary); text-decoration: none; font-weight: 500;">
-                            {{ p.title }}
+                        <span style="color: var(--text-primary); font-size: 1rem; font-weight: 500;">
+                            <a href="/community/post/{{ p.id }}?category={{ current_category }}" class="post-title-text"
+                                style="color: var(--text-primary); text-decoration: none;">{{ p.title }}</a>
                             {% if p.comment_count > 0 %}
                             <span style="margin-left: 0px; color: var(--text-primary); font-size: 0.9rem;">[{{
                                 p.comment_count }}]</span>
@@ -311,7 +309,8 @@
                             <span
                                 style="margin-left: {% if p.has_image %}-5px{% else %}6px{% endif %}; font-size: 0.9rem;">▶️</span>
                             {% endif %}
-                        </a>
+                        </span>
+                    </td>
                     </td>
                     <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
                         {{ p.author }} <span style="color: var(--text-muted); font-size: 0.85em;">{{ p.ip_display
@@ -423,7 +422,6 @@
                     // 카운트 업데이트
                     document.getElementById('likeCount').textContent = data.likes;
                     document.getElementById('dislikeCount').textContent = data.dislikes;
-                    document.getElementById('netVotes').textContent = data.net_votes;
 
                     // 버튼 비활성화
                     document.getElementById('likeBtn').disabled = true;
@@ -705,10 +703,333 @@
         }
     }
 
+    /* 작성자 정보 두 줄로 */
+    .post-meta {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+
+    /* 조회수 앞에서 줄바꿈 */
+    .meta-views::before {
+        content: '';
+        flex-basis: 100% !important;
+        height: 0 !important;
+    }
+
+    /* 추천/비추천 버튼 영역 */
+    div[style*="추천/비추천"]>div,
+    .container>div>div[style*="display: flex"][style*="justify-content: center"] {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    /* 추천/비추천 버튼 모바일 */
+    #likeBtn,
+    #dislikeBtn {
+        padding: 10px 15px !important;
+        font-size: 0.9rem !important;
+        min-width: 130px !important;
+    }
+
     /* 검색 타입 드롭다운 다크모드 대응 */
     [data-theme="dark"] .form-select option {
         background: #2d3748;
         color: #ffffff;
+    }
+
+    /* 제목 컬럼 전체 너비 */
+    .table tbody td:nth-child(3) {
+        max-width: 700px;
+    }
+
+    /* 제목 전체를 감싸는 span - 줄바꿈 방지 */
+    .table tbody td:nth-child(3)>span {
+        white-space: nowrap !important;
+    }
+
+    /* 제목 텍스트만 길이 제한 */
+    .post-title-text {
+        display: inline-block !important;
+        max-width: 500px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+    }
+
+    /* 모바일 대응 (768px 이하) */
+    @media (max-width: 768px) {
+
+        /* 전체 레이아웃 */
+        .container {
+            padding: 0 8px !important;
+            margin: 20px auto !important;
+        }
+
+        /* 게시글 상세 카드 */
+        .container>div[style*="background: var(--card-bg)"] {
+            padding: 15px !important;
+            border-radius: 8px !important;
+        }
+
+        /* 제목 */
+        h2 {
+            font-size: 1.3rem !important;
+            word-break: keep-all !important;
+            line-height: 1.4 !important;
+        }
+
+        /* 작성자 정보 영역 */
+        .container>div[style*="background: var(--card-bg)"]>div[style*="display: flex"] {
+            flex-direction: column !important;
+            gap: 10px !important;
+            align-items: flex-start !important;
+        }
+
+        /* 작성자 정보 텍스트들 */
+        .container>div[style*="background: var(--card-bg)"]>div>div {
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+            font-size: 0.75rem !important;
+        }
+
+        /* 버튼 그룹 */
+        .container>div[style*="background: var(--card-bg)"]>div>div:last-child {
+            width: 100% !important;
+            justify-content: flex-start !important;
+            gap: 6px !important;
+        }
+
+        /* 버튼들 작게 */
+        .btn {
+            padding: 5px 12px !important;
+            font-size: 0.75rem !important;
+        }
+
+        .btn-sm {
+            padding: 3px 8px !important;
+            font-size: 0.65rem !important;
+        }
+
+        /* 댓글/대댓글 작성날짜 */
+        span[style*="font-size: 0.85rem"] {
+            font-size: 0.65rem !important;
+        }
+
+        /* 댓글 섹션 전체 너비로 */
+        .container>div:has(h4:contains('댓글')) {
+            margin-left: -8px !important;
+            margin-right: -8px !important;
+            width: calc(100% + 16px) !important;
+            padding: 20px 12px !important;
+        }
+
+        /* 또는 더 정확하게 */
+        div[style*="background: var(--card-bg)"][style*="border-radius: 12px"]:has(h4) {
+            margin-left: -8px !important;
+            margin-right: -8px !important;
+            width: calc(100% + 16px) !important;
+            border-radius: 0 !important;
+        }
+
+        /* 대댓글 */
+        div[style*="padding-left: 50px"][style*="background: var(--secondary-bg)"] {
+            padding: 12px !important;
+            padding-left: 18px !important;
+        }
+
+        /* 대댓글 하단 구분선 */
+        div[style*="padding-left: 50px"][style*="background: var(--secondary-bg)"]>div[style*="position: absolute"] {
+            left: 18px !important;
+        }
+
+        /* 각 댓글 */
+        div[style*="padding: 20px"][style*="border-bottom"] {
+            padding: 12px !important;
+        }
+
+        /* 댓글 헤더 영역 */
+        div[style*="justify-content: space-between"][style*="margin-bottom: 10px"] {
+            flex-wrap: wrap !important;
+        }
+
+        /* 버튼 그룹을 오른쪽으로 + 간격 줄이기 */
+        div[style*="gap: 10px"]:has(button.btn-sm) {
+            margin-left: auto !important;
+            gap: 6px !important;
+        }
+
+        /* 테이블 */
+        .table-responsive {
+            overflow-x: visible !important;
+        }
+
+        .table-responsive[style*="border-radius"] {
+            border-radius: 0 !important;
+            overflow: visible !important;
+        }
+
+        .table thead {
+            display: none !important;
+        }
+
+        .table tbody tr {
+            display: block !important;
+            margin-bottom: 12px !important;
+            padding: 12px !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+        }
+
+        .table tbody td {
+            display: inline !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        /* 번호 숨기기 */
+        .table tbody td:nth-child(1) {
+            display: none !important;
+        }
+
+        /* 탭 */
+        .table tbody td:nth-child(2) {
+            font-size: 0.7rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(2)::before {
+            content: '[';
+        }
+
+        .table tbody td:nth-child(2)::after {
+            content: '] ';
+        }
+
+        /* 제목 */
+        .table tbody td:nth-child(3) {
+            display: block !important;
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+            margin-bottom: 5px !important;
+            white-space: nowrap !important;
+        }
+
+        /* 제목 텍스트 길이 제한 */
+        .post-title-text {
+            max-width: 180px !important;
+        }
+
+        /* 글쓴이 */
+        .table tbody td:nth-child(4) {
+            font-size: 0.7rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(4)::after {
+            content: ' | ';
+        }
+
+        /* 날짜 */
+        .table tbody td:nth-child(5) {
+            font-size: 0.7rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(5)::after {
+            content: ' | ';
+        }
+
+        /* 조회 */
+        .table tbody td:nth-child(6) {
+            font-size: 0.7rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(6)::before {
+            content: '조회 ';
+        }
+
+        .table tbody td:nth-child(6)::after {
+            content: ' | ';
+        }
+
+        /* 추천 */
+        .table tbody td:nth-child(7) {
+            font-size: 0.7rem !important;
+            color: var(--text-secondary) !important;
+        }
+
+        .table tbody td:nth-child(7)::before {
+            content: '추천 ';
+        }
+
+        /* 페이지네이션 */
+        .pagination {
+            margin: 15px 0 !important;
+            justify-content: center !important;
+        }
+
+        .pagination .page-item {
+            font-size: 0.75rem !important;
+        }
+
+        .pagination .page-link {
+            padding: 4px 8px !important;
+            font-size: 0.75rem !important;
+            margin: 0 2px !important;
+        }
+
+        .pagination .page-item:nth-child(n+7):not(:last-child):not(:nth-last-child(2)) {
+            display: none !important;
+        }
+
+        /* 검색 영역 */
+        .container>div[style*="max-width: 600px"] {
+            max-width: 100% !important;
+            gap: 6px !important;
+            flex-wrap: nowrap !important;
+        }
+
+        #searchType {
+            width: 90px !important;
+            min-width: 90px !important;
+            font-size: 0.75rem !important;
+            padding: 6px 4px !important;
+        }
+
+        #searchKeyword {
+            flex: 1 !important;
+            min-width: 0 !important;
+            font-size: 0.75rem !important;
+            padding: 6px 8px !important;
+        }
+
+        button[onclick="searchPosts()"] {
+            flex-shrink: 0 !important;
+            font-size: 0.75rem !important;
+            padding: 6px 10px !important;
+            white-space: nowrap !important;
+        }
+
+        /* 첫 번째 게시글 위 선 제거 */
+        .table tbody tr:first-child {
+            margin-top: 0 !important;
+        }
+
+        /* 마지막 게시글 아래 여백 제거 */
+        .table tbody tr:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        /* 테이블 전체 border 제거 */
+        .table {
+            border: none !important;
+        }
+
+        .table tbody {
+            border: none !important;
+        }
     }
 </style>
 {% endblock %}
