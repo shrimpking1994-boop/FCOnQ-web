@@ -186,6 +186,67 @@
         background: #DDA0DD;
         color: white;
     }
+
+    /* 모바일 대응 */
+    @media (max-width: 768px) {
+
+        /* 시세 - 긴 숫자 숨기기 */
+        .price-full {
+            display: none !important;
+        }
+
+        /* 시세 - 단위 크게 표시 */
+        .price-unit {
+            font-size: 1rem !important;
+            color: var(--text-primary) !important;
+            margin-left: 0 !important;
+        }
+
+        /* 괄호 숨기기 */
+        .price-bracket {
+            display: none !important;
+        }
+
+        /* BP 추가 */
+        .price-value::after {
+            content: ' BP';
+            font-size: 1rem !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* 클럽 경력 그리드 조정 */
+        .club-item>div[style*="grid-template-columns"] {
+            grid-template-columns: 80px 1fr 50px !important;
+            gap: 8px !important;
+        }
+
+        /* 소속 연도 크기 줄이기 */
+        .club-item>div>span:first-child {
+            font-size: 0.75rem !important;
+        }
+
+        /* 임대 여부 크기 */
+        .club-item>div>span:last-child {
+            font-size: 0.85rem !important;
+        }
+
+        /* 클럽 이름 말줄임 */
+        .club-item strong {
+            font-size: 0.85rem !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 클럽 경력 박스 높이 조정 */
+        .stat-category[style*="min-height: 230px"] {
+            min-height: auto !important;
+        }
+
+        .club-history {
+            max-height: 180px !important;
+        }
+    }
 </style>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -592,20 +653,15 @@
 
                         <span class="price-value"
                             style="font-weight: 500; color: var(--text-primary); font-size: 14px;">
-                            {{ "{:,}".format(price) }} BP
+                            <span class="price-full">{{ "{:,}".format(price) }} BP</span>
 
-                            <span style="font-size: 12px; color: var(--text-muted); margin-left: 5px;">
-                                {% if price >= 10000000000000000 %}
-                                ({{ "%.1f경" % (price / 10000000000000000) }})
-                                {% elif price >= 1000000000000 %}
-                                ({{ "%.1f조" % (price / 1000000000000) }})
-                                {% elif price >= 100000000 %}
-                                ({{ "%.1f억" % (price / 100000000) }})
-                                {% elif price >= 10000 %}
-                                ({{ "%d만" % (price / 10000) }})
-                                {% else %}
-                                ({{ "{:,}".format(price) }})
-                                {% endif %}
+                            <span class="price-unit"
+                                style="font-size: 12px; color: var(--text-muted); margin-left: 5px;">
+                                <span class="price-bracket">(</span>{% if price >= 10000000000000000 %}{{ "%.1f경" %
+                                (price / 10000000000000000) }}{% elif price >= 1000000000000 %}{{ "%.1f조" % (price /
+                                1000000000000) }}{% elif price >= 100000000 %}{{ "%.1f억" % (price / 100000000) }}{% elif
+                                price >= 10000 %}{{ "%d만" % (price / 10000) }}{% else %}{{ "{:,}".format(price) }}{%
+                                endif %}<span class="price-bracket">)</span>
                             </span>
                         </span>
                     </div>
