@@ -190,6 +190,172 @@
     /* 모바일 대응 */
     @media (max-width: 768px) {
 
+        /* 헤더 섹션 세로 배치 */
+        .card-header-section {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+            gap: 20px !important;
+            padding: 20px 15px !important;
+        }
+
+        /* 미니 페이스온 크기 조정 */
+        .main-image {
+            width: 120px !important;
+            height: 120px !important;
+        }
+
+        /* 메인 정보 영역 */
+        .main-info {
+            width: 100% !important;
+        }
+
+        /* 시즌 + 이름 중앙 정렬 */
+        .main-info>div:first-child {
+            justify-content: center !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            margin-bottom: 15px !important;
+        }
+
+        /* 시즌 + 이름 영역 */
+        .main-info>div:first-child>div:first-child {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-bottom: 10px !important;
+        }
+
+        /* 시즌 이미지 크기 */
+        .main-info img[style*="height: 35px"] {
+            height: 30px !important;
+            margin-right: 8px !important;
+        }
+
+        /* 선수 이름 크기 */
+        .main-info h1 {
+            font-size: 1.5rem !important;
+            margin-right: 0 !important;
+        }
+
+        /* 선호 포지션 중앙 정렬 */
+        .preferred-positions {
+            justify-content: center !important;
+            font-size: 1.3rem !important;
+            line-height: normal !important;
+            display: flex !important;
+            gap: 8px !important;
+        }
+
+        .preferred-positions span {
+            margin-right: 0 !important;
+            display: inline-flex !important;
+            gap: 4px !important;
+        }
+
+        /* 상세 정보 라인 조정 */
+        .info-line {
+            font-size: 0.85rem !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            gap: 2px !important;
+            line-height: 1.8 !important;
+        }
+
+        /* 각 정보 항목들 */
+        .info-line>span {
+            display: inline-flex !important;
+            align-items: center !important;
+        }
+
+
+        /* 급여 (육각형) */
+        .info-line>span:nth-child(1) {
+            order: 1;
+        }
+
+        /* 첫 번째 구분선 */
+        .info-line>span:nth-child(2) {
+            order: 2;
+        }
+
+        /* 신체조건 */
+        .info-line>span:nth-child(3) {
+            order: 3;
+        }
+
+        /* 두 번째 구분선 */
+        .info-line>span:nth-child(4) {
+            order: 4;
+        }
+
+        /* 약발주발 */
+        .info-line>span:nth-child(5) {
+            order: 5;
+        }
+
+        /* 세 번째 구분선 - 줄바꿈 */
+        .info-line>span:nth-child(6) {
+            order: 6;
+            flex-basis: 100%;
+            height: 0;
+            display: none !important;
+        }
+
+        /* 개인기 별 개수 */
+        .info-line>span:nth-child(7) {
+            order: 7;
+        }
+
+        /* 네 번째 구분선 */
+        .info-line>span:nth-child(8) {
+            order: 8;
+        }
+
+        /* 국적 */
+        .info-line>span:nth-child(9) {
+            order: 9;
+        }
+
+        /* 다섯 번째 구분선 숨김 */
+        .info-line>span:nth-child(10) {
+            display: none !important;
+        }
+
+        /* 생년월일 숨김 */
+        .info-line>span:nth-child(11) {
+            display: none !important;
+        }
+
+        /* 여섯 번째 구분선 숨김 */
+        .info-line>span:nth-child(12) {
+            display: none !important;
+        }
+
+        /* 명성 숨김 */
+        .info-line>span:nth-child(13) {
+            display: none !important;
+        }
+
+        /* 국적 이미지 크기 */
+        .info-line img {
+            width: 20px !important;
+            height: 15px !important;
+        }
+
+        /* 특성 이미지 중앙 정렬 */
+        .traits-images {
+            justify-content: center !important;
+        }
+
+        /* 특성 이미지 크기 조정 */
+        .traits-images img {
+            width: 32px !important;
+            height: 32px !important;
+        }
+
+
         /* 시세 - 긴 숫자 숨기기 */
         .price-full {
             display: none !important;
