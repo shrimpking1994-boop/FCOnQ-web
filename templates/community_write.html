@@ -222,6 +222,60 @@
 
     /* 모바일 대응 */
     @media (max-width: 768px) {
+
+        /* 컨테이너 여백 줄이기 */
+        .container[style*="max-width: 900px"] {
+            margin: 20px auto !important;
+            padding: 0 12px !important;
+        }
+
+        /* 제목 크기 줄이기 */
+        h3[style*="margin-bottom: 30px"] {
+            font-size: 1.3rem !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* 폼 padding 줄이기 */
+        form[style*="padding: 30px"] {
+            padding: 20px 15px !important;
+            border-radius: 8px !important;
+        }
+
+        /* label 크기 줄이기 */
+        label[style*="font-weight: 500"] {
+            font-size: 0.9rem !important;
+            margin-bottom: 8px !important;
+        }
+
+        /* 입력 필드 padding 줄이기 */
+        .form-control,
+        .form-select {
+            padding: 10px !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* 에디터 최소 높이 줄이기 */
+        #editor[style*="min-height: 400px"],
+        .ql-editor {
+            min-height: 300px !important;
+        }
+
+        /* 버튼 크기 조정 */
+        div[style*="justify-content: flex-end"] {
+            margin-top: 20px !important;
+        }
+
+        div[style*="justify-content: flex-end"] .btn {
+            padding: 10px 20px !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* mb-4 간격 줄이기 */
+        .mb-4 {
+            margin-bottom: 1rem !important;
+        }
+
+        /* 에디터 내 영상 높이 조정 */
         @supports not (aspect-ratio: 16 / 9) {
             .ql-editor iframe {
                 height: 300px !important;
