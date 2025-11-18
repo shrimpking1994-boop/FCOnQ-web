@@ -411,6 +411,30 @@
             font-size: 20px !important;
         }
 
+        /* 세부 스탯 - 모바일 2열 */
+        .detailed-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-rows: repeat(17, auto) !important;
+        }
+
+        .detailed-column {
+            border-left: none !important;
+            padding: 0 8px !important;
+        }
+
+        /* 왼쪽 열 오른쪽 구분선 */
+        .detailed-column:nth-child(-n+17) {
+            border-right: 1px solid rgba(222, 226, 230, 0.5) !important;
+        }
+
+        .detailed-column .stat-item {
+            padding: 6px 8px !important;
+        }
+
+        .detailed-column .stat-item span {
+            font-size: 12px !important;
+        }
+
 
         /* 시세 - 긴 숫자 숨기기 */
         .price-full {
@@ -758,73 +782,22 @@
     <!-- 세부 스탯 -->
     <div class="stat-category">
         <!--<h6 class="text-muted mb-2">세부 스탯</h6>-->
-        <div style="display: flex; gap: 0;">
-            <div style="flex: 1; border-right: 1px solid rgba(222, 226, 230, 0.5); padding-right: 10px;">
-                {% for i in range(7) %}
-                {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
-                    class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
+        <div class="detailed-stats-grid"
+            style="display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-flow: column; grid-template-rows: repeat(7, auto); gap: 0;">
+            {% for i in range(35) %}
+            {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
+                class="detailed-column"
+                style="padding: 0 10px; {% if i >= 7 and i < 14 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 14 and i < 21 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 21 and i < 28 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 28 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% endif %}">
+                <div class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
                     <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
                     <span class="stat-value" style="font-size: 14px;">
                         {{ card.stats_info.detailed_stats[detailed_order[i]] }}
                     </span>
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
-
-        <div style="flex: 1; border-right: 1px solid rgba(222, 226, 230, 0.5); padding: 0 10px;">
-            {% for i in range(7, 14) %}
-            {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
-                class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
-                <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
-                <span class="stat-value" style="font-size: 14px;">
-                    {{ card.stats_info.detailed_stats[detailed_order[i]] }}
-                </span>
+                </div>
         </div>
         {% endif %}
         {% endfor %}
     </div>
-
-    <div style="flex: 1; border-right: 1px solid rgba(222, 226, 230, 0.5); padding: 0 10px;">
-        {% for i in range(14, 21) %}
-        {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
-            class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
-            <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
-            <span class="stat-value" style="font-size: 14px;">
-                {{ card.stats_info.detailed_stats[detailed_order[i]] }}
-            </span>
-    </div>
-    {% endif %}
-    {% endfor %}
-</div>
-
-<div style="flex: 1; border-right: 1px solid rgba(222, 226, 230, 0.5); padding: 0 10px;">
-    {% for i in range(21, 28) %}
-    {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div class="stat-item"
-        style="display: flex; justify-content: space-between; padding: 8px 12px;">
-        <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
-        <span class="stat-value" style="font-size: 14px;">
-            {{ card.stats_info.detailed_stats[detailed_order[i]] }}
-        </span>
-</div>
-{% endif %}
-{% endfor %}
-</div>
-
-<div style="flex: 1; padding-left: 10px;">
-    {% for i in range(28, 35) %}
-    {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div class="stat-item"
-        style="display: flex; justify-content: space-between; padding: 8px 12px;">
-        <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
-        <span class="stat-value" style="font-size: 14px;">
-            {{ card.stats_info.detailed_stats[detailed_order[i]] }}
-        </span>
-</div>
-{% endif %}
-{% endfor %}
-</div>
-</div>
-</div>
 </div>
 
 <!-- 클럽 경력 + 시세 -->
