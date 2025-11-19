@@ -582,8 +582,13 @@
             flex-wrap: nowrap;
             /* 줄바꿈 방지 */
             gap: 6px !important;
-            font-size: 0.8rem !important;
+            font-size: 0.80rem !important;
             align-items: center !important;
+        }
+
+        /* 신체 정보 텍스트 크기 */
+        .player-info>div:last-child>span {
+            font-size: 0.80rem !important;
         }
 
         /* 급여 아이콘 */
@@ -816,6 +821,60 @@
 
         .result-count span {
             font-size: 0.8rem !important;
+        }
+    }
+
+    /* 400px 이하 초소형 화면 */
+    @media (max-width: 400px) {
+
+        /* 카드 레이아웃 - 버튼 공간 더 줄이기 */
+        .card-row {
+            grid-template-columns: 65px 1fr 50px !important;
+            gap: 6px !important;
+        }
+
+        /* 플레이어 이미지 더 작게 */
+        .player-image {
+            width: 65px !important;
+            height: 65px !important;
+        }
+
+        /* 비교 바구니 버튼 더 작게 */
+        .add-to-basket-btn {
+            width: 50px !important;
+            height: 50px !important;
+            padding: 4px !important;
+        }
+
+        .add-to-basket-btn .btn-icon {
+            font-size: 18px !important;
+        }
+
+        .add-to-basket-btn .btn-text {
+            font-size: 0.55rem !important;
+        }
+
+        /* 선수 이름 크기 */
+        .player-name {
+            font-size: 0.9rem !important;
+        }
+
+        /* 신체 정보 라인 폰트 더 작게 */
+        .player-info>div:last-child {
+            font-size: 0.65rem !important;
+            gap: 2.5px !important;
+        }
+
+        /* 신체 정보 텍스트 모두 작게 */
+        .player-info>div:last-child>span {
+            font-size: 0.65rem !important;
+        }
+
+        /* 급여 아이콘 더 작게 */
+        .player-info>div:last-child>span:first-child {
+            width: 14px !important;
+            height: 14px !important;
+            font-size: 8px !important;
         }
     }
 </style>
