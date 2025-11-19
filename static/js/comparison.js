@@ -156,7 +156,7 @@ class ComparisonBasket {
         const card = this.slots[slotNum];
 
         if (!card) {
-            slotEl.innerHTML = '<span class="slot-placeholder">드래그</span>';
+            slotEl.innerHTML = '<span class="slot-placeholder">클릭/드래그</span>';
             slotEl.classList.remove('filled');
             return;
         }
@@ -285,7 +285,7 @@ class ComparisonBasket {
                 btn.classList.remove('added');
                 btn.innerHTML = `
                 <span class="btn-icon">+</span>
-                <span class="btn-text">비교 바구니</span>
+                <span class="btn-text">비교</span>
             `;
             }
         });
@@ -318,7 +318,7 @@ function addToBasket(btn) {
         btn.classList.remove('added');
         btn.innerHTML = `
             <span class="btn-icon">+</span>
-            <span class="btn-text">비교 바구니</span>
+            <span class="btn-text">비교</span>
         `;
     } else if (result === true) {
         // 추가된 경우 - 버튼을 추가됨 상태로
