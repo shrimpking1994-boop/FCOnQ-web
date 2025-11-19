@@ -460,6 +460,24 @@
             font-size: 1.1rem;
             margin-bottom: 12px;
         }
+
+        /* 급여-오버롤, 신장-몸무게 줄바꿈 */
+        .detail-filter-section .col-md-6 {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 15px;
+        }
+
+        /* 급여와 오버롤 제목 간격 */
+        .detail-filter-section .filter-group-title {
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+
+        /* 첫 번째 항목(급여, 신장)은 위 여백 없음 */
+        .detail-filter-section .col-md-6:first-child .filter-group-title {
+            margin-top: 0;
+        }
     }
 </style>
 
