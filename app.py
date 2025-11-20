@@ -557,13 +557,14 @@ def community_post(post_id):
         """, (category_filter, per_page, (page - 1) * per_page))
     else:
         # 전체 개수
-        cur.execute("SELECT COUNT(*) FROM community.posts")
+        cur.execute("SELECT COUNT(*) FROM community.posts WHERE is_deleted = false")
         total_count = cur.fetchone()['count']
         
         # 전체 게시글
         cur.execute("""
             SELECT id, category, title, author, author_ip, created_at, views, likes, content
             FROM community.posts
+            WHERE is_deleted = false
             ORDER BY created_at DESC
             LIMIT %s OFFSET %s
         """, (per_page, (page - 1) * per_page))
