@@ -21,7 +21,7 @@ load_dotenv()       # ← 추가!
 app = Flask(__name__)
 
 # Flask 세션 설정 (OAuth에 필요)
-app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key-change-in-production')
+app.secret_key = os.getenv('SECRET_KEY')
 app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -41,16 +41,16 @@ google = oauth.register(
 
 # DB 연결 설정
 DB_CONFIG = {
-    "host": os.getenv('DB_HOST', 'localhost'),
-    "database": os.getenv('DB_NAME', 'fconline'),
-    "user": os.getenv('DB_USER', 'postgres'),
-    "password": os.getenv('DB_PASSWORD', '9787')
+    "host": os.getenv('DB_HOST'),
+    "database": os.getenv('DB_NAME'),
+    "user": os.getenv('DB_USER'),
+    "password": os.getenv('DB_PASSWORD')
 }
 
 # IP 해싱 함수
 def hash_ip(ip_address):
     """IP 주소를 해시 처리 (개인정보 보호)"""
-    secret = "fconline_secret_key_2025"  # 비밀키 (변경 가능)
+    secret = os.getenv('IP_HASH_SECRET', 'fconline_secret_key_2025')
     return hashlib.sha256(f"{ip_address}{secret}".encode()).hexdigest()
 
 def format_ip_display(ip):
