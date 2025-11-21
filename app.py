@@ -409,7 +409,8 @@ def community_list():
     
     # 날짜 포맷 처리 + 이미지/영상 감지
     from datetime import datetime, date
-    today = date.today()
+    kst_now = datetime.now(kst)
+    today = kst_now.date()
     
     for post in posts:
         post_date = post['created_at'].date()
