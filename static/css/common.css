@@ -3,12 +3,13 @@
     /* 메인 색상 */
     --gradient-start: #667eea;
     --gradient-end: #764ba2;
+    --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --primary-color: #764ba2;
     --primary-light: #f0e6ff;
 
     /* 배경색 */
-    --bg-main: white;
-    --bg-secondary: #f8f9fa;
+    --bg-main: #f8f9fa;
+    --bg-secondary: #ffffff;
     --hover-bg: #e9ecef;
 
     /* 텍스트 색상 */
@@ -34,8 +35,9 @@
 
 /* 다크모드 색상 */
 [data-theme="dark"] {
-    --gradient-start: #4a5568;
-    --gradient-end: #2d3748;
+    --gradient-start: #2d3748;
+    --gradient-end: #1a202c;
+    --gradient-bg: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
     --primary-color: #9f7aea;
     --primary-light: #44337a;
 
@@ -57,14 +59,20 @@
     --bs-body-color: #e2e8f0;
 }
 
-/* 다크모드 체크박스 라벨 */
-[data-theme="dark"] .form-check-label {
-    color: var(--text-primary);
+/* body 전체 배경 통일 */
+body {
+    background-color: var(--bg-main);
+    min-height: 100vh;
 }
 
 /* 다크모드 체크박스 라벨 */
 [data-theme="dark"] .form-check-label {
     color: var(--text-primary);
+}
+
+#darkModeToggle {
+    color: var(--text-primary) !important;
+    border-color: var(--text-primary) !important;
 }
 
 /* 모바일 최적화 - 폰트 크기 조정 */
