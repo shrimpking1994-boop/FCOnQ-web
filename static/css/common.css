@@ -8,9 +8,9 @@
     --primary-light: #f0e6ff;
 
     /* 배경색 */
-    --bg-main: #f8f9fa;
-    --bg-secondary: #ffffff;
-    --hover-bg: #e9ecef;
+    --bg-main: #e8ecf0;
+    --bg-secondary: #f5f7fa;
+    --hover-bg: #dce3eb;
 
     /* 텍스트 색상 */
     --text-primary: #212529;
@@ -41,9 +41,10 @@
     --primary-color: #9f7aea;
     --primary-light: #44337a;
 
-    --bg-main: #1a202c;
-    --bg-secondary: #2d3748;
-    --hover-bg: #4a5568;
+    /* 배경색 - 재조정 */
+    --bg-main: #1e1e1e;
+    --bg-secondary: #2a2a2a;
+    --hover-bg: #353535;
 
     --text-primary: #e2e8f0;
     --text-secondary: #cbd5e0;
