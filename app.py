@@ -87,6 +87,12 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.route('/sitemap.xml')
+def sitemap():
+    """사이트맵 제공"""
+    from flask import send_from_directory
+    return send_from_directory('.', 'sitemap.xml')
+
 
 # 시즌 정렬 순서 (공식 홈페이지 기준)
 SEASON_ORDER = [
