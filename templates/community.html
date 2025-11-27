@@ -83,7 +83,7 @@
         <table class="table table-hover" style="margin: 0; color: var(--text-primary);">
             <thead style="background: var(--secondary-bg); border-bottom: 2px solid var(--border-color);">
                 <tr>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px;">번호</th>
+                    <th style="width: 80px; text-align: center; padding: 15px 10px; ">번호</th>
                     <th style="width: 80px; text-align: center; padding: 15px 10px;">탭</th>
                     <th style="padding: 15px 20px;">제목</th>
                     <th style="width: 150px; text-align: center; padding: 15px 10px;">글쓴이</th>
@@ -115,18 +115,22 @@
                               {% if post.is_deleted %}background: rgba(255, 0, 0, 0.05);
                               {% elif post.is_notice %}background: rgba(255, 152, 0, 0.08);{% endif %}"
                     onclick="window.location='/community/post/{{ post.id }}?category={{ category or '' }}'">
-                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500;">
+                    <td
+                        style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500; vertical-align: middle;">
                         {{ post.id }}
                     </td>
-                    <td style="text-align: center; padding: 12px 10px; font-size: 0.9rem; white-space: nowrap;">
+                    <td style="text-align: center; padding: 12px 10px; white-space: nowrap; vertical-align: middle;">
                         {% if post.is_notice %}
                         <span style="color: #ff9800; font-weight: 600;">📌 공지</span>
                         {% else %}
-                        <span style="color: var(--text-primary);">{{ post.category }}</span>
+                        <span style="color: var(--text-primary);">
+                            {% if post.category == '미니 페이스온' %}미페{% else %}{{ post.category }}{% endif %}
+                        </span>
                         {% endif %}
                     </td>
                     <td style="padding: 12px 20px;">
-                        <span style="color: var(--text-primary); font-size: 1rem; font-weight: 500;">
+                        <span
+                            style="color: var(--text-primary); font-size: 1rem; font-weight: 500; vertical-align: middle;">
                             {% if post.is_deleted and session.get('user_role') == 'admin' %}
                             <span
                                 style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 6px;">삭제됨</span>
@@ -149,8 +153,7 @@
                         {{ post.author }} <span style="color: var(--text-muted); font-size: 0.85em;">{{ post.ip_display
                             }}</span>
                     </td>
-                    <td
-                        style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-size: 0.9rem;">
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
                         {{ post.display_date }}
                     </td>
                     <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
