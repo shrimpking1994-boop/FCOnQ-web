@@ -80,16 +80,17 @@
     <!-- 게시글 목록 테이블 -->
     <div class="table-responsive"
         style="background: var(--card-bg); border-radius: 12px; overflow: hidden; margin: 0 -20px; padding: 0 20px;">
-        <table class="table table-hover" style="margin: 0; color: var(--text-primary);">
+        <table class="table table-hover"
+            style="margin: 0; color: var(--text-primary); table-layout: fixed; width: 100%;">
             <thead style="background: var(--secondary-bg); border-bottom: 2px solid var(--border-color);">
                 <tr>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px; ">번호</th>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px;">탭</th>
-                    <th style="padding: 15px 20px;">제목</th>
-                    <th style="width: 150px; text-align: center; padding: 15px 10px;">글쓴이</th>
-                    <th style="width: 120px; text-align: center; padding: 15px 10px;">날짜</th>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px;">조회</th>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px;">추천</th>
+                    <th style="width: 65px; text-align: center; padding: 15px 10px; ">번호</th>
+                    <th style="width: 85px; text-align: center; padding: 15px 10px;">탭</th>
+                    <th style="width: 60%; padding: 15px 20px; vertical-align: middle;">제목</th>
+                    <th style="width: 150px; text-align: center; padding: 15px 10px; vertical-align: middle;">글쓴이</th>
+                    <th style="width: 70px; text-align: center; padding: 15px 10px; vertical-align: middle;">날짜</th>
+                    <th style="width: 55px; text-align: center; padding: 15px 10px; vertical-align: middle;">조회</th>
+                    <th style="width: 55px; text-align: center; padding: 15px 10px; vertical-align: middle;">추천</th>
                     {% if session.get('user_role') == 'admin' %}
                     <th style="width: 100px; text-align: center; padding: 15px 10px;">
                         <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
@@ -297,10 +298,9 @@
         white-space: nowrap !important;
     }
 
-    /* 제목 텍스트만 길이 제한 */
     .post-title-text {
         display: inline-block !important;
-        max-width: 500px !important;
+        max-width: 100% !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
