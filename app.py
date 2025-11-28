@@ -1135,7 +1135,8 @@ def results():
            full_data->'basic_info'->>'weight' as weight,
            full_data->'basic_info'->>'body_type' as body_type,
            full_data->'game_info'->>'skill_moves' as skill_moves,
-           full_data->'game_info'->'traits' as traits
+           full_data->'game_info'->'traits' as traits,
+           boost_change
     FROM player_cards
     WHERE 1=1
     """ + search_conditions + """

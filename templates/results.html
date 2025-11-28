@@ -937,6 +937,16 @@
                     </span>
                     {% endfor %}
                     {% endif %}
+
+                    {% if card.boost_change and card.boost_change != 0 %}
+                    <span class="live-boost" style="font-size: 18px; font-weight: bold; margin-left: 5px;">
+                        {% if card.boost_change > 0 %}
+                        <span style="color: #2ecc71;">▲{{ card.boost_change }}</span>
+                        {% else %}
+                        <span style="color: #e74c3c;">▼{{ card.boost_change|abs }}</span>
+                        {% endif %}
+                    </span>
+                    {% endif %}
                 </div>
             </div>
 
