@@ -47,6 +47,15 @@
         gtag('config', 'G-7W0Y1VQK3C');
     </script>
 
+    <!-- Google Analytics 아래에 추가 -->
+    {% if request.path == '/community' %}
+    <link rel="canonical" href="https://fconq.com/community">
+    {% elif request.path == '/search' %}
+    <link rel="canonical" href="https://fconq.com/search">
+    {% else %}
+    <link rel="canonical" href="https://fconq.com{{ request.path }}">
+    {% endif %}
+
     <!-- ✅ 다크모드 즉시 적용 (기본값: dark) -->
     <script>
         (function () {
