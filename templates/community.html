@@ -268,6 +268,18 @@
 
 
 <style>
+    /* 검색 타입 드롭다운 다크모드 대응 */
+    .form-select option {
+        background: var(--secondary-bg);
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .form-select option {
+        background: #2d3748;
+        color: #ffffff;
+    }
+
+    /* 테이블 호버 효과 */
     .table-hover tbody tr:hover {
         background: var(--hover-bg) !important;
     }
@@ -282,33 +294,109 @@
         color: var(--text-primary);
     }
 
-    /* 검색 타입 드롭다운 다크모드 대응 */
-    [data-theme="dark"] .form-select option {
-        background: #2d3748;
-        color: #ffffff;
+    /* 테이블 전체 정렬 통일 */
+    .table {
+        border-collapse: collapse;
     }
 
-    /* 제목 컬럼 전체 너비 */
-    .table tbody td:nth-child(3) {
-        max-width: 700px;
+    .table thead th {
+        vertical-align: middle;
+        line-height: 1.4;
     }
 
-    /* 제목 전체를 감싸는 span - 줄바꿈 방지 */
-    .table tbody td:nth-child(3)>span {
-        white-space: nowrap !important;
-    }
-
-    .post-title-text {
-        display: inline-block !important;
-        max-width: 100% !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
+    .table tbody td {
         vertical-align: middle !important;
+        line-height: 1.4 !important;
+        padding: 12px 10px !important;
+    }
+
+    /* 제목 컬럼만 패딩 조정 */
+    .table tbody td:nth-child(3) {
+        padding: 12px 20px !important;
+    }
+
+    /* 제목 내부 요소 정렬 */
+    .post-title-text {
+        vertical-align: middle;
+        display: inline;
+    }
+
+    .table tbody td span {
+        vertical-align: middle;
+        line-height: 1.4;
+    }
+
+    /* 페이지네이션 스타일 */
+    .pagination {
+        margin-top: 30px;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .pagination .page-item {
+        margin: 0;
+    }
+
+    .pagination .page-link {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 8px 14px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .pagination .page-link:hover {
+        background: var(--hover-bg);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .pagination .page-item.active .page-link {
+        background: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-muted);
+        opacity: 0.5;
     }
 
     /* 모바일 대응 (768px 이하) */
     @media (max-width: 768px) {
+
+        /* 컨테이너 패딩 줄이기 */
+        .container {
+            padding: 0 0px !important;
+        }
+
+        /* 테이블 카드 패딩 줄이기 */
+        .table tbody tr {
+            display: block !important;
+            margin-bottom: 10px !important;
+            padding: 10px !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+        }
+
+        /* 상단 버튼 영역 여백 줄이기 */
+        .community-top-buttons {
+            margin-bottom: 10px !important;
+        }
+
+        /* 카테고리 버튼 여백 줄이기 */
+        .community-categories {
+            margin-bottom: 12px !important;
+        }
+
+        /* 컨테이너 상단 여백도 줄이기 */
+        .container:first-of-type {
+            margin-top: 0px !important;
+            margin-bottom: 0 !important;
+        }
 
         /* 상단/하단 전체글+인기글+글쓰기 버튼 */
         .community-top-buttons,
@@ -356,7 +444,7 @@
         .table tbody tr {
             display: block !important;
             margin-bottom: 12px !important;
-            padding: 12px !important;
+            padding: 6px 12px !important;
             border: 1px solid var(--border-color) !important;
             border-radius: 8px !important;
         }
@@ -391,13 +479,19 @@
             display: block !important;
             font-size: 0.95rem !important;
             font-weight: 600 !important;
-            margin-bottom: 6px !important;
+            margin-bottom: 0px !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
             white-space: nowrap !important;
+            max-width: 100% !important;
         }
 
-        /* 제목 텍스트 길이 제한 */
+        /* 제목 텍스트 길이 제한 제거 */
         .post-title-text {
-            max-width: 180px !important;
+            max-width: none !important;
+            overflow: visible !important;
+            text-overflow: inherit !important;
         }
 
         /* 글쓴이 */
