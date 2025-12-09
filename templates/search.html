@@ -445,6 +445,12 @@
             font-size: 0.85rem;
         }
 
+        .body-type-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
         /* 특성 선택 */
         .trait-buttons {
             gap: 6px;
@@ -768,8 +774,8 @@
                 <div class="filter-group-title">고유 특성</div>
                 <div class="row g-2">
                     <div class="col-3">
-                        <label class="form-label label-title">신규 특성</label>
-                        <select class="form-select trait-select" name="new_trait" data-placeholder="신규 특성 선택">
+                        <label class="form-label label-title">신규</label>
+                        <select class="form-select trait-select" name="new_trait" data-placeholder="▼">
                             <option value=""></option>
                             {% for trait in new_traits %}
                             <option value="{{ trait }}">{{ trait }}</option>
@@ -777,8 +783,8 @@
                         </select>
                     </div>
                     <div class="col-3">
-                        <label class="form-label label-title">일반 특성 1</label>
-                        <select class="form-select trait-select" name="normal_trait_1" data-placeholder="일반 특성 선택">
+                        <label class="form-label label-title">일반 1</label>
+                        <select class="form-select trait-select" name="normal_trait_1" data-placeholder="▼">
                             <option value=""></option>
                             {% for trait in normal_traits %}
                             <option value="{{ trait }}">{{ trait }}</option>
@@ -786,8 +792,8 @@
                         </select>
                     </div>
                     <div class="col-3">
-                        <label class="form-label label-title">일반 특성 2</label>
-                        <select class="form-select trait-select" name="normal_trait_2" data-placeholder="일반 특성 선택">
+                        <label class="form-label label-title">일반 2</label>
+                        <select class="form-select trait-select" name="normal_trait_2" data-placeholder="▼">
                             <option value=""></option>
                             {% for trait in normal_traits %}
                             <option value="{{ trait }}">{{ trait }}</option>
@@ -795,8 +801,8 @@
                         </select>
                     </div>
                     <div class="col-3">
-                        <label class="form-label label-title">일반 특성 3</label>
-                        <select class="form-select trait-select" name="normal_trait_3" data-placeholder="일반 특성 선택">
+                        <label class="form-label label-title">일반 3</label>
+                        <select class="form-select trait-select" name="normal_trait_3" data-placeholder="▼">
                             <option value=""></option>
                             {% for trait in normal_traits %}
                             <option value="{{ trait }}">{{ trait }}</option>
@@ -808,7 +814,7 @@
         </div>
 
         <!-- 하단 검색 버튼 -->
-        <div class="mt-5 text-center">
+        <div class="mt-3 text-center">
             <button type="submit" class="search-btn">검색</button>
         </div>
     </div>
