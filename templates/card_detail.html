@@ -9,7 +9,8 @@
         border-radius: 20px;
         text-decoration: none;
         display: inline-block;
-        margin-bottom: 20px;
+        margin-top: 15px;
+        margin-bottom: 10px;
         transition: all 0.3s;
         border: 2px solid var(--primary-color);
         font-weight: 600;
@@ -24,16 +25,16 @@
 
     .card-header-section {
         display: flex;
-        gap: 30px;
+        gap: 20px;
         margin-bottom: 30px;
         background: var(--bg-secondary);
         border-radius: 15px;
-        padding: 25px;
+        padding: 22px;
     }
 
     .main-image {
-        width: 150px;
-        height: 150px;
+        width: 128px;
+        height: 128px;
         object-fit: cover;
         border-radius: 15px;
     }
@@ -41,6 +42,7 @@
     .main-info h1 {
         color: var(--text-primary);
         margin-bottom: 10px;
+        font-size: 1.8rem;
     }
 
     .overall-large {
@@ -532,13 +534,14 @@
             <div class="d-flex align-items-center">
                 {% if card.image_info.season_img %}
                 <img src="{{ card.image_info.season_img }}" alt="{{ card.season_name }}"
-                    style="height: 35px; margin-right: 10px; margin-top: 4px;">
+                    style="height: 28px; margin-right: 8px; margin-top: 4px;">
                 {% endif %}
-                <h1 class="mb-0" style="margin-right: 20px; font-weight: 700;">{{ card.player_name }}</h1>
+                <h1 class="mb-0" style="margin-right: 20px; font-weight: 700; font-size: 1.8rem;">{{ card.player_name }}
+                </h1>
             </div>
 
             <div class="preferred-positions"
-                style="font-size: 27px; line-height: 35px; display: flex; align-items: center; gap: 10px;">
+                style="font-size: 22px; line-height: 26px; display: flex; align-items: center; gap: 6px;">
                 {% for pos in card.stats_info.main_overall.preferred_positions %}
                 <span style="margin-right: 15px;">
                     {% if pos.position in ['ST', 'CF', 'RW', 'LW'] %}
@@ -569,22 +572,22 @@
         </div>
 
         <div class="compact-info-section">
-            <div class="info-line mb-3" style="font-size: 17px; color: var(--text-secondary);">
+            <div class="info-line mb-3" style="font-size: 15px; color: var(--text-secondary);">
                 <span style="display: inline-flex; align-items: center; justify-content: center;
-                    width: 28px; height: 32px; 
+                    width: 24px; height: 28px; 
                     background: var(--text-secondary);
                     color: var(--bg-main);
                     clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
-                    font-weight: bold; font-size: 14px;">
+                    font-weight: bold; font-size: 13px;">
                     {{ card.game_info.salary|default(0) }}
                 </span>
 
-                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
 
                 <span>{{ card.basic_info.height|default('Unknown') }} {{ card.basic_info.weight|default('Unknown') }} {{
                     card.basic_info.body_type|default('Unknown') }}</span>
 
-                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
 
                 <span>
                     {% set pref_foot = card.game_info.preferred_foot|default('') %}
@@ -596,14 +599,14 @@
                     {% endif %}
                 </span>
 
-                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
 
                 <span>
                     {% for i in range(card.game_info.skill_moves|default(0)) %}<span style="color: gold;">★</span>{%
                     endfor %}
                 </span>
 
-                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
 
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     {{ card.basic_info.nation|default('Unknown') }}
@@ -613,11 +616,11 @@
                     {% endif %}
                 </span>
 
-                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
 
                 <span>{{ card.basic_info.birth_date|default('Unknown') }} ({{ card.basic_info.age|default(0) }}세)</span>
 
-                <span style="margin: 0 10px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
 
                 <span>{{ card.basic_info.tier|default('Unknown') }}</span>
             </div>
@@ -669,7 +672,7 @@
                 {% for trait in card.game_info.traits %}
                 {% if trait in trait_mapping %}
                 <img src="{{ trait_mapping[trait] }}" alt="{{ trait }}" title="{{ trait }}"
-                    style="width: 38px; height: 38px; object-fit: contain;">
+                    style="width: 34px; height: 34px; object-fit: contain;">
                 {% endif %}
                 {% endfor %}
             </div>
@@ -677,7 +680,6 @@
         </div>
     </div>
 </div>
-
 <!-- 통합 능력치 섹션 -->
 <div class="stat-section">
     <h4>능력치</h4>
