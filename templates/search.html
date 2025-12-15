@@ -86,7 +86,8 @@
     .position-filter-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 20px;
+        justify-content: space-between;
+        gap: 15px;
         padding: 15px;
         background: var(--bg-secondary);
         border-radius: 10px;
@@ -95,6 +96,13 @@
 
     .position-group {
         min-width: 200px;
+    }
+
+    .position-group:last-child {
+        min-width: 70px;
+        /* 골키퍼 그룹만 좁게 */
+        max-width: 150px;
+        /* 최대 너비도 제한 */
     }
 
     .position-group-title {

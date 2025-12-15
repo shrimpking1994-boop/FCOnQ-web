@@ -99,7 +99,36 @@
 
         .top-bar-content {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-title-link {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .top-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+        }
+
+        .top-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
+        }
+
+        .top-bar-right {
+            display: flex;
             align-items: center;
             gap: 10px;
         }
@@ -151,7 +180,7 @@
 
         .nav-link-item {
             display: block;
-            padding: 15px 40px;
+            padding: 10px 40px;
             color: white;
             text-decoration: none;
             font-weight: 600;
@@ -178,8 +207,8 @@
 
         .content-wrapper {
             background: var(--bg-main);
-            border-radius: 20px;
-            padding: 40px;
+            border-radius: 10px;
+            padding: 0px;
             box-shadow: none;
             min-height: 500px;
         }
@@ -340,7 +369,7 @@
 
             /* 상단 바 */
             .top-bar {
-                padding: 5px 0;
+                padding: 5px 8px;
             }
 
             .top-bar-content {
@@ -407,7 +436,9 @@
 
         /* 컨테이너 최대 너비 제한 */
         .container {
-            max-width: 1230px !important;
+            max-width: 980px !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
         }
     </style>
 </head>
@@ -417,20 +448,26 @@
     <div class="top-bar">
         <div class="container">
             <div class="top-bar-content">
-                <div class="login-section" id="loginSection">
-                    <!-- JavaScript로 동적 렌더링 -->
-                </div>
-                <div class="darkmode-toggle">
-                    <button id="darkModeToggle" class="btn btn-outline-light btn-sm">
-                        🌙 다크모드
-                    </button>
+                <a href="/" class="top-title-link">
+                    <h1 class="top-title">FCOnQ</h1>
+                    <span class="top-subtitle">[엪씨온큐]</span>
+                </a>
+                <div class="top-bar-right">
+                    <div class="login-section" id="loginSection">
+                        <!-- JavaScript로 동적 렌더링 -->
+                    </div>
+                    <div class="darkmode-toggle">
+                        <button id="darkModeToggle" class="btn btn-outline-light btn-sm">
+                            🌙 다크모드
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- 헤더 -->
-    <header class="main-header">
+    <header class="main-header" style="display: none;">
         <div class="container position-relative">
             <!-- 사이트 제목 -->
             <a href="/" style="text-decoration: none; color: inherit; display: block;">
