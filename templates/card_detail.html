@@ -582,12 +582,12 @@
                     {{ card.game_info.salary|default(0) }}
                 </span>
 
-                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 4px; color: var(--text-muted);">|</span>
 
                 <span>{{ card.basic_info.height|default('Unknown') }} {{ card.basic_info.weight|default('Unknown') }} {{
                     card.basic_info.body_type|default('Unknown') }}</span>
 
-                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 4px; color: var(--text-muted);">|</span>
 
                 <span>
                     {% set pref_foot = card.game_info.preferred_foot|default('') %}
@@ -599,14 +599,14 @@
                     {% endif %}
                 </span>
 
-                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 4px; color: var(--text-muted);">|</span>
 
                 <span>
                     {% for i in range(card.game_info.skill_moves|default(0)) %}<span style="color: gold;">★</span>{%
                     endfor %}
                 </span>
 
-                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 4px; color: var(--text-muted);">|</span>
 
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     {{ card.basic_info.nation|default('Unknown') }}
@@ -616,11 +616,11 @@
                     {% endif %}
                 </span>
 
-                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 4px; color: var(--text-muted);">|</span>
 
                 <span>{{ card.basic_info.birth_date|default('Unknown') }} ({{ card.basic_info.age|default(0) }}세)</span>
 
-                <span style="margin: 0 5px; color: var(--text-muted);">|</span>
+                <span style="margin: 0 4px; color: var(--text-muted);">|</span>
 
                 <span>{{ card.basic_info.tier|default('Unknown') }}</span>
             </div>
