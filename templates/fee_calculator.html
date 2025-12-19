@@ -1,0 +1,575 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+    .calculator-container {
+        background: var(--bg-secondary);
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 20px;
+        max-width: 1000px;
+        min-width: 1000px;
+        /* 추가: 최소 너비 고정 */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* 전체 페이지가 가로 스크롤 가능하도록 */
+    body {
+        min-width: 1000px;
+        /* 추가 */
+    }
+
+    .calculator-title {
+        color: var(--text-primary);
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .discount-options {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .discount-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .discount-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .calculator-box {
+        background: var(--bg-main);
+        border-radius: 0px;
+        padding: 20px;
+        border: 2px solid var(--border-color);
+    }
+
+    .calc-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+
+    .calc-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .calc-label {
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    .calc-input {
+        width: 100%;
+        padding: 10px;
+        font-size: 0.85rem;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        text-align: center;
+    }
+
+    .calc-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    /* 숫자 input 화살표 제거 */
+    .calc-input::-webkit-inner-spin-button,
+    .calc-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .calc-input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    /* select 드롭다운 화살표 제거 */
+    select.calc-input {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    .calc-value {
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        /* clamp 대신 고정 크기 */
+        font-weight: bold;
+        text-align: center;
+        padding: 10px 5px;
+        /* 좌우 패딩 축소 */
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        white-space: nowrap;
+        /* 한 줄 유지 */
+        overflow: hidden;
+        /* 넘치는 부분 숨김 */
+        text-overflow: ellipsis;
+        /* 넘치면 ... 표시 (선택사항) */
+    }
+
+    .calc-value.negative {
+        color: #ff4757;
+    }
+
+    .calc-value.positive {
+        color: var(--primary-color);
+        font-size: 0.85rem;
+        /* 살짝만 크게 */
+    }
+
+    .korean-unit {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        text-align: center;
+        margin-top: 5px;
+        min-height: 20px;
+    }
+
+    /* 박스 컨테이너 */
+    #boxes-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* 박스 액션 버튼 */
+    .box-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .add-box-btn,
+    .remove-box-btn {
+        padding: 8px 16px;
+        border: 2px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .add-box-btn:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .remove-box-btn {
+        border-color: #ff4757;
+        color: #ff4757;
+    }
+
+    .remove-box-btn:hover {
+        background: #ff4757;
+        color: white;
+    }
+
+    .result-section {
+        background: var(--bg-main);
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-top: 30px;
+        margin-left: auto;
+        /* 추가 */
+        margin-right: auto;
+        /* 추가 */
+        max-width: 650px;
+        /* 원하는 너비로 조정 (예: 600px, 700px, 800px 등) */
+        border: 2px solid var(--primary-color);
+        text-align: center;
+    }
+
+    .result-section p {
+        margin: 0;
+        /* 추가 */
+    }
+
+    .result-title {
+        color: var(--primary-color);
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .ad-banner {
+        text-align: center;
+        margin-bottom: 25px;
+        padding: 8px 0;
+        font-size: 0.95rem;
+    }
+
+    .ad-banner span {
+        color: var(--text-primary);
+        margin-right: 8px;
+        font-weight: 600;
+    }
+
+    .ad-banner a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .ad-banner a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="calculator-container">
+
+    <!-- 광고 배너 -->
+    <div class="ad-banner">
+        <span>🔥대낙은 실수없는 짱대낙!🔥</span>
+        <a href="https://jjangdaenak.com/" target="_blank" rel="noopener noreferrer">jjangdaenak.com</a>
+    </div>
+
+    <!-- 전체 할인 옵션 -->
+    <div class="discount-options">
+        <label class="discount-checkbox">
+            <input type="checkbox" id="pcBangDiscount" checked>
+            <span>PC방 할인 (30%)</span>
+        </label>
+        <label class="discount-checkbox">
+            <input type="checkbox" id="topClassDiscount" checked>
+            <span>TOP Class 할인 (20%)</span>
+        </label>
+    </div>
+
+    <div id="boxes-container">
+        <div class="calculator-box" id="box-1">
+            <div class="calc-grid">
+                <!-- 열 1: 판매 금액 -->
+                <div class="calc-column">
+                    <div class="calc-label">판매 금액</div>
+                    <input type="text" class="calc-input sale-price" placeholder="0 BP" value="0 BP">
+                    <div class="korean-unit"></div>
+                </div>
+
+                <!-- 열 2: 수수료 -->
+                <div class="calc-column">
+                    <div class="calc-label">수수료</div>
+                    <div class="calc-value negative fee-amount">0 BP</div>
+                    <div class="korean-unit"></div>
+                </div>
+
+                <!-- 열 3: 수수료 쿠폰 -->
+                <div class="calc-column">
+                    <div class="calc-label">수수료 쿠폰</div>
+                    <select class="calc-input coupon-select">
+                        <option value="0">미적용</option>
+                        <option value="50">50%</option>
+                        <option value="45">45%</option>
+                        <option value="40">40%</option>
+                        <option value="35">35%</option>
+                        <option value="30">30%</option>
+                        <option value="25">25%</option>
+                        <option value="20">20%</option>
+                        <option value="15">15%</option>
+                        <option value="10">10%</option>
+                    </select>
+                </div>
+
+                <!-- 열 4: 받을 금액 -->
+                <div class="calc-column">
+                    <div class="calc-label">받을 금액</div>
+                    <div class="calc-value positive final-amount">0 BP</div>
+                    <div class="korean-unit"></div>
+                </div>
+            </div>
+
+            <!-- 추가/삭제 버튼 영역 -->
+            <div class="box-actions">
+                <button class="add-box-btn" onclick="addBox()">+ 카드 추가</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-section">
+        <div class="result-title">💰 총 실수령 금액</div>
+        <p style="color: var(--text-secondary);">결과 표시 준비 중...</p>
+    </div>
+</div>
+
+<script>
+    // 전역 변수
+    let boxCounter = 1;
+
+    function formatNumber(num) {
+        return new Intl.NumberFormat('ko-KR').format(num);
+    }
+
+    // 한글 단위 변환 함수
+    function toKoreanUnit(num) {
+        if (num === 0) return '';
+
+        const units = ['', '만', '억', '조', '경', '해'];
+        const divisions = [1, 10000, 100000000, 1000000000000, 10000000000000000, 100000000000000000000];
+
+        let result = [];
+
+        for (let i = divisions.length - 1; i > 0; i--) {
+            const division = divisions[i];
+            if (num >= division) {
+                const value = Math.floor(num / division);
+                const remainder = value % 10000;
+
+                if (remainder > 0) {
+                    result.push(remainder.toLocaleString('ko-KR') + units[i]);
+                }
+
+                num = num % division;
+            }
+        }
+
+        if (result.length === 0) {
+            return num.toLocaleString('ko-KR');
+        }
+
+        return result.join(' ') + ' BP';
+    }
+
+    // 판매 금액 포맷팅 함수
+    function formatSalePrice(value) {
+        const numbers = value.replace(/[^\d]/g, '');
+
+        if (numbers === '') {
+            return '0 BP';
+        }
+
+        const formatted = new Intl.NumberFormat('ko-KR').format(numbers);
+        return formatted + ' BP';
+    }
+
+    // 판매 금액에서 숫자만 추출
+    function extractNumber(value) {
+        const numbers = value.replace(/[^\d]/g, '');
+        return parseFloat(numbers) || 0;
+    }
+
+    // 개별 박스 계산 함수
+    function calculateBox(boxId) {
+        const box = document.getElementById(boxId);
+        if (!box) return 0;
+
+        const salePriceInput = box.querySelector('.sale-price');
+        const feeAmountDiv = box.querySelector('.fee-amount');
+        const finalAmountDiv = box.querySelector('.final-amount');
+        const koreanUnits = box.querySelectorAll('.korean-unit');
+
+        const salePrice = extractNumber(salePriceInput.value);
+
+        // 기본 수수료 40%
+        const baseFee = salePrice * 0.4;
+
+        // 총 할인 금액 계산 (모두 원래 baseFee 기준)
+        let totalDiscount = 0;
+
+        // PC방 할인 (30%)
+        const pcBangChecked = document.getElementById('pcBangDiscount').checked;
+        if (pcBangChecked) {
+            totalDiscount += baseFee * 0.3;
+        }
+
+        // TOP Class 할인 (20%)
+        const topClassChecked = document.getElementById('topClassDiscount').checked;
+        if (topClassChecked) {
+            totalDiscount += baseFee * 0.2;
+        }
+
+        // 쿠폰 할인
+        const couponSelect = box.querySelector('.coupon-select');
+        const couponRate = parseFloat(couponSelect.value) || 0;
+        totalDiscount += baseFee * (couponRate / 100);
+
+        // 최종 수수료
+        const finalFee = baseFee - totalDiscount;
+
+        // 받을 금액
+        const finalAmount = salePrice - finalFee;
+
+        // 결과 표시
+        feeAmountDiv.textContent = `-${formatNumber(Math.round(finalFee))} BP`;
+        finalAmountDiv.textContent = `${formatNumber(Math.round(finalAmount))} BP`;
+
+        // 한글 단위 표시
+        koreanUnits[0].textContent = toKoreanUnit(salePrice);
+        koreanUnits[1].textContent = toKoreanUnit(Math.round(finalFee));
+        koreanUnits[2].textContent = toKoreanUnit(Math.round(finalAmount));
+
+        return finalAmount;
+    }
+
+    // 전체 합산 함수
+    function calculateTotal() {
+        const boxes = document.querySelectorAll('.calculator-box');
+        let total = 0;
+
+        boxes.forEach(box => {
+            const finalAmount = calculateBox(box.id);
+            total += finalAmount;
+        });
+
+        // 총 실수령 BP 표시
+        const resultSection = document.querySelector('.result-section p');
+        resultSection.innerHTML = `<span style="color: var(--primary-color); font-size: 1.5rem; font-weight: bold;">${formatNumber(Math.round(total))} BP</span>`;
+
+        // 한글 단위도 추가
+        const koreanText = toKoreanUnit(Math.round(total));
+        if (koreanText) {
+            resultSection.innerHTML += `<br><span style="color: var(--text-secondary); font-size: 1rem;">${koreanText}</span>`;
+        }
+    }
+
+    // 박스 추가 함수
+    function addBox() {
+        boxCounter++;
+        const boxId = `box-${boxCounter}`;
+        const container = document.getElementById('boxes-container');
+
+        const newBox = document.createElement('div');
+        newBox.className = 'calculator-box';
+        newBox.id = boxId;
+        newBox.innerHTML = `
+        <div class="calc-grid">
+            <!-- 열 1: 판매 금액 -->
+            <div class="calc-column">
+                <div class="calc-label">판매 금액</div>
+                <input type="text" class="calc-input sale-price" placeholder="0 BP" value="0 BP">
+                <div class="korean-unit"></div>
+            </div>
+
+            <!-- 열 2: 수수료 -->
+            <div class="calc-column">
+                <div class="calc-label">수수료</div>
+                <div class="calc-value negative fee-amount">0 BP</div>
+                <div class="korean-unit"></div>
+            </div>
+
+            <!-- 열 3: 수수료 쿠폰 -->
+            <div class="calc-column">
+                <div class="calc-label">수수료 쿠폰</div>
+                <select class="calc-input coupon-select">
+                    <option value="0">미적용</option>
+                    <option value="50">50%</option>
+                    <option value="45">45%</option>
+                    <option value="40">40%</option>
+                    <option value="35">35%</option>
+                    <option value="30">30%</option>
+                    <option value="25">25%</option>
+                    <option value="20">20%</option>
+                    <option value="15">15%</option>
+                    <option value="10">10%</option>
+                </select>
+            </div>
+
+            <!-- 열 4: 받을 금액 -->
+            <div class="calc-column">
+                <div class="calc-label">받을 금액</div>
+                <div class="calc-value positive final-amount">0 BP</div>
+                <div class="korean-unit"></div>
+            </div>
+        </div>
+
+        <!-- 추가/삭제 버튼 영역 -->
+        <div class="box-actions">
+            <button class="add-box-btn" onclick="addBox()">+ 카드 추가</button>
+            <button class="remove-box-btn" onclick="removeBox('${boxId}')">삭제</button>
+        </div>
+    `;
+
+        container.appendChild(newBox);
+        attachBoxEventListeners(boxId);
+        calculateTotal();
+    }
+
+    // 박스 삭제 함수
+    function removeBox(boxId) {
+        const boxes = document.querySelectorAll('.calculator-box');
+
+        // 최소 1개는 유지
+        if (boxes.length <= 1) {
+            alert('최소 1개의 카드는 필요합니다.');
+            return;
+        }
+
+        const box = document.getElementById(boxId);
+        if (box) {
+            box.remove();
+            calculateTotal();
+        }
+    }
+
+    // 개별 박스에 이벤트 리스너 연결
+    function attachBoxEventListeners(boxId) {
+        const box = document.getElementById(boxId);
+        if (!box) return;
+
+        // 판매 금액 입력 이벤트
+        const salePriceInput = box.querySelector('.sale-price');
+        salePriceInput.addEventListener('input', function () {
+            const input = this;
+
+            // 포맷팅 적용
+            const oldValue = input.value;
+            input.value = formatSalePrice(input.value);
+
+            // 커서를 항상 숫자 끝 (BP 앞)으로 고정
+            const bpIndex = input.value.indexOf(' BP');
+            if (bpIndex !== -1) {
+                input.setSelectionRange(bpIndex, bpIndex);
+            }
+
+            calculateTotal();
+        });
+
+        // 쿠폰 선택 이벤트
+        const couponSelect = box.querySelector('.coupon-select');
+        couponSelect.addEventListener('change', function () {
+            calculateTotal();
+        });
+    }
+
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', function () {
+        // 첫 번째 박스 이벤트 리스너 연결
+        attachBoxEventListeners('box-1');
+
+        // PC방/TOP Class 체크박스 이벤트
+        document.getElementById('pcBangDiscount').addEventListener('change', calculateTotal);
+        document.getElementById('topClassDiscount').addEventListener('change', calculateTotal);
+
+        // 초기 계산
+        calculateTotal();
+    });
+</script>
+
+{% endblock %}

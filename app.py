@@ -1770,6 +1770,11 @@ def get_player_names():
     conn.close()
     
     return jsonify(players)
+
+@app.route('/fee_calculator')
+def fee_calculator():
+    """수수료 계산기 페이지"""
+    return render_template('fee_calculator.html')
     
 
 if __name__ == '__main__':

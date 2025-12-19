@@ -170,12 +170,16 @@
             display: flex;
             justify-content: center;
             list-style: none;
-            margin: 0;
+            margin: 0 auto;
+            /* ← 추가 */
             padding: 0;
+            max-width: 980px;
+            /* ← 추가 */
         }
 
         .nav-links li {
             margin: 0;
+            flex: 1;
         }
 
         .nav-link-item {
@@ -187,6 +191,7 @@
             font-size: 1.1rem;
             transition: all 0.3s;
             border-bottom: 3px solid transparent;
+            text-align: center;
         }
 
         .nav-link-item:hover {
@@ -495,6 +500,9 @@
             <li>
                 <a href="/search" class="nav-link-item active" id="nav-playerdb">선수 DB</a>
             </li>
+            <li>
+                <a href="/fee_calculator" class="nav-link-item" id="nav-fee-calculator">수수료 계산기</a>
+            </li>
         </ul>
     </nav>
 
@@ -548,6 +556,8 @@
                     document.getElementById('nav-playerdb').classList.add('active');
                 } else if (currentPath.startsWith('/community')) {
                     document.getElementById('nav-community').classList.add('active');
+                } else if (currentPath.startsWith('/fee_calculator')) {
+                    document.getElementById('nav-fee-calculator').classList.add('active');
                 }
             });
         });
