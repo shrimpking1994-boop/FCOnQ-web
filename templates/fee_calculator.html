@@ -357,7 +357,7 @@
                 <!-- 열 1: 판매 금액 -->
                 <div class="calc-column">
                     <div class="calc-label">판매 금액</div>
-                    <input type="text" class="calc-input sale-price" placeholder="0 BP" value="0 BP">
+                    <input type="text" class="calc-input sale-price" placeholder="가격 입력" value="">
                     <div class="korean-unit"></div>
                 </div>
 
@@ -444,16 +444,20 @@
         return result.join(' ') + ' BP';
     }
 
-    // 판매 금액 포맷팅 함수
+    // 판매 금액 포맷팅 함수 (억 단위 고정)
     function formatSalePrice(value) {
+        // 숫자만 추출
         const numbers = value.replace(/[^\d]/g, '');
 
         if (numbers === '') {
-            return '0 BP';
+            return '';
         }
 
-        const formatted = new Intl.NumberFormat('ko-KR').format(numbers);
-        return formatted + ' BP';
+        // 사용자 입력값 × 100,000,000 (억 단위)
+        const multiplied = parseFloat(numbers) * 100000000;
+
+        // 천 단위 쉼표 추가
+        return new Intl.NumberFormat('ko-KR').format(multiplied);
     }
 
     // 판매 금액에서 숫자만 추출
@@ -550,7 +554,7 @@
             <!-- 열 1: 판매 금액 -->
             <div class="calc-column">
                 <div class="calc-label">판매 금액</div>
-                <input type="text" class="calc-input sale-price" placeholder="0 BP" value="0 BP">
+                <input type="text" class="calc-input sale-price" placeholder="가격 입력" value="">
                 <div class="korean-unit"></div>
             </div>
 
@@ -622,20 +626,126 @@
 
         // 판매 금액 입력 이벤트
         const salePriceInput = box.querySelector('.sale-price');
-        salePriceInput.addEventListener('input', function () {
+
+        // 초기 사용자 입력값 저장
+        if (!salePriceInput.dataset.userInput) {
+            salePriceInput.dataset.userInput = '';
+        }
+
+        // keydown으로 완전 제어
+        salePriceInput.addEventListener('keydown', function (e) {
             const input = this;
+            let userInput = input.dataset.userInput || '';
 
-            // 포맷팅 적용
-            const oldValue = input.value;
-            input.value = formatSalePrice(input.value);
-
-            // 커서를 항상 숫자 끝 (BP 앞)으로 고정
-            const bpIndex = input.value.indexOf(' BP');
-            if (bpIndex !== -1) {
-                input.setSelectionRange(bpIndex, bpIndex);
+            // 숫자 키 (0-9)
+            if (e.key >= '0' && e.key <= '9') {
+                e.preventDefault();
+                userInput += e.key;
+            }
+            // 백스페이스
+            else if (e.key === 'Backspace') {
+                e.preventDefault();
+                userInput = userInput.slice(0, -1);
+            }
+            // 삭제
+            else if (e.key === 'Delete') {
+                e.preventDefault();
+                // Delete는 무시 (뒷자리는 고정이므로)
+                return;
+            }
+            // 화살표, Tab 등은 무시
+            else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+                e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+                e.key === 'Tab') {
+                e.preventDefault();
+                return;
+            }
+            // 다른 키는 모두 차단
+            else {
+                e.preventDefault();
+                return;
             }
 
+            // 저장
+            input.dataset.userInput = userInput;
+
+            // 표시 업데이트
+            if (userInput === '') {
+                input.value = '';
+            } else {
+                const multiplied = parseFloat(userInput) * 100000000;
+                input.value = new Intl.NumberFormat('ko-KR').format(multiplied);
+            }
+
+            // 커서는 항상 끝
+            setTimeout(() => {
+                if (userInput && input.value) {
+                    let cursorPos = 0;
+                    let digitCount = 0;
+
+                    for (let i = 0; i < input.value.length; i++) {
+                        if (input.value[i] >= '0' && input.value[i] <= '9') {
+                            digitCount++;
+                            if (digitCount === userInput.length) {
+                                cursorPos = i + 1;
+                                break;
+                            }
+                        }
+                    }
+
+                    input.setSelectionRange(cursorPos, cursorPos);
+                }
+            }, 0);
+
             calculateTotal();
+        });
+
+        // 마우스 클릭 시 커서 강제 이동
+        salePriceInput.addEventListener('click', function (e) {
+            e.preventDefault();
+            const userInput = this.dataset.userInput || '';
+            if (userInput && this.value) {
+                let cursorPos = 0;
+                let digitCount = 0;
+
+                for (let i = 0; i < this.value.length; i++) {
+                    if (this.value[i] >= '0' && this.value[i] <= '9') {
+                        digitCount++;
+                        if (digitCount === userInput.length) {
+                            cursorPos = i + 1;
+                            break;
+                        }
+                    }
+                }
+
+                this.setSelectionRange(cursorPos, cursorPos);
+            }
+        });
+
+        // paste 차단
+        salePriceInput.addEventListener('paste', function (e) {
+            e.preventDefault();
+        });
+
+        // 클릭/포커스 시 커서 위치 강제
+        salePriceInput.addEventListener('click', function () {
+            const userInput = this.dataset.userInput || '';
+            if (userInput && this.value) {
+                let cursorPos = 0;
+                let digitCount = 0;
+
+                for (let i = 0; i < this.value.length; i++) {
+                    if (this.value[i] >= '0' && this.value[i] <= '9') {
+                        digitCount++;
+                        if (digitCount === userInput.length) {
+                            cursorPos = i + 1;
+                            break;
+                        }
+                    }
+                }
+
+                this.setSelectionRange(cursorPos, cursorPos);
+            }
         });
 
         // 쿠폰 선택 이벤트
