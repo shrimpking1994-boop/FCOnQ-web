@@ -8,16 +8,8 @@
         padding: 30px;
         margin-top: 20px;
         max-width: 1000px;
-        min-width: 1000px;
-        /* 추가: 최소 너비 고정 */
         margin-left: auto;
         margin-right: auto;
-    }
-
-    /* 전체 페이지가 가로 스크롤 가능하도록 */
-    body {
-        min-width: 1000px;
-        /* 추가 */
     }
 
     .calculator-title {
@@ -241,6 +233,101 @@
 
     .ad-banner a:hover {
         text-decoration: underline;
+    }
+
+    /* 모바일 최적화 (768px 이하) */
+    @media (max-width: 768px) {
+        .calculator-container {
+            padding: 20px 15px;
+            border-radius: 10px;
+        }
+
+        /* 체크박스 세로 배치 */
+        .discount-options {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 0 10px;
+        }
+
+        /* 광고 배너 */
+        .ad-banner {
+            font-size: 0.9rem;
+            padding: 6px 0;
+        }
+
+        /* 박스 패딩 축소 */
+        .calculator-box {
+            padding: 15px 10px;
+        }
+
+        /* 4열 → 2열 변경 */
+        .calc-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        /* 수수료, 받을 금액 열 숨기기 */
+        .calc-column:nth-child(2),
+        .calc-column:nth-child(4) {
+            display: none;
+        }
+
+        /* 컬럼 라벨 */
+        .calc-label {
+            font-size: 0.9rem;
+        }
+
+        /* 입력 필드 */
+        .calc-input {
+            font-size: 0.85rem;
+            padding: 10px 8px;
+        }
+
+        /* 한글 단위 */
+        .korean-unit {
+            font-size: 0.8rem;
+        }
+
+        /* 버튼 */
+        .add-box-btn,
+        .remove-box-btn {
+            font-size: 0.85rem;
+            padding: 8px 12px;
+        }
+
+        /* 총 실수령 박스 */
+        .result-section {
+            max-width: 100%;
+            padding: 12px 15px;
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+        }
+
+        /* 총 실수령 박스 */
+        .result-section {
+            max-width: 100%;
+            padding: 12px 15px;
+        }
+
+        .result-title {
+            font-size: 1.1rem;
+        }
+
+        /* 총 실수령 금액 숫자 크기 축소 - 추가 */
+        .result-section p span {
+            font-size: 1.25rem !important;
+            /* 1.5rem → 1.2rem */
+        }
+
+        /* 한글 단위 크기 축소 및 굵게 - 추가 */
+        .result-section p br+span {
+            font-size: 1.1rem !important;
+            font-weight: 700 !important;
+        }
+
     }
 </style>
 
