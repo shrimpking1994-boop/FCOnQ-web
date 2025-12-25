@@ -275,33 +275,36 @@
     </h4>
 
     <div class="table-responsive" style="background: var(--card-bg); border-radius: 12px; overflow: hidden;">
-        <table class="table table-hover" style="margin: 0; color: var(--text-primary);">
+        <table class="table table-hover"
+            style="margin: 0; color: var(--text-primary); table-layout: fixed; width: 100%;">
             <thead style="background: var(--secondary-bg); border-bottom: 2px solid var(--border-color);">
                 <tr>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px;">번호</th>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px;">탭</th>
-                    <th style="padding: 15px 20px;">제목</th>
-                    <th style="width: 150px; text-align: center; padding: 15px 10px;">글쓴이</th>
-                    <th style="width: 120px; text-align: center; padding: 15px 10px;">날짜</th>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px;">조회</th>
-                    <th style="width: 80px; text-align: center; padding: 15px 10px;">추천</th>
+                    <th style="width: 65px; text-align: center; padding: 15px 10px; ">번호</th>
+                    <th style="width: 85px; text-align: center; padding: 15px 10px;">탭</th>
+                    <th style="width: 60%; padding: 15px 20px; vertical-align: middle;">제목</th>
+                    <th style="width: 150px; text-align: center; padding: 15px 10px; vertical-align: middle;">글쓴이</th>
+                    <th style="width: 70px; text-align: center; padding: 15px 10px; vertical-align: middle;">날짜</th>
+                    <th style="width: 55px; text-align: center; padding: 15px 10px; vertical-align: middle;">조회</th>
+                    <th style="width: 55px; text-align: center; padding: 15px 10px; vertical-align: middle;">추천</th>
                 </tr>
             </thead>
             <tbody>
                 {% for p in related_posts %}
                 <tr style="cursor: pointer; border-bottom: 1px solid var(--border-color); {% if p.id == post.id %}background: var(--hover-bg);{% endif %}"
                     onclick="window.location='/community/post/{{ p.id }}?category={{ current_category }}'">
-                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500;">
+                    <td
+                        style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500; vertical-align: middle;">
                         {{ p.id }}
                     </td>
-                    <td
-                        style="text-align: center; padding: 12px 10px; color: var(--text-primary); font-size: 0.9rem; white-space: nowrap;">
-                        {{ p.category }}
+                    <td style="text-align: center; padding: 12px 10px; white-space: nowrap; vertical-align: middle;">
+                        <span style="color: var(--text-primary);">
+                            {% if p.category == '미니 페이스온' %}미페{% else %}{{ p.category }}{% endif %}
+                        </span>
                     </td>
-                    <td style="padding: 12px 20px;">
-                        <span style="color: var(--text-primary); font-size: 1rem; font-weight: 500;">
-                            <a href="/community/post/{{ p.id }}?category={{ current_category }}" class="post-title-text"
-                                style="color: var(--text-primary); text-decoration: none;">{{ p.title }}</a>
+                    <td style="padding: 12px 20px; vertical-align: middle;">
+                        <span
+                            style="color: var(--text-primary); font-size: 1rem; font-weight: 500; vertical-align: middle;">
+                            <span class="post-title-text">{{ p.title }}</span>
                             {% if p.comment_count > 0 %}
                             <span style="margin-left: 0px; color: var(--text-primary); font-size: 0.9rem;">[{{
                                 p.comment_count }}]</span>
@@ -315,13 +318,12 @@
                             {% endif %}
                         </span>
                     </td>
-                    </td>
+
                     <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
                         {{ p.author }} <span style="color: var(--text-muted); font-size: 0.85em;">{{ p.ip_display
                             }}</span>
                     </td>
-                    <td
-                        style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-size: 0.9rem;">
+                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
                         {{ p.display_date }}
                     </td>
                     <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
@@ -599,6 +601,21 @@
 
 
 <style>
+    /* 테이블 전체 정렬 통일 */
+    .table {
+        border-collapse: collapse;
+    }
+
+    .table thead th {
+        vertical-align: middle;
+        line-height: 1.4;
+    }
+
+    .table tbody td {
+        vertical-align: middle !important;
+        line-height: 1.4 !important;
+    }
+
     /* 본문 내용 스타일 */
     .post-content {
         display: block !important;
@@ -746,19 +763,10 @@
         max-width: 700px;
     }
 
-    /* 제목 전체를 감싸는 span - 줄바꿈 방지 */
-    .table tbody td:nth-child(3)>span {
-        white-space: nowrap !important;
-    }
-
-    /* 제목 텍스트만 길이 제한 */
+    /* 제목 텍스트 */
     .post-title-text {
-        display: inline-block !important;
-        max-width: 500px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-        vertical-align: middle !important;
+        vertical-align: middle;
+        display: inline;
     }
 
     /* 모바일 대응 (768px 이하) */
