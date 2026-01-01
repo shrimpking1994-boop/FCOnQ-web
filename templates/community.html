@@ -123,7 +123,7 @@
                     <td
                         style="text-align: center; padding: 12px 10px; white-space: nowrap; vertical-align: middle; {% if post.is_notice %}color: #ff9800; font-weight: 600;{% else %}color: var(--text-primary);{% endif %}">
                         {% if post.is_notice %}
-                        📌 공지
+                        공지📌
                         {% else %}
                         {% if post.category == '미니 페이스온' %}미페{% else %}{{ post.category }}{% endif %}
                         {% endif %}
@@ -477,6 +477,7 @@
         /* 탭 - 둘째 줄 첫 번째 */
         .table tbody td:nth-child(2) {
             order: 2 !important;
+            padding-left: 0 !important;
         }
 
         .table tbody td:nth-child(2)::after {
