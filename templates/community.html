@@ -120,13 +120,12 @@
                         style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500; vertical-align: middle;">
                         {{ post.id }}
                     </td>
-                    <td style="text-align: center; padding: 12px 10px; white-space: nowrap; vertical-align: middle;">
+                    <td
+                        style="text-align: center; padding: 12px 10px; white-space: nowrap; vertical-align: middle; {% if post.is_notice %}color: #ff9800; font-weight: 600;{% else %}color: var(--text-primary);{% endif %}">
                         {% if post.is_notice %}
-                        <span style="color: #ff9800; font-weight: 600;">📌 공지</span>
+                        📌 공지
                         {% else %}
-                        <span style="color: var(--text-primary);">
-                            {% if post.category == '미니 페이스온' %}미페{% else %}{{ post.category }}{% endif %}
-                        </span>
+                        {% if post.category == '미니 페이스온' %}미페{% else %}{{ post.category }}{% endif %}
                         {% endif %}
                     </td>
                     <td style="padding: 12px 20px;">
@@ -444,7 +443,8 @@
         }
 
         .table tbody tr {
-            display: block !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
             margin-bottom: 12px !important;
             padding: 6px 12px !important;
             border: 1px solid var(--border-color) !important;
@@ -457,6 +457,18 @@
             border: none !important;
         }
 
+        /* 두 번째 줄 모든 요소 공통 스타일 */
+        .table tbody td:nth-child(2),
+        .table tbody td:nth-child(4),
+        .table tbody td:nth-child(5),
+        .table tbody td:nth-child(6),
+        .table tbody td:nth-child(7) {
+            font-size: 0.75rem !important;
+            line-height: 1.5 !important;
+            color: var(--text-secondary) !important;
+            padding: 0 2px !important;
+        }
+
         /* 번호 숨기기 */
         .table tbody td:nth-child(1) {
             display: none !important;
@@ -464,24 +476,21 @@
 
         /* 탭 - 둘째 줄 첫 번째 */
         .table tbody td:nth-child(2) {
-            font-size: 0.75rem !important;
-            color: var(--text-secondary) !important;
-        }
-
-        .table tbody td:nth-child(2)::before {
-            content: '[';
+            order: 2 !important;
         }
 
         .table tbody td:nth-child(2)::after {
-            content: '] ';
+            content: ' | ';
         }
 
         /* 제목 - 첫 줄 전체 */
         .table tbody td:nth-child(3) {
             display: block !important;
+            order: 1 !important;
+            width: 100% !important;
             font-size: 0.95rem !important;
             font-weight: 600 !important;
-            margin-bottom: 0px !important;
+            margin-bottom: 5px !important;
             padding: 0 !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
@@ -498,8 +507,7 @@
 
         /* 글쓴이 */
         .table tbody td:nth-child(4) {
-            font-size: 0.75rem !important;
-            color: var(--text-secondary) !important;
+            order: 3 !important;
         }
 
         .table tbody td:nth-child(4)::after {
@@ -508,8 +516,7 @@
 
         /* 날짜 */
         .table tbody td:nth-child(5) {
-            font-size: 0.75rem !important;
-            color: var(--text-secondary) !important;
+            order: 4 !important;
         }
 
         .table tbody td:nth-child(5)::after {
@@ -518,8 +525,7 @@
 
         /* 조회 */
         .table tbody td:nth-child(6) {
-            font-size: 0.75rem !important;
-            color: var(--text-secondary) !important;
+            order: 5 !important;
         }
 
         .table tbody td:nth-child(6)::before {
@@ -532,8 +538,7 @@
 
         /* 추천 */
         .table tbody td:nth-child(7) {
-            font-size: 0.75rem !important;
-            color: var(--text-secondary) !important;
+            order: 6 !important;
         }
 
         .table tbody td:nth-child(7)::before {
