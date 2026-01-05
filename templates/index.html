@@ -222,6 +222,14 @@
             border-bottom-color: white;
         }
 
+        .nav-text-full {
+            display: inline;
+        }
+
+        .nav-text-short {
+            display: none;
+        }
+
         /* 메인 컨텐츠 */
         .main-content {
             flex: 1;
@@ -442,9 +450,27 @@
             }
 
             /* 네비게이션 */
+            .nav-links {
+                flex-wrap: wrap;
+            }
+
+            .nav-links li {
+                flex: 1;
+            }
+
             .nav-link-item {
-                padding: 6px 18px;
-                font-size: 0.9rem;
+                padding: 8px 8px;
+                font-size: 0.75rem;
+                white-space: nowrap;
+                /* 줄바꿈 방지 */
+            }
+
+            .nav-text-full {
+                display: none;
+            }
+
+            .nav-text-short {
+                display: inline;
             }
 
             /* 컨텐츠 */
@@ -530,7 +556,16 @@
                 <a href="/search" class="nav-link-item active" id="nav-playerdb">선수 DB</a>
             </li>
             <li>
-                <a href="/fee_calculator" class="nav-link-item" id="nav-fee-calculator">수수료 계산기</a>
+                <a href="/fee_calculator" class="nav-link-item" id="nav-fee-calculator">
+                    <span class="nav-text-full">수수료 계산기</span>
+                    <span class="nav-text-short">수수료 계산</span>
+                </a>
+            </li>
+            <li>
+                <a href="/miniface_search" class="nav-link-item" id="nav-miniface">
+                    <span class="nav-text-full">미페 검색기</span>
+                    <span class="nav-text-short">미페 검색</span>
+                </a>
             </li>
         </ul>
     </nav>
@@ -587,6 +622,8 @@
                     document.getElementById('nav-community').classList.add('active');
                 } else if (currentPath.startsWith('/fee_calculator')) {
                     document.getElementById('nav-fee-calculator').classList.add('active');
+                } else if (currentPath.startsWith('/miniface_search')) {
+                    document.getElementById('nav-miniface').classList.add('active');
                 }
             });
         });

@@ -1775,7 +1775,80 @@ def get_player_names():
 def fee_calculator():
     """수수료 계산기 페이지"""
     return render_template('fee_calculator.html')
-    
+
+@app.route('/miniface_search')
+def miniface_search():
+    """미니 페이스온 검색기 페이지"""
+    return render_template('miniface_search.html')
+
+
+@app.route('/api/search_miniface', methods=['POST'])
+def search_miniface():
+    """미페 검색 API"""
+    try:
+        data = request.get_json()
+        player_name = data.get('player_name', '').strip()
+        
+        if not player_name:
+            return jsonify({'success': False, 'message': '선수 이름을 입력해주세요'}), 400
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # 선수 검색 (시즌 정보와 JOIN)
+        query = """
+            WITH player_counts AS (
+                SELECT 
+                    player_name,
+                    COUNT(*) as card_count
+                FROM public.player_cards
+                WHERE player_name ILIKE %s
+                GROUP BY player_name
+            )
+            SELECT 
+                pc.spid,
+                pc.player_name,
+                pc.season_name,
+                s.season_img_url,
+                CAST(LEFT(pc.spid::text, 3) AS INTEGER) as season_id
+            FROM public.player_cards pc
+            LEFT JOIN public.seasons s 
+                ON CAST(LEFT(pc.spid::text, 3) AS INTEGER) = s.season_id
+            INNER JOIN player_counts pco
+                ON pc.player_name = pco.player_name
+            WHERE pc.player_name ILIKE %s
+            ORDER BY 
+                pco.card_count DESC, 
+                pc.player_name,
+                array_position(%s::integer[], CAST(LEFT(pc.spid::text, 3) AS INTEGER))
+        """
+
+        cur.execute(query, (f'%{player_name}%', f'%{player_name}%', SEASON_ORDER))        
+        results = cur.fetchall()
+        
+        cur.close()
+        conn.close()
+        
+        if not results:
+            return jsonify({'success': False, 'message': '검색 결과가 없습니다'})
+        
+        # 결과 포맷팅 (딕셔너리 접근)
+        cards = []
+        for row in results:
+            cards.append({
+                'spid': row['spid'],
+                'player_name': row['player_name'],
+                'season_name': row['season_name'],
+                'season_img_url': row['season_img_url'] if row['season_img_url'] else ''
+            })
+        
+        return jsonify({'success': True, 'cards': cards})
+        
+    except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"검색 오류 상세: {error_detail}")
+        return jsonify({'success': False, 'message': f'검색 중 오류가 발생했습니다: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

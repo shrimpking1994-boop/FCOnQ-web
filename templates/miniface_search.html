@@ -1,0 +1,268 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+    .miniface-container {
+        background: var(--bg-secondary);
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 20px;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .miniface-title {
+        color: var(--text-primary);
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .search-box {
+        background: var(--bg-main);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border: 2px solid var(--border-color);
+    }
+
+    .search-input-group {
+        display: flex;
+        gap: 10px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 12px;
+        font-size: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    .search-btn {
+        padding: 12px 30px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .search-btn:hover {
+        opacity: 0.9;
+    }
+
+    .results-container {
+        background: var(--bg-main);
+        border-radius: 10px;
+        padding: 20px;
+        border: 2px solid var(--border-color);
+        min-height: 300px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-secondary);
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .miniface-card {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        border: 2px solid var(--border-color);
+    }
+
+    .miniface-img {
+        width: 100%;
+        height: auto;
+        border-radius: 5px;
+    }
+
+    .season-badge {
+        display: inline-block;
+        margin-top: 8px;
+    }
+
+    .season-icon {
+        width: auto;
+        height: auto;
+        max-width: 80px;
+        /* 너무 커지는 것 방지 */
+    }
+
+    @media (max-width: 768px) {
+        .miniface-container {
+            padding: 20px 6px;
+            margin-top: 10px;
+        }
+
+        .search-box {
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            padding: 8px;
+            /* 입력창 패딩 축소 */
+            font-size: 0.9rem;
+            /* 폰트 크기 축소 */
+        }
+
+        .search-btn {
+            padding: 8px 20px;
+            /* 버튼 패딩 축소 */
+            font-size: 0.9rem;
+        }
+
+        .results-container {
+            padding: 12px;
+            /* 20px → 12px */
+        }
+
+        .results-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+    }
+</style>
+
+<div class="miniface-container">
+
+    <!-- 검색 영역 -->
+    <div class="search-box">
+        <div class="search-input-group">
+            <input type="text" id="playerSearchInput" class="search-input" placeholder="(예: 음바페, 홀란)">
+            <button onclick="searchPlayer()" class="search-btn">검색</button>
+        </div>
+    </div>
+
+    <!-- 결과 영역 -->
+    <div class="results-container" id="resultsContainer">
+        <div class="empty-state">
+            <h3>🔍 선수를 검색해보세요</h3>
+            <p>이름을 입력하고 검색 버튼을 눌러주세요</p>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    // 이미지 로드 실패 처리
+    function handleImageError(img, fallbackUrl) {
+        if (img.src !== fallbackUrl) {
+            // 첫 번째 실패: 정적 미페 시도
+            img.src = fallbackUrl;
+        } else {
+            // 두 번째 실패: 기본 이미지
+            img.src = 'https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png';
+        }
+    }
+
+    // 검색 함수
+    async function searchPlayer() {
+        const playerName = document.getElementById('playerSearchInput').value.trim();
+
+        if (!playerName) {
+            alert('선수 이름을 입력해주세요!');
+            return;
+        }
+
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        // 로딩 표시
+        resultsContainer.innerHTML = `
+            <div class="empty-state">
+                <h3>🔍 검색 중...</h3>
+            </div>
+        `;
+
+        try {
+            // Flask API 호출
+            const response = await fetch('/api/search_miniface', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ player_name: playerName })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <h3>😢 ${data.message}</h3>
+                    </div>
+                `;
+                return;
+            }
+
+            // 결과 표시
+            displayResults(data.cards);
+
+        } catch (error) {
+            console.error('검색 오류:', error);
+            resultsContainer.innerHTML = `
+                <div class="empty-state">
+                    <h3>❌ 검색 중 오류가 발생했습니다</h3>
+                </div>
+            `;
+        }
+    }
+
+    // 결과 표시 함수
+    function displayResults(cards) {
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        let html = '<div class="results-grid">';
+
+        cards.forEach(card => {
+            // PID 추출 (SPID 뒤 6자리)
+            const pid = parseInt(String(card.spid).slice(-6));
+
+            // 넥슨 OPEN API 이미지 URL 생성
+            const actionImgUrl = `https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${card.spid}.png`;
+            const staticImgUrl = `https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${pid}.png`;
+
+            html += `
+            <div class="miniface-card">
+                <img src="${actionImgUrl}" class="miniface-img" alt="${card.player_name}" 
+                     onerror="handleImageError(this, '${staticImgUrl}')">
+                <div class="season-badge">
+                    <img src="${card.season_img_url}" class="season-icon" alt="${card.season_name}">
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">
+                    ${card.player_name}
+                </div>
+            </div>
+        `;
+        });
+
+        html += '</div>';
+        resultsContainer.innerHTML = html;
+    }
+
+    // 엔터키 검색
+    document.getElementById('playerSearchInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            searchPlayer();
+        }
+    });
+</script>
+
+{% endblock %}
