@@ -1771,6 +1771,37 @@ def get_player_names():
     
     return jsonify(players)
 
+
+@app.route('/tierlist')
+def tierlist():
+    """팀컬러 티어리스트 페이지"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 사용 가능한 날짜 목록 가져오기 (최신순)
+    cur.execute("""
+        SELECT crawl_date 
+        FROM team_rankings 
+        ORDER BY crawl_date DESC
+    """)
+    available_dates = [row['crawl_date'].strftime('%Y-%m-%d') for row in cur.fetchall()]
+    
+    # 팀 로고 데이터 가져오기
+    cur.execute("""
+        SELECT team_name, logo_url 
+        FROM team_logos 
+        ORDER BY team_name
+    """)
+    team_logos = {row['team_name']: row['logo_url'] for row in cur.fetchall()}
+    
+    cur.close()
+    conn.close()
+    
+    return render_template('tierlist.html', 
+                         available_dates=available_dates,
+                         team_logos=team_logos)
+
+
 @app.route('/fee_calculator')
 def fee_calculator():
     """수수료 계산기 페이지"""
@@ -1849,6 +1880,74 @@ def search_miniface():
         error_detail = traceback.format_exc()
         print(f"검색 오류 상세: {error_detail}")
         return jsonify({'success': False, 'message': f'검색 중 오류가 발생했습니다: {str(e)}'}), 500
+
+
+@app.route('/api/get_tierlist_data')
+def get_tierlist_data():
+    """특정 날짜의 티어리스트 데이터 반환"""
+    date = request.args.get('date')
+    
+    if not date:
+        return jsonify({'success': False, 'message': '날짜를 선택해주세요'}), 400
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    cur.execute("""
+        SELECT full_data 
+        FROM team_rankings 
+        WHERE crawl_date = %s
+    """, (date,))
+    
+    result = cur.fetchone()
+    
+    cur.close()
+    conn.close()
+    
+    if not result:
+        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
+    
+    return jsonify({'success': True, 'data': result['full_data']})
+
+
+@app.route('/api/get_all_tierlist_data')
+def get_all_tierlist_data():
+    """모든 날짜의 티어리스트 데이터 반환 (최근 15개)"""
+    ranking = request.args.get('ranking', '10000')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 최근 10개 날짜 데이터 가져오기
+    cur.execute("""
+        SELECT crawl_date, full_data 
+        FROM team_rankings 
+        ORDER BY crawl_date DESC 
+        LIMIT 10
+    """)
+    
+    results = []
+    for row in cur.fetchall():
+        date = row['crawl_date'].strftime('%m-%d')  # MM-DD 형식
+        full_data = row['full_data']
+        
+        # 해당 ranking_range 찾기
+        for dataset in full_data:
+            if dataset['ranking_range'] == f'1-{ranking}':
+                results.append({
+                    'date': date,
+                    'teams': dataset['teams'][:30]  # 상위 20개만
+                })
+                break
+    
+    # 날짜순 정렬 (오래된 것부터)
+    results.reverse()
+    
+    cur.close()
+    conn.close()
+    
+    return jsonify({'success': True, 'data': results})
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

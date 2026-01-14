@@ -455,15 +455,29 @@
                 flex-wrap: wrap;
             }
 
-            .nav-links li {
-                flex: 1;
+            /* 첫 줄: 커뮤니티, 선수DB, 티어리스트 */
+            .nav-links li:nth-child(1),
+            .nav-links li:nth-child(2),
+            .nav-links li:nth-child(3) {
+                flex: 0 0 33.33% !important;
+                max-width: 33.33% !important;
+            }
+
+            /* 둘째 줄: 수수료 계산기, 미페 검색기 */
+            .nav-links li:nth-child(4),
+            .nav-links li:nth-child(5) {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
             }
 
             .nav-link-item {
-                padding: 8px 8px;
-                font-size: 0.75rem;
+                padding: 7px 8px !important;
+                font-size: 0.85rem;
                 white-space: nowrap;
-                /* 줄바꿈 방지 */
+                line-height: 1.2;
+                /* 이 줄 추가 */
+                border-bottom-width: 1px;
+                /* 이 줄 추가 */
             }
 
             .nav-text-full {
@@ -557,15 +571,21 @@
                 <a href="/search" class="nav-link-item active" id="nav-playerdb">선수 DB</a>
             </li>
             <li>
+                <a href="/tierlist" class="nav-link-item" id="nav-tierlist">
+                    <span class="nav-text-full">티어리스트</span>
+                    <span class="nav-text-short">티어리스트</span>
+                </a>
+            </li>
+            <li>
                 <a href="/fee_calculator" class="nav-link-item" id="nav-fee-calculator">
                     <span class="nav-text-full">수수료 계산기</span>
-                    <span class="nav-text-short">수수료 계산</span>
+                    <span class="nav-text-short">수수료 계산기</span>
                 </a>
             </li>
             <li>
                 <a href="/miniface_search" class="nav-link-item" id="nav-miniface">
                     <span class="nav-text-full">미페 검색기</span>
-                    <span class="nav-text-short">미페 검색</span>
+                    <span class="nav-text-short">미페 검색기</span>
                 </a>
             </li>
         </ul>
@@ -621,6 +641,8 @@
                     document.getElementById('nav-playerdb').classList.add('active');
                 } else if (currentPath.startsWith('/community')) {
                     document.getElementById('nav-community').classList.add('active');
+                } else if (currentPath.startsWith('/tierlist')) {
+                    document.getElementById('nav-tierlist').classList.add('active');
                 } else if (currentPath.startsWith('/fee_calculator')) {
                     document.getElementById('nav-fee-calculator').classList.add('active');
                 } else if (currentPath.startsWith('/miniface_search')) {

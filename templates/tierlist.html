@@ -1,0 +1,435 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+    .tierlist-container {
+        background: var(--bg-secondary);
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 20px;
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .control-box {
+        background: var(--bg-main);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border: 2px solid var(--border-color);
+    }
+
+    .control-group {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .control-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .control-label {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .control-select {
+        padding: 10px 15px;
+        font-size: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        min-width: 200px;
+        appearance: none;
+        /* 기본 화살표 제거 */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        /* 화살표 위치 조정 */
+        padding-right: 35px;
+    }
+
+    .load-btn {
+        padding: 10px 30px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: auto;
+    }
+
+    .load-btn:hover {
+        opacity: 0.9;
+    }
+
+    .chart-container {
+        background: var(--bg-main);
+        border-radius: 10px;
+        padding: 30px;
+        border: 2px solid var(--border-color);
+        min-height: 1200px;
+        /* 600px → 800px */
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 100px 20px;
+        color: var(--text-secondary);
+    }
+
+    .chart-legend {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        padding: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .chart-legend {
+            display: block;
+        }
+
+        .tierlist-container {
+            padding: 20px 10px;
+            margin-top: 10px;
+        }
+
+        .control-box {
+            padding: 15px;
+        }
+
+        .control-group {
+            flex-direction: row;
+            gap: 10px;
+            justify-content: center;
+            /* 왼쪽 정렬 */
+        }
+
+        .control-select {
+            flex: 1 1 auto;
+            min-width: 140px;
+            /* 170px → 140px */
+            max-width: 200px;
+        }
+
+        .load-btn {
+            flex-shrink: 0;
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .chart-container {
+            padding: 12px;
+            min-height: 1300px;
+        }
+    }
+</style>
+
+<div class="tierlist-container">
+    <!-- 컨트롤 영역 -->
+    <div class="control-box">
+        <div class="control-group">
+            <div class="control-item">
+                <!--<label class="control-label">상위 기준</label>-->
+                <select id="rankingSelect" class="control-select">
+                    <option value="10000">상위 10,000명</option>
+                    <option value="9000">상위 9,000명</option>
+                    <option value="8000">상위 8,000명</option>
+                    <option value="7000">상위 7,000명</option>
+                    <option value="6000">상위 6,000명</option>
+                    <option value="5000" selected>상위 5,000명</option>
+                    <option value="4000">상위 4,000명</option>
+                    <option value="3000">상위 3,000명</option>
+                    <option value="2000">상위 2,000명</option>
+                    <option value="1000">상위 1,000명</option>
+                </select>
+            </div>
+
+            <button onclick="loadTierlist()" class="load-btn">불러오기</button>
+        </div>
+    </div>
+
+    <!-- 차트 영역 -->
+    <div class="chart-container" id="chartContainer">
+        <div class="empty-state">
+            <h3>📈 팀컬러 사용률 추이를 확인하세요!</h3>
+            <p>상위 기준을 선택한 후 불러오기 버튼을 눌러주세요</p>
+        </div>
+        <div class="chart-legend">x축: 날짜 | y축: 순위</div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let currentChart = null;
+
+    // 팀 로고 매핑 (Flask에서 전달받은 데이터)
+    const teamLogos = {{ team_logos | tojson }};
+
+
+    // 티어리스트 데이터 불러오기
+    async function loadTierlist() {
+        const ranking = document.getElementById('rankingSelect').value;
+        const chartContainer = document.getElementById('chartContainer');
+
+        // 로딩 표시
+        chartContainer.innerHTML = `
+        <div class="empty-state">
+            <h3>🔄 데이터 불러오는 중...</h3>
+        </div>
+    `;
+
+        try {
+            // 새 API 호출
+            const response = await fetch(`/api/get_all_tierlist_data?ranking=${ranking}`);
+            const result = await response.json();
+
+            if (!result.success) {
+                chartContainer.innerHTML = `
+                <div class="empty-state">
+                    <h3>😢 ${result.message || '데이터를 불러올 수 없습니다'}</h3>
+                </div>
+            `;
+                return;
+            }
+
+            // 차트 표시
+            displayChart(result.data, ranking);
+
+        } catch (error) {
+            console.error('데이터 로드 오류:', error);
+            chartContainer.innerHTML = `
+            <div class="empty-state">
+                <h3>❌ 데이터 로드 중 오류가 발생했습니다</h3>
+            </div>
+        `;
+        }
+    }
+
+    // 차트 표시
+    async function displayChart(data, ranking) {
+        const chartContainer = document.getElementById('chartContainer');
+
+        // 기존 차트 제거
+        if (currentChart) {
+            currentChart.destroy();
+        }
+
+        // 캔버스 생성
+        chartContainer.innerHTML = '<canvas id="tierChart"></canvas>';
+        const ctx = document.getElementById('tierChart').getContext('2d');
+
+        // X축 라벨 (날짜)
+        const dates = data.map(d => d.date);
+
+        // 모든 팀 이름 수집
+        const allTeams = new Set();
+        data.forEach(d => {
+            d.teams.forEach(t => allTeams.add(t.name));
+        });
+
+        // 로고 이미지 미리 로드
+        const loadedLogos = {};
+        await Promise.all(
+            Array.from(allTeams).map(teamName => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        loadedLogos[teamName] = img;
+                        resolve();
+                    };
+                    img.onerror = () => resolve(); // 로드 실패해도 계속 진행
+                    img.src = teamLogos[teamName];
+                });
+            })
+        );
+
+        // 각 팀별 데이터셋 생성
+        const datasets = [];
+        let colorIndex = 0;
+
+        allTeams.forEach(teamName => {
+            const teamData = dates.map(date => {
+                const dateData = data.find(d => d.date === date);
+                const team = dateData.teams.find(t => t.name === teamName);
+                return team ? team.rank : null;
+            });
+
+            datasets.push({
+                label: teamName,
+                data: teamData,
+                borderColor: 'rgba(128, 128, 128, 0.4)',  // 기본: 연한 회색
+                hoverBorderColor: 'rgba(255, 255, 255, 0.95)',  // 호버: 밝은 흰색
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                hoverBorderWidth: 3,  // 호버 시 두껍게
+                tension: 0.1,
+                spanGaps: false,
+                pointStyle: loadedLogos[teamName],
+                pointRadius: 7,
+                pointHoverRadius: 9
+            });
+
+            colorIndex++;
+        });
+
+        currentChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,  /* true → false */
+                interaction: {
+                    mode: 'dataset',
+                    intersect: false
+                },
+                onHover: (event, activeElements, chart) => {
+                    if (activeElements.length > 0) {
+                        const activeIndex = activeElements[0].datasetIndex;
+
+                        // 모든 dataset 처리
+                        chart.data.datasets.forEach((dataset, index) => {
+                            if (index === activeIndex) {
+                                // hover된 라인: 밝게
+                                dataset.borderColor = 'rgba(255, 255, 255, 0.95)';
+                                dataset.borderWidth = 3;
+                            } else {
+                                // 다른 라인들: 음영 처리
+                                dataset.borderColor = 'rgba(128, 128, 128, 0.15)';
+                                dataset.borderWidth = 2;
+                            }
+                        });
+                    } else {
+                        // hover 해제: 원래대로
+                        chart.data.datasets.forEach(dataset => {
+                            dataset.borderColor = 'rgba(128, 128, 128, 0.4)';
+                            dataset.borderWidth = 2;
+                        });
+                    }
+                    chart.update('none'); // 애니메이션 없이 업데이트
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `팀컬러 사용률 변화 | 상위 ${parseInt(ranking).toLocaleString()}명 기준`,
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                        font: {
+                            size: window.innerWidth <= 768 ? 14 : 22,
+                            weight: 'bold'
+                        },
+                        padding: {
+                            bottom: 5  // 20 → 5로 줄임
+                        }
+                    },
+                    subtitle: {
+                        display: true,
+                        text: '(x축: 날짜, y축: 순위)',
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                        font: {
+                            size: window.innerWidth <= 768 ? 11 : 14,  // 작은 크기
+                            weight: 'normal'
+                        },
+                        padding: {
+                            bottom: 20
+                        }
+                    },
+                    legend: {
+                        display: false  /* 범례 완전 제거 */
+                    },
+                    tooltip: {
+                        mode: 'nearest',
+                        displayColors: false,
+                        titleFont: {
+                            size: window.innerWidth <= 768 ? 14 : 18  // 모바일 14px
+                        },
+                        bodyFont: {
+                            size: window.innerWidth <= 768 ? 12 : 16  // 모바일 12px
+                        },
+                        padding: window.innerWidth <= 768 ? 10 : 15,  // 모바일 10px
+                        boxPadding: window.innerWidth <= 768 ? 5 : 8,  // 모바일 5px
+                        yAlign: 'top',
+                        xAlign: 'top',
+                        callbacks: {
+                            title: function (context) {
+                                // context는 배열이지만 첫 번째 항목만 사용
+                                if (context && context.length > 0) {
+                                    return context[0].dataset.label;
+                                }
+                                return '';
+                            },
+                            label: function (context) {
+                                if (context && context.dataset && context.dataset.data) {
+                                    const ranks = context.dataset.data.map(v => v !== null ? v : 'N').join(' - ');
+                                    return ranks;
+                                }
+                                return '';
+                            },
+                            afterLabel: function () {
+                                return null;  // 추가 라인 방지
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        reverse: true,  // 1위가 위, 20위가 아래
+                        min: 0,
+                        max: 31,
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            callback: function (value) {
+                                // 1~30만 표시
+                                return (value >= 1 && value <= 30 && Number.isInteger(value)) ? value : '';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(128, 128, 128, 0.1)'
+                        },
+                        title: {
+                            display: false,  // 완전히 제거
+                            text: '순위',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                        }
+                    },
+                    x: {
+                        offset: true,
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+                        },
+                        grid: {
+                            color: 'rgba(128, 128, 128, 0.1)'
+                        },
+                        title: {
+                            display: false,  // 완전히 제거
+                            text: '날짜',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 페이지 로드 시 자동으로 5000명 기준 차트 표시
+    window.addEventListener('DOMContentLoaded', function () {
+        loadTierlist();
+    });
+</script>
+
+{% endblock %}
