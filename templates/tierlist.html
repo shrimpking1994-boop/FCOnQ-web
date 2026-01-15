@@ -367,7 +367,6 @@
                         xAlign: 'top',
                         callbacks: {
                             title: function (context) {
-                                // context는 배열이지만 첫 번째 항목만 사용
                                 if (context && context.length > 0) {
                                     return context[0].dataset.label;
                                 }
@@ -380,8 +379,23 @@
                                 }
                                 return '';
                             },
-                            afterLabel: function () {
-                                return null;  // 추가 라인 방지
+                            afterLabel: function (context) {
+                                if (context && context.dataset && context.dataset.data) {
+                                    const data = context.dataset.data;
+
+                                    // N이 하나라도 있는지 확인
+                                    const hasN = data.some(v => v === null);
+
+                                    if (hasN) {
+                                        return '평균 : DC';
+                                    } else {
+                                        // 평균 계산
+                                        const validRanks = data.filter(v => v !== null);
+                                        const average = validRanks.reduce((sum, v) => sum + v, 0) / validRanks.length;
+                                        return `평균 : ${average.toFixed(1)}위`;
+                                    }
+                                }
+                                return '';
                             }
                         }
                     }
