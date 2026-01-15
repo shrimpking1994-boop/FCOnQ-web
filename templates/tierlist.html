@@ -387,12 +387,35 @@
                                     const hasN = data.some(v => v === null);
 
                                     if (hasN) {
-                                        return '평균 : DC';
+                                        return ['평균 : DC', '종합 : DC'];
                                     } else {
-                                        // 평균 계산
+                                        // 현재 팀의 평균 계산
                                         const validRanks = data.filter(v => v !== null);
                                         const average = validRanks.reduce((sum, v) => sum + v, 0) / validRanks.length;
-                                        return `평균 : ${average.toFixed(1)}위`;
+
+                                        // 모든 팀의 평균 계산 및 저장
+                                        const allAverages = [];
+                                        context.chart.data.datasets.forEach((dataset, index) => {
+                                            const dData = dataset.data;
+                                            const hasNull = dData.some(v => v === null);
+                                            if (!hasNull) {
+                                                const vRanks = dData.filter(v => v !== null);
+                                                const avg = vRanks.reduce((sum, v) => sum + v, 0) / vRanks.length;
+                                                allAverages.push({ index: index, average: avg });
+                                            }
+                                        });
+
+                                        // 평균 순위로 정렬 (낮은 순위가 1위)
+                                        allAverages.sort((a, b) => a.average - b.average);
+
+                                        // 현재 팀의 종합 순위 찾기
+                                        const currentIndex = context.datasetIndex;
+                                        const overallRank = allAverages.findIndex(item => item.index === currentIndex) + 1;
+
+                                        return [
+                                            `평균 : ${average.toFixed(1)}위`,
+                                            `종합 : ${overallRank}위`
+                                        ];
                                     }
                                 }
                                 return '';
