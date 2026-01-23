@@ -648,7 +648,7 @@ def add_comment(post_id):
             user_id = None
             password_hash = hash_password(password)
             ip_hash = hash_ip(request.remote_addr)
-            author_ip = request.remote_addr
+            author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
         
         # 댓글 삽입
         cur.execute("""
