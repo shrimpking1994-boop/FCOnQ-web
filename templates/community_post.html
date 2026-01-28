@@ -137,8 +137,7 @@
                         {% endif %}
                     </div>
                 </div>
-                <div style="color: var(--text-primary); line-height: 1.6;">
-                    {{ comment.content }}
+                <div style="color: var(--text-primary); line-height: 1.6; white-space: pre-line;">{{ comment.content }}
                 </div>
 
                 <!-- 대댓글 작성 폼 (숨겨진 상태) -->
@@ -209,8 +208,7 @@
                         {% endif %}
                     </div>
                 </div>
-                <div style="color: var(--text-primary); line-height: 1.6;">
-                    {{ reply.content }}
+                <div style="color: var(--text-primary); line-height: 1.6; white-space: pre-line;">{{ reply.content }}
                 </div>
             </div>
             {% endif %}
