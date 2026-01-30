@@ -89,9 +89,54 @@ def admin_required(f):
 
 @app.route('/sitemap.xml')
 def sitemap():
-    """사이트맵 제공"""
-    from flask import send_from_directory
-    return send_from_directory('.', 'sitemap.xml')
+    """동적 sitemap 생성"""
+    from flask import Response
+    from datetime import datetime
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 모든 선수 카드 spid 가져오기
+    cur.execute("SELECT spid FROM player_cards ORDER BY spid")
+    cards = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    
+    # XML 생성
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>']
+    xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+    
+    # 메인 페이지들
+    xml.append('  <url>')
+    xml.append('    <loc>https://fconq.com/</loc>')
+    xml.append('    <changefreq>daily</changefreq>')
+    xml.append('    <priority>1.0</priority>')
+    xml.append('  </url>')
+    
+    xml.append('  <url>')
+    xml.append('    <loc>https://fconq.com/search</loc>')
+    xml.append('    <changefreq>daily</changefreq>')
+    xml.append('    <priority>0.9</priority>')
+    xml.append('  </url>')
+    
+    xml.append('  <url>')
+    xml.append('    <loc>https://fconq.com/community</loc>')
+    xml.append('    <changefreq>daily</changefreq>')
+    xml.append('    <priority>0.8</priority>')
+    xml.append('  </url>')
+    
+    # 모든 선수 카드 페이지
+    for card in cards:
+        xml.append('  <url>')
+        xml.append(f'    <loc>https://fconq.com/card/{card["spid"]}</loc>')
+        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append('    <priority>0.7</priority>')
+        xml.append('  </url>')
+    
+    xml.append('</urlset>')
+    
+    return Response('\n'.join(xml), mimetype='application/xml')
 
 
 # 시즌 정렬 순서 (공식 홈페이지 기준)
