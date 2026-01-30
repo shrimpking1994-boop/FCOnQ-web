@@ -1,5 +1,30 @@
 {% extends "index.html" %}
 
+{% block title %}{{ card['player_name'] }} {{ card['season_name'] }} {{
+card['stats_info']['main_overall']['card_position'] }} {{ card['overall'] }} - 능력치, 체형, 특성 | FCOnQ{% endblock %}
+
+{% block meta_description %}
+<meta name="description"
+    content="{{ card['player_name'] }}의 상세 능력치 정보. {{ card['basic_info']['height'] }} {{ card['basic_info']['weight'] }} {{ card['basic_info']['body_type'] }} 체형, {{ card['game_info']['preferred_foot'] }}-{{ card['game_info']['weak_foot'] }}, 오버롤 {{ card['overall'] }}, FC온라인 선수 카드 데이터">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="FCOnQ">
+<meta property="og:title"
+    content="{{ card['player_name'] }} {{ card['season_name'] }} OVR {{ card['overall'] }} - FCOnQ">
+<meta property="og:description" content="{{ card['player_name'] }}의 상세 능력치, 체형, 특성 정보를 확인하세요.">
+<meta property="og:image" content="{{ card['image_info']['action_image'] }}">
+<meta property="og:url" content="https://fconq.com/card/{{ card['spid'] }}">
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ card['player_name'] }} {{ card['season_name'] }} OVR {{ card['overall'] }}">
+<meta name="twitter:description" content="{{ card['player_name'] }}의 능력치 정보 - FCOnQ">
+<meta name="twitter:image" content="{{ card['image_info']['action_image'] }}">
+{% endblock %}
+
 {% block content %}
 <style>
     .back-btn {
