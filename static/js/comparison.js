@@ -76,6 +76,7 @@ class ComparisonBasket {
         const countEl = document.getElementById('basketCount');
 
         countEl.textContent = this.basket.length;
+        document.getElementById('comparisonBar').style.display = this.basket.length > 0 ? 'block' : 'none';
         leftContainer.innerHTML = '';
         rightContainer.innerHTML = '';
 
