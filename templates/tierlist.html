@@ -662,7 +662,7 @@
                 label: formationName,
                 data: formationData,
                 borderColor: 'rgba(128, 128, 128, 0.4)',
-                hoverBorderColor: 'rgba(255, 255, 255, 0.95)',
+                hoverBorderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.85)',
                 backgroundColor: 'transparent',
                 borderWidth: 2,
                 hoverBorderWidth: 3,
