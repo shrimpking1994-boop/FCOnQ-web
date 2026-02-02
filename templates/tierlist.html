@@ -12,6 +12,47 @@
         margin-right: auto;
     }
 
+    .tierlist-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        background: var(--bg-main);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+    }
+
+    .tierlist-tab-btn {
+        padding: 10px 30px;
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .tierlist-tab-btn:hover {
+        color: var(--text-primary);
+    }
+
+    .tierlist-tab-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
     .control-box {
         background: var(--bg-main);
         border-radius: 10px;
@@ -136,37 +177,75 @@
     }
 </style>
 
+<!-- 탭 버튼 -->
 <div class="tierlist-container">
-    <!-- 컨트롤 영역 -->
-    <div class="control-box">
-        <div class="control-group">
-            <div class="control-item">
-                <!--<label class="control-label">상위 기준</label>-->
-                <select id="rankingSelect" class="control-select">
-                    <option value="10000">상위 10,000명</option>
-                    <option value="9000">상위 9,000명</option>
-                    <option value="8000">상위 8,000명</option>
-                    <option value="7000">상위 7,000명</option>
-                    <option value="6000">상위 6,000명</option>
-                    <option value="5000" selected>상위 5,000명</option>
-                    <option value="4000">상위 4,000명</option>
-                    <option value="3000">상위 3,000명</option>
-                    <option value="2000">상위 2,000명</option>
-                    <option value="1000">상위 1,000명</option>
-                </select>
-            </div>
+    <div class="tierlist-tabs">
+        <button class="tierlist-tab-btn active" onclick="switchTab('teamcolor')">팀컬러</button>
+        <button class="tierlist-tab-btn" onclick="switchTab('formation')">포메이션</button>
+    </div>
 
-            <button onclick="loadTierlist()" class="load-btn">불러오기</button>
+    <!-- 팀컬러 탭 콘텐츠 -->
+    <div class="tab-content active" id="tab-teamcolor">
+        <!-- 기존 컨트롤 영역 그대로 -->
+        <div class="control-box">
+            <div class="control-group">
+                <div class="control-item">
+                    <select id="rankingSelect" class="control-select">
+                        <option value="10000">상위 10,000명</option>
+                        <option value="9000">상위 9,000명</option>
+                        <option value="8000">상위 8,000명</option>
+                        <option value="7000">상위 7,000명</option>
+                        <option value="6000">상위 6,000명</option>
+                        <option value="5000" selected>상위 5,000명</option>
+                        <option value="4000">상위 4,000명</option>
+                        <option value="3000">상위 3,000명</option>
+                        <option value="2000">상위 2,000명</option>
+                        <option value="1000">상위 1,000명</option>
+                    </select>
+                </div>
+                <button onclick="loadTierlist()" class="load-btn">불러오기</button>
+            </div>
+        </div>
+
+        <!-- 기존 차트 영역 그대로 -->
+        <div class="chart-container" id="chartContainer">
+            <div class="empty-state">
+                <h3>📈 팀컬러 사용률 추이를 확인하세요!</h3>
+                <p>상위 기준을 선택한 후 불러오기 버튼을 눌러주세요</p>
+            </div>
+            <div class="chart-legend">x축: 날짜 | y축: 순위</div>
         </div>
     </div>
 
-    <!-- 차트 영역 -->
-    <div class="chart-container" id="chartContainer">
-        <div class="empty-state">
-            <h3>📈 팀컬러 사용률 추이를 확인하세요!</h3>
-            <p>상위 기준을 선택한 후 불러오기 버튼을 눌러주세요</p>
+    <!-- 포메이션 탭 콘텐츠 -->
+    <div class="tab-content" id="tab-formation">
+        <div class="control-box">
+            <div class="control-group">
+                <div class="control-item">
+                    <select id="formationRankingSelect" class="control-select">
+                        <option value="10000">상위 10,000명</option>
+                        <option value="9000">상위 9,000명</option>
+                        <option value="8000">상위 8,000명</option>
+                        <option value="7000">상위 7,000명</option>
+                        <option value="6000">상위 6,000명</option>
+                        <option value="5000" selected>상위 5,000명</option>
+                        <option value="4000">상위 4,000명</option>
+                        <option value="3000">상위 3,000명</option>
+                        <option value="2000">상위 2,000명</option>
+                        <option value="1000">상위 1,000명</option>
+                    </select>
+                </div>
+                <button onclick="loadFormationTierlist()" class="load-btn">불러오기</button>
+            </div>
         </div>
-        <div class="chart-legend">x축: 날짜 | y축: 순위</div>
+
+        <div class="chart-container" id="formationChartContainer">
+            <div class="empty-state">
+                <h3>⚽ 포메이션 사용률 추이를 확인하세요!</h3>
+                <p>상위 기준을 선택한 후 불러오기 버튼을 눌러주세요</p>
+            </div>
+            <div class="chart-legend">x축: 날짜 | y축: 사용률(%)</div>
+        </div>
     </div>
 </div>
 
@@ -178,7 +257,37 @@
 
     // 팀 로고 매핑 (Flask에서 전달받은 데이터)
     const teamLogos = {{ team_logos | tojson }};
+    const formationLogos = {{ formation_logos | tojson }};
 
+    function switchTab(tab) {
+        // 탭 콘텐츠 전환
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+
+        // 탭 버튼 활성화
+        document.querySelectorAll('.tierlist-tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // 각 탭별로 ranking 동기화 및 차트 로드
+        if (tab === 'teamcolor') {
+            const formationRanking = document.getElementById('formationRankingSelect').value;
+            document.getElementById('rankingSelect').value = formationRanking;
+
+            const teamChartCanvas = document.getElementById('tierChart');
+            if (!teamChartCanvas) {
+                loadTierlist();
+            }
+        }
+        if (tab === 'formation') {
+            const teamRanking = document.getElementById('rankingSelect').value;
+            document.getElementById('formationRankingSelect').value = teamRanking;
+
+            const formationChartCanvas = document.getElementById('formationChart');
+            if (!formationChartCanvas) {
+                loadFormationTierlist();
+            }
+        }
+    }
 
     // 티어리스트 데이터 불러오기
     async function loadTierlist() {
@@ -272,7 +381,7 @@
                 label: teamName,
                 data: teamData,
                 borderColor: 'rgba(128, 128, 128, 0.4)',  // 기본: 연한 회색
-                hoverBorderColor: 'rgba(255, 255, 255, 0.95)',  // 호버: 밝은 흰색
+                hoverBorderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.85)',
                 backgroundColor: 'transparent',
                 borderWidth: 2,
                 hoverBorderWidth: 3,  // 호버 시 두껍게
@@ -307,7 +416,8 @@
                         chart.data.datasets.forEach((dataset, index) => {
                             if (index === activeIndex) {
                                 // hover된 라인: 밝게
-                                dataset.borderColor = 'rgba(255, 255, 255, 0.95)';
+                                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                                dataset.borderColor = isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.85)';
                                 dataset.borderWidth = 3;
                             } else {
                                 // 다른 라인들: 음영 처리
@@ -456,6 +566,241 @@
                             display: false,  // 완전히 제거
                             text: '날짜',
                             color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 포메이션 티어리스트 데이터 불러오기
+    async function loadFormationTierlist() {
+        const ranking = document.getElementById('formationRankingSelect').value;
+        const chartContainer = document.getElementById('formationChartContainer');
+
+        // 로딩 표시
+        chartContainer.innerHTML = `
+        <div class="empty-state">
+            <h3>🔄 데이터 불러오는 중...</h3>
+        </div>
+    `;
+
+        try {
+            const response = await fetch(`/api/get_all_formation_data?ranking=${ranking}`);
+            const result = await response.json();
+
+            if (!result.success) {
+                chartContainer.innerHTML = `
+                <div class="empty-state">
+                    <h3>😢 ${result.message || '데이터를 불러올 수 없습니다'}</h3>
+                </div>
+            `;
+                return;
+            }
+
+            displayFormationChart(result.data, ranking);
+
+        } catch (error) {
+            console.error('데이터 로드 오류:', error);
+            chartContainer.innerHTML = `
+            <div class="empty-state">
+                <h3>❌ 데이터 로드 중 오류가 발생했습니다</h3>
+            </div>
+        `;
+        }
+    }
+
+    // 포메이션 차트 표시
+    async function displayFormationChart(data, ranking) {
+        const chartContainer = document.getElementById('formationChartContainer');
+
+        // 기존 차트 제거
+        if (currentChart) {
+            currentChart.destroy();
+        }
+
+        // 캔버스 생성
+        chartContainer.innerHTML = '<canvas id="formationChart"></canvas>';
+        const ctx = document.getElementById('formationChart').getContext('2d');
+
+        // X축 라벨 (날짜)
+        const dates = data.map(d => d.date);
+
+        // 모든 포메이션 이름 수집
+        const allFormations = new Set();
+        data.forEach(d => {
+            d.formations.forEach(f => allFormations.add(f.name));
+        });
+
+        // 로고 이미지 미리 로드
+        const loadedLogos = {};
+        await Promise.all(
+            Array.from(allFormations).map(formationName => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        loadedLogos[formationName] = img;
+                        resolve();
+                    };
+                    img.onerror = () => resolve();
+                    img.src = formationLogos[formationName];
+                });
+            })
+        );
+
+        // 각 포메이션별 데이터셋 생성
+        const datasets = [];
+
+        Array.from(allFormations).forEach(formationName => {
+            const formationData = dates.map(date => {
+                const dateData = data.find(d => d.date === date);
+                const formation = dateData.formations.find(f => f.name === formationName);
+                return formation ? formation.percentage : null;
+            });
+
+            datasets.push({
+                label: formationName,
+                data: formationData,
+                borderColor: 'rgba(128, 128, 128, 0.4)',
+                hoverBorderColor: 'rgba(255, 255, 255, 0.95)',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                hoverBorderWidth: 3,
+                tension: 0.1,
+                spanGaps: false,
+                pointStyle: loadedLogos[formationName],
+                pointRadius: 7,
+                pointHoverRadius: 9
+            });
+        });
+
+        currentChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 25
+                    }
+                },
+                interaction: {
+                    mode: 'dataset',
+                    intersect: false
+                },
+                onHover: (event, activeElements, chart) => {
+                    if (activeElements.length > 0) {
+                        const activeIndex = activeElements[0].datasetIndex;
+
+                        chart.data.datasets.forEach((dataset, index) => {
+                            if (index === activeIndex) {
+                                const theme = document.documentElement.getAttribute('data-theme');
+                                dataset.borderColor = theme === 'light' ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)';
+                                dataset.borderWidth = 3;
+                            } else {
+                                dataset.borderColor = 'rgba(128, 128, 128, 0.15)';
+                                dataset.borderWidth = 2;
+                            }
+                        });
+                    } else {
+                        chart.data.datasets.forEach(dataset => {
+                            dataset.borderColor = 'rgba(128, 128, 128, 0.4)';
+                            dataset.borderWidth = 2;
+                        });
+                    }
+                    chart.update('none');
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `포메이션 사용률 변화 | 상위 ${parseInt(ranking).toLocaleString()}명 기준`,
+                        color: document.documentElement.getAttribute('data-theme') === 'light' ? '#000000' : '#ffffff',
+                        font: {
+                            size: window.innerWidth <= 768 ? 14 : 22,
+                            weight: 'bold'
+                        },
+                        padding: {
+                            bottom: 5
+                        }
+                    },
+                    subtitle: {
+                        display: true,
+                        text: '(x축: 날짜, y축: 사용률%)',
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                        font: {
+                            size: window.innerWidth <= 768 ? 11 : 14,
+                            weight: 'normal'
+                        },
+                        padding: {
+                            bottom: 20
+                        }
+                    },
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'nearest',
+                        displayColors: false,
+                        titleFont: {
+                            size: window.innerWidth <= 768 ? 14 : 18
+                        },
+                        bodyFont: {
+                            size: window.innerWidth <= 768 ? 12 : 16
+                        },
+                        padding: window.innerWidth <= 768 ? 10 : 15,
+                        boxPadding: window.innerWidth <= 768 ? 5 : 8,
+                        callbacks: {
+                            title: function (context) {
+                                return context[0].dataset.label;
+                            },
+                            label: function (context) {
+                                const percentages = context.dataset.data.map(v => v !== null ? v + '%' : 'N').join(' - ');
+                                return percentages;
+                            },
+                            afterLabel: function (context) {
+                                const data = context.dataset.data;
+
+                                // null 값 확인
+                                const hasNull = data.some(v => v === null);
+
+                                if (hasNull) {
+                                    return '평균 : DC';
+                                } else {
+                                    // 평균 사용률 계산
+                                    const validPercentages = data.filter(v => v !== null);
+                                    const average = validPercentages.reduce((sum, v) => sum + v, 0) / validPercentages.length;
+
+                                    return `평균 : ${average.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 40,
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            callback: function (value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(128, 128, 128, 0.1)'
+                        }
+                    },
+                    x: {
+                        offset: true,
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+                        },
+                        grid: {
+                            color: 'rgba(128, 128, 128, 0.1)'
                         }
                     }
                 }

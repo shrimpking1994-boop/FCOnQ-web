@@ -1839,12 +1839,21 @@ def tierlist():
     """)
     team_logos = {row['team_name']: row['logo_url'] for row in cur.fetchall()}
     
+    # 포메이션 로고 데이터 가져오기
+    cur.execute("""
+        SELECT formation_name, logo_url 
+        FROM formation_logos 
+        ORDER BY formation_name
+    """)
+    formation_logos = {row['formation_name']: row['logo_url'] for row in cur.fetchall()}
+    
     cur.close()
     conn.close()
     
     return render_template('tierlist.html', 
                          available_dates=available_dates,
-                         team_logos=team_logos)
+                         team_logos=team_logos,
+                         formation_logos=formation_logos)
 
 
 @app.route('/fee_calculator')
@@ -1982,6 +1991,44 @@ def get_all_tierlist_data():
                 results.append({
                     'date': date,
                     'teams': dataset['teams'][:30]  # 상위 20개만
+                })
+                break
+    
+    # 날짜순 정렬 (오래된 것부터)
+    results.reverse()
+    
+    cur.close()
+    conn.close()
+    
+    return jsonify({'success': True, 'data': results})
+
+@app.route('/api/get_all_formation_data')
+def get_all_formation_data():
+    """모든 날짜의 포메이션 데이터 반환 (최근 6개)"""
+    ranking = request.args.get('ranking', '10000')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 최근 6개 날짜 데이터 가져오기 (5배수 간격)
+    cur.execute("""
+        SELECT crawl_date, full_data 
+        FROM formation_rankings 
+        ORDER BY crawl_date DESC 
+        LIMIT 6
+    """)
+    
+    results = []
+    for row in cur.fetchall():
+        date = row['crawl_date'].strftime('%m-%d')  # MM-DD 형식
+        full_data = row['full_data']
+        
+        # 해당 ranking_range 찾기
+        for dataset in full_data:
+            if dataset['ranking_range'] == f'1-{ranking}':
+                results.append({
+                    'date': date,
+                    'formations': dataset['formations'][:10]  # 상위 10개
                 })
                 break
     

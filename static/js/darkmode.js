@@ -31,6 +31,14 @@ const initDarkMode = () => {
             // 버튼 텍스트 업데이트
             darkModeToggle.textContent = newTheme === 'dark' ? '☀️ 라이트모드' : '🌙 다크모드';
 
+            if (typeof currentChart !== 'undefined' && currentChart) {
+                const titleColor = newTheme === 'dark' ? '#e2e8f0' : '#212529';
+                const subtitleColor = newTheme === 'dark' ? '#cbd5e0' : '#495057';
+                currentChart.options.plugins.title.color = titleColor;
+                currentChart.options.plugins.subtitle.color = subtitleColor;
+                currentChart.update();
+            }
+
             // 디버깅용
             console.log('테마 변경됨:', newTheme);
         });
