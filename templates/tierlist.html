@@ -268,6 +268,9 @@
         document.querySelectorAll('.tierlist-tab-btn').forEach(btn => btn.classList.remove('active'));
         event.target.classList.add('active');
 
+        // 현재 탭 저장
+        localStorage.setItem('lastTab', tab);
+
         // 각 탭별로 ranking 동기화 및 차트 로드
         if (tab === 'teamcolor') {
             const formationRanking = document.getElementById('formationRankingSelect').value;
@@ -317,6 +320,9 @@
 
             // 차트 표시
             displayChart(result.data, ranking);
+
+            // 현재 랭킹 저장
+            localStorage.setItem('lastTeamRanking', ranking);
 
         } catch (error) {
             console.error('데이터 로드 오류:', error);
@@ -600,6 +606,9 @@
 
             displayFormationChart(result.data, ranking);
 
+            // 현재 랭킹 저장
+            localStorage.setItem('lastFormationRanking', ranking);
+
         } catch (error) {
             console.error('데이터 로드 오류:', error);
             chartContainer.innerHTML = `
@@ -808,9 +817,29 @@
         });
     }
 
-    // 페이지 로드 시 자동으로 5000명 기준 차트 표시
+    // 페이지 로드 시 마지막 상태 복원
     window.addEventListener('DOMContentLoaded', function () {
-        loadTierlist();
+        const lastTab = localStorage.getItem('lastTab') || 'teamcolor';
+        const lastTeamRanking = localStorage.getItem('lastTeamRanking') || '5000';
+        const lastFormationRanking = localStorage.getItem('lastFormationRanking') || '5000';
+
+        // 랭킹 select 값 설정
+        document.getElementById('rankingSelect').value = lastTeamRanking;
+        document.getElementById('formationRankingSelect').value = lastFormationRanking;
+
+        // 탭 활성화
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + lastTab).classList.add('active');
+
+        document.querySelectorAll('.tierlist-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`[onclick="switchTab('${lastTab}')"]`).classList.add('active');
+
+        // 해당 탭의 차트 로드
+        if (lastTab === 'teamcolor') {
+            loadTierlist();
+        } else {
+            loadFormationTierlist();
+        }
     });
 </script>
 
