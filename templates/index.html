@@ -727,6 +727,35 @@
             }
         });
     </script>
+
+    <!-- 짱대낙 광고 배너 -->
+    <a id="jjangdaenak-banner" href="https://jjangdaenak.com/" target="_blank" rel="noopener">
+        <img src="{{ url_for('static', filename='짱대낙 2.png') }}" alt="짱대낙 광고"
+            style="width: 250px; border-radius: 8px; cursor: pointer; display: block;">
+    </a>
+
+    <script>
+        function positionBanner() {
+            const banner = document.getElementById('jjangdaenak-banner');
+            const container = document.querySelector('.container');
+            if (!banner || !container) return;
+
+            const containerLeft = container.getBoundingClientRect().left;
+
+            if (containerLeft > 220) {
+                banner.style.display = 'block';
+                banner.style.position = 'absolute';
+                banner.style.top = '170px';
+                banner.style.left = (containerLeft - 320) + 'px';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('load', positionBanner);
+        window.addEventListener('resize', positionBanner);
+    </script>
+
 </body>
 
 </html>
