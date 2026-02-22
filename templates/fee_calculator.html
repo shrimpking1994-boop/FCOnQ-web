@@ -456,7 +456,7 @@
         }
 
         // 사용자 입력값 × 100,000,000 (억 단위)
-        const multiplied = parseFloat(numbers) * 100000000;
+        const multiplied = parseFloat(numbers) * 100000000000;
 
         // 천 단위 쉼표 추가
         return new Intl.NumberFormat('ko-KR').format(multiplied);
@@ -675,7 +675,7 @@
             if (userInput === '') {
                 input.value = '';
             } else {
-                const multiplied = parseFloat(userInput) * 100000000;
+                const multiplied = parseFloat(userInput) * 100000000000;
                 input.value = new Intl.NumberFormat('ko-KR').format(multiplied);
             }
 
