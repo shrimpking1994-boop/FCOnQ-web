@@ -632,6 +632,48 @@
         <label class="form-label section-title">상세 검색 조건</label>
         <div class="detail-filter-section">
 
+            <!-- 팀컬러 선택 -->
+            <div class="filter-group">
+                <div class="filter-group-title">팀컬러 선택</div>
+                <div class="team-color-group">
+                    <label class="form-label label-title">국가 팀컬러</label>
+                    <select class="form-select teamcolor-select" name="nation_team_color" data-placeholder="국가를 선택하세요">
+                        <option value=""></option>
+                        {% for nation in nation_teamcolors %}
+                        <option value="{{ nation }}">{{ nation }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="team-color-group">
+                    <label class="form-label label-title">소속 팀컬러 1</label>
+                    <select class="form-select teamcolor-select" name="club_team_color_1" data-placeholder="클럽을 선택하세요">
+                        <option value=""></option>
+                        {% for club in club_teamcolors %}
+                        <option value="{{ club }}">{{ club }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="team-color-group">
+                    <label class="form-label label-title">소속 팀컬러 2</label>
+                    <select class="form-select teamcolor-select" name="club_team_color_2" data-placeholder="클럽을 선택하세요">
+                        <option value=""></option>
+                        {% for club in club_teamcolors %}
+                        <option value="{{ club }}">{{ club }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="team-color-group">
+                    <label class="form-label label-title">특성 팀컬러</label>
+                    <select class="form-select teamcolor-select" name="trait_team_color"
+                        data-placeholder="특수 케미를 선택하세요">
+                        <option value=""></option>
+                        {% for trait in trait_teamcolors %}
+                        <option value="{{ trait }}">{{ trait }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
             <!-- 급여와 오버롤 -->
             <div class="filter-group">
                 <div class="row">
@@ -701,48 +743,6 @@
                             <span>kg</span>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- 팀컬러 선택 -->
-            <div class="filter-group">
-                <div class="filter-group-title">팀컬러 선택</div>
-                <div class="team-color-group">
-                    <label class="form-label label-title">국가 팀컬러</label>
-                    <select class="form-select teamcolor-select" name="nation_team_color" data-placeholder="국가를 선택하세요">
-                        <option value=""></option>
-                        {% for nation in nation_teamcolors %}
-                        <option value="{{ nation }}">{{ nation }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="team-color-group">
-                    <label class="form-label label-title">소속 팀컬러 1</label>
-                    <select class="form-select teamcolor-select" name="club_team_color_1" data-placeholder="클럽을 선택하세요">
-                        <option value=""></option>
-                        {% for club in club_teamcolors %}
-                        <option value="{{ club }}">{{ club }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="team-color-group">
-                    <label class="form-label label-title">소속 팀컬러 2</label>
-                    <select class="form-select teamcolor-select" name="club_team_color_2" data-placeholder="클럽을 선택하세요">
-                        <option value=""></option>
-                        {% for club in club_teamcolors %}
-                        <option value="{{ club }}">{{ club }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="team-color-group">
-                    <label class="form-label label-title">특성 팀컬러</label>
-                    <select class="form-select teamcolor-select" name="trait_team_color"
-                        data-placeholder="특수 케미를 선택하세요">
-                        <option value=""></option>
-                        {% for trait in trait_teamcolors %}
-                        <option value="{{ trait }}">{{ trait }}</option>
-                        {% endfor %}
-                    </select>
                 </div>
             </div>
 
