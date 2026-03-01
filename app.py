@@ -1847,13 +1847,20 @@ def tierlist():
     """)
     formation_logos = {row['formation_name']: row['logo_url'] for row in cur.fetchall()}
     
+    cur.execute("""
+        SELECT season_id, season_img_url 
+        FROM seasons
+    """)
+    season_logos = {str(row['season_id']): row['season_img_url'] for row in cur.fetchall()}
+    
     cur.close()
     conn.close()
     
     return render_template('tierlist.html', 
                          available_dates=available_dates,
                          team_logos=team_logos,
-                         formation_logos=formation_logos)
+                         formation_logos=formation_logos,
+                         season_logos=season_logos)
 
 
 @app.route('/fee_calculator')
@@ -2001,6 +2008,29 @@ def get_all_tierlist_data():
     conn.close()
     
     return jsonify({'success': True, 'data': results})
+
+@app.route('/api/get_card_tierlist_data')
+def get_card_tierlist_data():
+    """카드 티어리스트 데이터 반환 (가장 최근 날짜)"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    cur.execute("""
+        SELECT full_data 
+        FROM card_tierlist_rankings 
+        ORDER BY crawl_date DESC 
+        LIMIT 1
+    """)
+    
+    result = cur.fetchone()
+    
+    cur.close()
+    conn.close()
+    
+    if not result:
+        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
+    
+    return jsonify({'success': True, 'data': result['full_data']})
 
 @app.route('/api/get_all_formation_data')
 def get_all_formation_data():
