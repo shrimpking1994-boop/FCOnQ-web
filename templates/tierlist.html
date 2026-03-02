@@ -478,15 +478,15 @@
 
         <div class="control-box">
             <div class="card-info-bar" onclick="toggleCardInfo()">
-                🔍 이 데이터는 어떻게 만들어졌을까요? <span id="cardInfoArrow">▼</span>
+                🔍 선수 티어리스트는 어떻게 만들었을까? <span id="cardInfoArrow">▼</span>
             </div>
             <div class="card-info-detail" id="cardInfoDetail">
                 <ul>
-                    <li>📅 <b>기준일 및 선정 대상</b>: 현 데이터는 '3월 1일 - 상위 7005명' 유저의 스쿼드를 분석한 결과입니다.</li>
-                    <li>🏆 <b>선정 방법</b>: 먼저 팀컬러 티어리스트에서 사용률 순위에 이름을 올린 팀컬러 순위 및 명단을 확인합니다. 그리고 이를 기준으로 해당 팀컬러를
+                    <li>📅 <b>기준일 및 선정 대상</b>: 현 데이터는 '3월 2일 - 상위 8,500명' 유저의 스쿼드를 분석한 결과입니다.</li>
+                    <li>🏆 <b>선정 방법</b>: 먼저 팀컬러 티어리스트에서 한 달 평균 사용률 순위에 이름을 올린 팀컬러 순위 및 명단을 확인합니다. 그리고 이를 기준으로 해당 팀컬러를
                         사용하고
                         있는 상위 유저들의 스쿼드에서 포지션별 카드 사용 횟수를 집계했습니다.</li>
-                    <li>⚠️ <b>주의 사항</b>: 사용 횟수가 매우 낮으면 제외 처리를 했습니다. 그리고 정말 간혹 특정 팀컬러에 소속되어 있지 않은 카드가 포함되어 있을수도 있습니다.
+                    <li>⚠️ <b>주의 사항</b>: 사용 횟수가 매우 낮으면 제외 처리를 했습니다. 그리고 드물게 특정 팀컬러에 소속되어 있지 않은 카드가 포함되어 있을수도 있습니다.
                     </li>
                     <li>🔄 <b>업데이트</b>: 한달에 두 번, 15일 배수 단위로 갱신될 예정입니다.</li>
                 </ul>
@@ -871,7 +871,7 @@
 
 
     // 포지션 표시 순서
-    const POSITION_ORDER = ['ST', 'CF', 'CAM', 'LW', 'LM', 'LAM', 'RW', 'RM', 'RAM', 'CM', 'LRDM', 'CDM', 'CB', 'LB', 'RB', 'GK'];
+    const POSITION_ORDER = ['ST', 'CF', 'CAM', 'LWING', 'RWING', 'CM', 'LRDM', 'CDM', 'CB', 'LB', 'RB', 'GK'];
 
     // 카드 티어리스트 불러오기
     async function loadCardTierlist() {
@@ -921,7 +921,7 @@
 
                     positionsHtml += `
                         <div class="position-section">
-                            <div class="position-label">${pos === 'LRDM' ? 'L/RDM' : pos}</div>
+                            <div class="position-label">${pos === 'LWING' ? 'L-Wing (LM/LAM/LW)' : pos === 'RWING' ? 'R-Wing (RM/RAM/RW)' : pos === 'LRDM' ? 'L/RDM' : pos}</div>
                             <div class="cards-row">${cardsHtml}</div>
                         </div>`;
                 });
