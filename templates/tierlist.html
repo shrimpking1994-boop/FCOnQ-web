@@ -910,7 +910,7 @@
                             <div class="card-item">
                                 <div class="card-img-wrap">
                                     <span class="card-rank-badge ${rankClass}">${rank}</span>
-                                    <img class="card-face" src="${faceUrl}" onerror="this.onerror=null; this.src='${staticFaceUrl}'" onclick="window.open('/card/${card.spid}', '_blank')" style="cursor:pointer;">
+                                    <img class="card-face" src="${faceUrl}" onerror="this.onerror=null; this.src='${staticFaceUrl}'" onclick="window.open('/card/${card.spid}?buildup=${card.buildup}', '_blank')" style="cursor:pointer;">
                                     ${seasonUrl ? `<img class="card-season-badge" src="${seasonUrl}" onerror="this.style.display='none'">` : ''}
                                     <span class="card-buildup ${card.buildup === 1 ? 'bu-1' : card.buildup <= 4 ? 'bu-bronze' : card.buildup <= 7 ? 'bu-silver' : card.buildup <= 10 ? 'bu-gold' : 'bu-purple'}">+${card.buildup}</span>
                                 </div>
