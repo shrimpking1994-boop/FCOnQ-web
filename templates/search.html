@@ -916,6 +916,143 @@
     document.addEventListener('DOMContentLoaded', () => {
         new SeasonManager();
 
+        // DB 페이지 외에서 오면 초기화
+        const referrer = document.referrer;
+        const dbPages = ['/search', '/results', '/card', '/player_review'];
+        const isFromDB = dbPages.some(page => referrer.includes(page));
+        if (!isFromDB) {
+            sessionStorage.removeItem('searchState');
+        }
+
+        // ===== 검색 조건 저장 & 복원 =====
+        function saveSearchState() {
+            const state = {};
+
+            // 선수 이름
+            state.playerName = document.getElementById('playerNameInput').value;
+
+            // 시즌
+            state.seasons = [];
+            document.querySelectorAll('.season-checkbox:checked').forEach(cb => {
+                state.seasons.push(cb.value);
+            });
+
+            // 포지션
+            state.positions = [];
+            document.querySelectorAll('input[name="positions"]:checked').forEach(cb => {
+                state.positions.push(cb.value);
+            });
+
+            // 범위 입력값
+            ['min_salary', 'max_salary', 'min_ovr', 'max_ovr', 'min_height', 'max_height', 'min_weight', 'max_weight'].forEach(name => {
+                const el = document.querySelector(`input[name="${name}"]`);
+                if (el) state[name] = el.value;
+            });
+
+            // 셀렉트 (주발/약발)
+            ['preferred_foot', 'weak_foot_min'].forEach(name => {
+                const el = document.querySelector(`select[name="${name}"]`);
+                if (el) state[name] = el.value;
+            });
+
+            // 체형
+            state.bodyTypes = [];
+            document.querySelectorAll('input[name="body_types"]:checked').forEach(cb => {
+                state.bodyTypes.push(cb.value);
+            });
+
+            // 팀컬러 (Select2)
+            ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color'].forEach(name => {
+                const el = document.querySelector(`select[name="${name}"]`);
+                if (el) state[name] = el.value;
+            });
+
+            // 고유 특성 (Select2)
+            ['new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
+                const el = document.querySelector(`select[name="${name}"]`);
+                if (el) state[name] = el.value;
+            });
+
+            sessionStorage.setItem('searchState', JSON.stringify(state));
+        }
+
+        function restoreSearchState() {
+            const saved = sessionStorage.getItem('searchState');
+            if (!saved) return;
+            const state = JSON.parse(saved);
+
+            // 선수 이름
+            if (state.playerName) document.getElementById('playerNameInput').value = state.playerName;
+
+            // 시즌
+            if (state.seasons && state.seasons.length > 0) {
+                document.querySelectorAll('.season-item').forEach(item => {
+                    const cb = item.querySelector('.season-checkbox');
+                    if (state.seasons.includes(cb.value)) {
+                        cb.checked = true;
+                        item.classList.add('selected');
+                    }
+                });
+            }
+
+            // 포지션
+            if (state.positions) {
+                document.querySelectorAll('input[name="positions"]').forEach(cb => {
+                    if (state.positions.includes(cb.value)) cb.checked = true;
+                });
+            }
+
+            // 범위 입력값
+            ['min_salary', 'max_salary', 'min_ovr', 'max_ovr', 'min_height', 'max_height', 'min_weight', 'max_weight'].forEach(name => {
+                const el = document.querySelector(`input[name="${name}"]`);
+                if (el && state[name]) el.value = state[name];
+            });
+
+            // 셀렉트 (주발/약발)
+            ['preferred_foot', 'weak_foot_min'].forEach(name => {
+                const el = document.querySelector(`select[name="${name}"]`);
+                if (el && state[name]) el.value = state[name];
+            });
+
+            // 체형
+            if (state.bodyTypes) {
+                document.querySelectorAll('input[name="body_types"]').forEach(cb => {
+                    if (state.bodyTypes.includes(cb.value)) cb.checked = true;
+                });
+            }
+
+            // 팀컬러 & 고유 특성 (Select2 - trigger 필요)
+            ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color',
+                'new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
+                    const el = document.querySelector(`select[name="${name}"]`);
+                    if (el && state[name]) {
+                        el.value = state[name];
+                        $(el).trigger('change');
+                    }
+                });
+        }
+
+        // 검색 버튼 누를 때 저장
+        document.getElementById('searchForm').addEventListener('submit', saveSearchState);
+
+        // 페이지 로드 시 복원
+        setTimeout(restoreSearchState, 0);
+
+        window.addEventListener('pageshow', function (e) {
+            // bfcache 복원이든 아니든 항상 체크박스 상태와 시각적 표시 동기화
+            document.querySelectorAll('.season-item').forEach(item => {
+                const cb = item.querySelector('.season-checkbox');
+                if (cb && cb.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+            if (e.persisted) {
+                setTimeout(restoreSearchState, 0);
+            }
+        });
+
         // Select2 초기화 - 팀컬러 선택
         $('.teamcolor-select').select2({
             theme: 'bootstrap-5',

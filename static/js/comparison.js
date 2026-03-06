@@ -264,7 +264,7 @@ class ComparisonBasket {
                 // 모달 대신 새 페이지로 이동
                 const spid1 = this.slots[1].spid;
                 const spid2 = this.slots[2].spid;
-                window.location.href = `/compare/${spid1}/${spid2}`;
+                window.open(`/compare/${spid1}/${spid2}`, '_blank');
             }
         });
     }
