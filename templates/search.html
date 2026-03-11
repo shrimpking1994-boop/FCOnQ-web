@@ -1022,15 +1022,14 @@
             }
 
             // 팀컬러 & 고유 특성 (Select2 - trigger 필요)
-            setTimeout(() => {
-                ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color',
-                    'new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
-                        const el = document.querySelector(`select[name="${name}"]`); Z
-                        if (el && state[name]) {
-                            $(el).val(state[name]).trigger('change');
-                        }
-                    });
-            }, 500);
+            ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color',
+                'new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
+                    const el = document.querySelector(`select[name="${name}"]`);
+                    if (el && state[name]) {
+                        el.value = state[name];
+                        $(el).trigger('change');
+                    }
+                });
         }
 
         // 검색 버튼 누를 때 저장
@@ -1040,6 +1039,7 @@
         setTimeout(restoreSearchState, 0);
 
         window.addEventListener('pageshow', function (e) {
+            // bfcache 복원이든 아니든 항상 체크박스 상태와 시각적 표시 동기화
             document.querySelectorAll('.season-item').forEach(item => {
                 const cb = item.querySelector('.season-checkbox');
                 if (cb && cb.checked) {
@@ -1049,17 +1049,7 @@
                 }
             });
             if (e.persisted) {
-                // Select2 재초기화 후 복원
-                $('.teamcolor-select, .trait-select').select2('destroy');
-                $('.teamcolor-select').select2({
-                    theme: 'bootstrap-5', language: 'ko', allowClear: true, width: '100%',
-                    placeholder: function () { return $(this).data('placeholder'); }
-                });
-                $('.trait-select').select2({
-                    theme: 'bootstrap-5', language: 'ko', allowClear: true, width: '100%',
-                    placeholder: function () { return $(this).data('placeholder'); }
-                });
-                setTimeout(restoreSearchState, 300);
+                setTimeout(restoreSearchState, 0);
             }
         });
 
