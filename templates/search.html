@@ -1022,14 +1022,16 @@
             }
 
             // 팀컬러 & 고유 특성 (Select2 - trigger 필요)
-            ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color',
-                'new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
-                    const el = document.querySelector(`select[name="${name}"]`);
-                    if (el && state[name]) {
-                        el.value = state[name];
-                        $(el).trigger('change');
-                    }
-                });
+            setTimeout(() => {
+                ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color',
+                    'new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
+                        const el = document.querySelector(`select[name="${name}"]`);
+                        if (el && state[name]) {
+                            el.value = state[name];
+                            $(el).trigger('change');
+                        }
+                    });
+            }, 300);
         }
 
         // 검색 버튼 누를 때 저장
