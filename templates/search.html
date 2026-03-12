@@ -1022,15 +1022,40 @@
             }
 
             // 팀컬러 & 고유 특성 (Select2 - trigger 필요)
+            // 고유 특성은 기존 방식으로
             setTimeout(() => {
-                ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color',
-                    'new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
-                        const el = document.querySelector(`select[name="${name}"]`);
-                        if (el && state[name]) {
-                            $(el).val(state[name]).trigger('change');
-                        }
-                    });
+                ['new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
+                    const el = document.querySelector(`select[name="${name}"]`);
+                    if (el && state[name]) {
+                        $(el).val(state[name]).trigger('change');
+                    }
+                });
             }, 500);
+
+            // 팀컬러는 Select2 초기화 완료 후 복원
+            const teamColorNames = ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color'];
+            let restored = 0;
+            $('.teamcolor-select').on('select2:open select2:close', function () { }).each(function () {
+                $(this).on('select2:init', function () {
+                    restored++;
+                    if (restored === teamColorNames.length) {
+                        teamColorNames.forEach(name => {
+                            const el = document.querySelector(`select[name="${name}"]`);
+                            if (el && state[name]) $(el).val(state[name]).trigger('change');
+                        });
+                    }
+                });
+            });
+
+            // select2:init이 안 잡힐 경우 fallback
+            setTimeout(() => {
+                teamColorNames.forEach(name => {
+                    const el = document.querySelector(`select[name="${name}"]`);
+                    if (el && state[name] && !$(el).val()) {
+                        $(el).val(state[name]).trigger('change');
+                    }
+                });
+            }, 800);
         }
 
         // 검색 버튼 누를 때 저장
