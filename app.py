@@ -1068,18 +1068,18 @@ def search():
     cur.execute("""
         SELECT nation_name 
         FROM nation_teamcolors 
-        ORDER BY nation_name
+        ORDER BY nation_name COLLATE "C"
     """)
     nation_data = [row['nation_name'] for row in cur.fetchall()]
     nations_old = nation_data  # 기존 호환성
     nation_teamcolors = nation_data  # 팀컬러 필터용    
     
     # 2. 소속 팀컬러
-    cur.execute("SELECT club_name FROM club_teamcolors ORDER BY club_name")
+    cur.execute('SELECT club_name FROM club_teamcolors ORDER BY club_name COLLATE "C"')
     club_teamcolors = [row['club_name'] for row in cur.fetchall()]
     
     # 3. 특성 팀컬러
-    cur.execute("SELECT trait_name FROM trait_teamcolors ORDER BY trait_name")
+    cur.execute('SELECT trait_name FROM trait_teamcolors ORDER BY trait_name COLLATE "C"')
     trait_teamcolors = [row['trait_name'] for row in cur.fetchall()]
     
     # 4. 고유 특성 데이터 가져오기
