@@ -1143,10 +1143,8 @@
                     if (currentFocus < 0) currentFocus = items.length - 1;
                     setActive(items);
                 } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (currentFocus > -1 && items[currentFocus]) {
-                        items[currentFocus].click();
-                    }
+                    autocompleteList.style.display = 'none';
+                    document.getElementById('searchForm').submit();
                 }
             });
 
