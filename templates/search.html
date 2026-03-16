@@ -1091,6 +1091,10 @@
             }
         });
 
+        $(document).on('select2:open', function () {
+            document.querySelector('.select2-search__field').focus();
+        });
+
         // Select2 초기화 - 고유 특성 선택
         $('.trait-select').select2({
             theme: 'bootstrap-5',
