@@ -1168,7 +1168,8 @@ def results():
     # 메인 쿼리 실행
     query = """
     SELECT spid, player_name, season_name, overall, position,
-           full_data->'image_info'->>'mini_faceon' as image,
+           COALESCE(full_data->'image_info'->>'mini_faceon', full_data->'image_info'->>'mini_faceon_high') as image,
+           full_data->'image_info'->>'mini_faceon_high' as image_high,
            full_data->'image_info'->>'season_img' as season_img,
            full_data->'image_info'->>'nation_img' as nation_img,
            full_data->'game_info'->>'salary' as salary,
