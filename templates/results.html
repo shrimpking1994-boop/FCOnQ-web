@@ -919,7 +919,7 @@
     <div class="card-row">
         {% if card.image %}
         <img src="{{ card.image }}" alt="{{ card.player_name }}" class="player-image"
-            onerror="this.src='{{ card.image_high }}'">
+            onerror="if(this.dataset.retry=='1'){this.onerror=null;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';}else{this.dataset.retry='1';this.src='{{ card.image_high }}';}">
         {% else %}
         <div class="player-image d-flex align-items-center justify-content-center" style="color: var(--text-muted);">
             <svg width="40" height="40" fill="currentColor" viewBox="0 0 16 16">
