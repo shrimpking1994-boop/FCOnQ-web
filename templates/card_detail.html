@@ -546,7 +546,8 @@
 <!-- 헤더 섹션 -->
 <div class="card-header-section">
     {% if card.image_info.mini_faceon %}
-    <img src="{{ card.image_info.mini_faceon }}" alt="{{ card.player_name }}" class="main-image">
+    <img src="{{ card.image_info.mini_faceon }}" alt="{{ card.player_name }}" class="main-image"
+        onerror="if(this.dataset.retry=='1'){this.onerror=null;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';}else{this.dataset.retry='1';this.src='{{ card.image_info.mini_faceon_high }}';}">
     {% else %}
     <div class="main-image bg-secondary d-flex align-items-center justify-content-center text-white">
         No Image
