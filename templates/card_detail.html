@@ -773,7 +773,7 @@
     </div>
 
     <!-- 포지션별 오버롤 -->
-    <div class="stat-category mb-3">
+    <div class="stat-category mb-2">
         <!--<h6 class="text-muted mb-2">포지션별 오버롤</h6>-->
         <div class="position-table"
             style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; text-align: center;">
@@ -813,15 +813,15 @@
     </div>
 
     <!-- 요약 스탯 -->
-    <div class="stat-category mb-3">
+    <div class="stat-category mb-2">
         <!--<h6 class="text-muted mb-2">요약 스탯</h6>-->
         <div class="summary-table"
             style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; text-align: center;">
             {% for stat_name in summary_order %}
             {% if card.stats_info.summary_stats[stat_name] is defined %}
             <div>
-                <div style="font-size: 13px; color: var(--text-muted);">{{ stat_name }}</div>
-                <div class="summary-value" style="font-size: 24px; font-weight: bold;">
+                <div style="font-size: 11px; color: var(--text-muted);">{{ stat_name }}</div>
+                <div class="summary-value" style="font-size: 18px; font-weight: bold;">
                     {{ card.stats_info.summary_stats[stat_name] }}
                 </div>
             </div>
