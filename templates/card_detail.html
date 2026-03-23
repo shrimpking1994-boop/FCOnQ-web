@@ -903,7 +903,7 @@
                     <button class="btn btn-outline-secondary active" id="btnCurrentPrice"
                         onclick="switchPriceTab('current')" style="padding: 2px 8px; font-size: 14px;">현재가</button>
                     <button class="btn btn-outline-secondary" id="btnTrend" onclick="switchPriceTab('trend')"
-                        style="padding: 2px 8px; font-size: 14px;">추세선</button>
+                        style="padding: 2px 8px; font-size: 14px;">추세가</button>
                 </div>
                 {% endif %}
             </div>
@@ -1192,8 +1192,8 @@
         const data = priceHistory[String(strong)];
         if (!data) return;
 
-        const times = data.times;
-        const values = data.values.map(v => parseInt(v));
+        const times = data.times.slice(-90);
+        const values = data.values.slice(-90).map(v => parseInt(v));
 
         if (chart) chart.destroy();
 
