@@ -1288,6 +1288,13 @@ def card_detail(spid):
             '침착성', 'GK 다이빙', 'GK 핸들링', 'GK 킥', 'GK 반응속도', 'GK 위치 선정'
         ]
     
+    # 가격 추세 데이터 조회
+    cur.execute("""
+        SELECT full_data FROM card_price_history WHERE spid = %s
+    """, (spid,))
+    price_history = cur.fetchone()
+    price_history_data = price_history['full_data'] if price_history else None    
+    
     cur.close()
     conn.close()
     
@@ -1297,7 +1304,8 @@ def card_detail(spid):
     return render_template('card_detail.html', card=card, 
                                                position_order=POSITION_ORDER,
                                                summary_order=SUMMARY_ORDER,
-                                               detailed_order=DETAILED_ORDER)
+                                               detailed_order=DETAILED_ORDER,
+                                               price_history=price_history_data)
 
 @app.route('/test')
 def test_db():

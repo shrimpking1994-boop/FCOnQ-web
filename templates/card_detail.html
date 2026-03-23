@@ -881,7 +881,32 @@
 
         <div class="col-md-6">
             {% if card.bp1 %}
-            <h4>시세</h4>
+            <style>
+                #btnCurrentPrice,
+                #btnTrend {
+                    box-shadow: none !important;
+                    outline: none !important;
+                }
+
+                #btnCurrentPrice:focus,
+                #btnTrend:focus,
+                #btnCurrentPrice:active,
+                #btnTrend:active {
+                    box-shadow: none !important;
+                    outline: none !important;
+                }
+            </style>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <h4 class="mb-0">시세</h4>
+                {% if price_history %}
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active" id="btnCurrentPrice"
+                        onclick="switchPriceTab('current')" style="padding: 2px 8px; font-size: 14px;">현재가</button>
+                    <button class="btn btn-outline-secondary" id="btnTrend" onclick="switchPriceTab('trend')"
+                        style="padding: 2px 8px; font-size: 14px;">추세선</button>
+                </div>
+                {% endif %}
+            </div>
             <div class="stat-category" style="min-height: 230px;">
                 <div class="price-table" style="max-height: 200px; overflow-y: auto;">
                     {% for i in range(1, 14) %}
@@ -914,6 +939,20 @@
                     {% endif %}
                     {% endfor %}
                 </div>
+                {% if price_history %}
+                <div id="trendSection" style="display:none;">
+                    <div class="d-flex align-items-center mb-2 flex-wrap justify-content-center">
+                        {% for i in range(1, 14) %}
+                        <button
+                            class="btn btn-sm btn-outline-secondary trend-strong-btn {% if i == 5 %}active{% endif %}"
+                            onclick="loadTrend({{ i }}, this)"
+                            style="padding: 1px 4px; font-size: 12px; margin: 3px; box-shadow: none !important; outline: none !important;">+{{
+                            i }}</button>
+                        {% endfor %}
+                    </div>
+                    <canvas id="priceChart" height="180"></canvas>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>
@@ -1115,4 +1154,84 @@
     document.getElementById('teamColor').addEventListener('change', updateStats);
     });
 </script>
+
+{% if price_history %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const priceHistory = {{ price_history | tojson }};
+    let chart = null;
+
+    function switchPriceTab(tab) {
+        if (tab === 'current') {
+            document.getElementById('btnCurrentPrice').classList.add('active');
+            document.getElementById('btnTrend').classList.remove('active');
+            document.querySelector('.price-table').style.display = 'block';
+            document.getElementById('trendSection').style.display = 'none';
+        } else {
+            document.getElementById('btnCurrentPrice').classList.remove('active');
+            document.getElementById('btnTrend').classList.add('active');
+            document.querySelector('.price-table').style.display = 'none';
+            document.getElementById('trendSection').style.display = 'block';
+            loadTrend(5, document.querySelector('.trend-strong-btn.active'));
+        }
+    }
+
+    function formatPrice(value) {
+        const num = parseInt(value);
+        if (num >= 10000000000000000) return (num / 10000000000000000).toFixed(1) + '경';
+        if (num >= 1000000000000) return (num / 1000000000000).toFixed(1) + '조';
+        if (num >= 100000000) return (num / 100000000).toFixed(1) + '억';
+        if (num >= 10000) return Math.floor(num / 10000) + '만';
+        return num.toLocaleString();
+    }
+
+    function loadTrend(strong, btn) {
+        document.querySelectorAll('.trend-strong-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        const data = priceHistory[String(strong)];
+        if (!data) return;
+
+        const times = data.times;
+        const values = data.values.map(v => parseInt(v));
+
+        if (chart) chart.destroy();
+
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: times,
+                datasets: [{
+                    data: values,
+                    fill: false,
+                    borderColor: '#25c7f5',
+                    borderWidth: 2,
+                    pointRadius: 2,
+                    tension: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => formatPrice(ctx.raw) + ' BP'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { callback: val => formatPrice(val) }
+                    },
+                    x: {
+                        ticks: { maxTicksLimit: 7, autoSkip: true }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
 {% endblock %}
