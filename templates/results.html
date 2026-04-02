@@ -1068,9 +1068,9 @@
         </div>
 
         <button class="add-to-basket-btn" data-spid="{{ card.spid }}" data-name="{{ card.player_name }}"
-            data-season="{{ card.season_name }}" data-image="{{ card.image }}" data-season-img="{{ card.season_img }}"
-            data-nation="{{ card.nation|default('Unknown') }}" data-nation-img="{{ card.nation_img|default('') }}"
-            onclick="event.stopPropagation(); addToBasket(this);">
+            data-season="{{ card.season_name }}" data-image="{{ card.image }}" data-image-high="{{ card.image_high }}"
+            data-season-img="{{ card.season_img }}" data-nation="{{ card.nation|default('Unknown') }}"
+            data-nation-img="{{ card.nation_img|default('') }}" onclick="event.stopPropagation(); addToBasket(this);">
             <span class="btn-icon">+</span>
             <span class="btn-text">비교</span>
         </button>

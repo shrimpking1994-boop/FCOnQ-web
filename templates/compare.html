@@ -896,7 +896,8 @@ endblock %}
 <div class="header-section">
     <!-- 왼쪽 플레이어 헤더 -->
     <div class="player-header">
-        <img src="{{ card1.image_info.mini_faceon }}" class="player-image" alt="{{ card1.player_name }}">
+        <img src="{{ card1.image_info.mini_faceon }}" class="player-image" alt="{{ card1.player_name }}"
+            onerror="if(this.dataset.retry=='1'){this.onerror=null;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';}else{this.dataset.retry='1';this.src='{{ card1.image_info.mini_faceon_high }}';}">
         <div class="player-name-row">
             {% if card1.image_info.season_img %}
             <img src="{{ card1.image_info.season_img }}" alt="{{ card1.season_name }}" class="season-icon">
@@ -910,7 +911,8 @@ endblock %}
 
     <!-- 오른쪽 플레이어 헤더 -->
     <div class="player-header">
-        <img src="{{ card2.image_info.mini_faceon }}" class="player-image" alt="{{ card2.player_name }}">
+        <img src="{{ card2.image_info.mini_faceon }}" class="player-image" alt="{{ card2.player_name }}"
+            onerror="if(this.dataset.retry=='1'){this.onerror=null;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';}else{this.dataset.retry='1';this.src='{{ card2.image_info.mini_faceon_high }}';}">
         <div class="player-name-row">
             {% if card2.image_info.season_img %}
             <img src="{{ card2.image_info.season_img }}" alt="{{ card2.season_name }}" class="season-icon">

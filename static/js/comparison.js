@@ -102,7 +102,7 @@ class ComparisonBasket {
         div.dataset.spid = card.spid;
 
         div.innerHTML = `
-        <img src="${card.image}" class="basket-card-image" alt="${card.name}">
+        <img src="${card.image}" class="basket-card-image" alt="${card.name}" onerror="if(this.dataset.retry=='1'){this.onerror=null;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';}else{this.dataset.retry='1';this.src='${card.imageHigh}';}">
         ${card.seasonImg ? `<img src="${card.seasonImg}" class="basket-season-icon" alt="${card.season}">` : ''}
         <button class="basket-remove" onclick="basket.removeCard('${card.spid}')">&times;</button>
     `;
@@ -165,7 +165,7 @@ class ComparisonBasket {
         slotEl.classList.add('filled');
         slotEl.innerHTML = `
         <div class="slot-card">
-            <img src="${card.image}" class="slot-card-image" alt="${card.name}">
+            <img src="${card.image}" class="slot-card-image" alt="${card.name}" onerror="if(this.dataset.retry=='1'){this.onerror=null;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';}else{this.dataset.retry='1';this.src='${card.imageHigh}';}">
             ${card.seasonImg ? `<img src="${card.seasonImg}" class="slot-season-icon" alt="${card.season}">` : ''}
             <button class="slot-remove" onclick="basket.slotToBasket(${slotNum})">&times;</button>
         </div>
@@ -307,6 +307,7 @@ function addToBasket(btn) {
         name: btn.dataset.name,
         season: btn.dataset.season,
         image: btn.dataset.image,
+        imageHigh: btn.dataset.imageHigh,
         seasonImg: btn.dataset.seasonImg,
         nation: btn.dataset.nation,
         nationImg: btn.dataset.nationImg
