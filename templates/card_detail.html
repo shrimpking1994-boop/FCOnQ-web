@@ -940,11 +940,12 @@
 
                             <span class="price-unit"
                                 style="font-size: 12px; color: var(--text-muted); margin-left: 5px;">
-                                <span class="price-bracket">(</span>{% if price >= 10000000000000000 %}{{ "%.1f경" %
-                                (price / 10000000000000000) }}{% elif price >= 1000000000000 %}{{ "%.1f조" % (price /
-                                1000000000000) }}{% elif price >= 100000000 %}{{ "%.1f억" % (price / 100000000) }}{% elif
-                                price >= 10000 %}{{ "%d만" % (price / 10000) }}{% else %}{{ "{:,}".format(price) }}{%
-                                endif %}<span class="price-bracket">)</span>
+                                <span class="price-bracket">(</span>{% if price >= 10000000000000000 %}{% set v = price
+                                / 10000000000000000 %}{{ "%d경" % v if v == v|int else "%.1f경" % v }}{% elif price >=
+                                1000000000000 %}{% set v = price / 1000000000000 %}{{ "%d조" % v if v == v|int else
+                                "%.1f조" % v }}{% elif price >= 100000000 %}{% set v = price / 100000000 %}{{ "%d억" % v
+                                if v == v|int else "%.1f억" % v }}{% elif price >= 10000 %}{{ "%d만" % (price / 10000)
+                                }}{% else %}{{ "{:,}".format(price) }}{% endif %}<span class="price-bracket">)</span>
                             </span>
                         </span>
                     </div>
@@ -1191,10 +1192,15 @@
     }
 
     function formatPrice(value) {
-        const num = parseInt(value);
-        if (num >= 10000000000000000) return (num / 10000000000000000).toFixed(1) + '경';
-        if (num >= 1000000000000) return (num / 1000000000000).toFixed(1) + '조';
-        if (num >= 100000000) return (num / 100000000).toFixed(1) + '억';
+        const num = parseFloat(value);
+        if (isNaN(num) || num === 0) return '0';
+        function trim(v, unit) {
+            const r = v / unit;
+            return r % 1 === 0 ? r.toFixed(0) : r.toFixed(1);
+        }
+        if (num >= 10000000000000000) return trim(num, 10000000000000000) + '경';
+        if (num >= 1000000000000) return trim(num, 1000000000000) + '조';
+        if (num >= 100000000) return trim(num, 100000000) + '억';
         if (num >= 10000) return Math.floor(num / 10000) + '만';
         return num.toLocaleString();
     }
