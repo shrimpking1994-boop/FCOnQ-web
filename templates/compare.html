@@ -1125,8 +1125,16 @@ endblock %}
     <!-- 시세 상세 (스크롤 영역) -->
     <div class="price-comparison-container">
         {% for i in range(1, 14) %}
+        {% if price_history1 and (i|string) in price_history1 and price_history1[i|string]['values'] %}
+        {% set price1 = price_history1[i|string]['values'][-1] | int %}
+        {% else %}
         {% set price1 = card1['bp' ~ i] %}
+        {% endif %}
+        {% if price_history2 and (i|string) in price_history2 and price_history2[i|string]['values'] %}
+        {% set price2 = price_history2[i|string]['values'][-1] | int %}
+        {% else %}
         {% set price2 = card2['bp' ~ i] %}
+        {% endif %}
         {% if (price1 and price1 > 0) or (price2 and price2 > 0) %}
         <div class="price-comparison-row">
             <!-- 왼쪽 가격 -->

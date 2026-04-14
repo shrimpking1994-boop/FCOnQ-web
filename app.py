@@ -1231,6 +1231,14 @@ def compare_cards(spid1, spid2):
     """, (spid1, spid2, spid1))
     
     cards = cur.fetchall()
+
+    cur.execute("""
+        SELECT spid, full_data FROM card_price_history WHERE spid IN (%s, %s)
+    """, (spid1, spid2))
+    ph_rows = cur.fetchall()
+    ph_map = {row['spid']: row['full_data'] for row in ph_rows}
+    price_history1 = ph_map.get(spid1)
+    price_history2 = ph_map.get(spid2)
     
     cur.close()
     conn.close()
@@ -1238,7 +1246,8 @@ def compare_cards(spid1, spid2):
     if len(cards) != 2:
         return "카드를 찾을 수 없습니다", 404
     
-    return render_template('compare.html', card1=cards[0], card2=cards[1])    
+    return render_template('compare.html', card1=cards[0], card2=cards[1],
+                           price_history1=price_history1, price_history2=price_history2)    
     
     
 
