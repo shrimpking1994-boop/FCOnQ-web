@@ -1864,12 +1864,13 @@
     function formatPrice(value) {
         const num = parseFloat(value);
         if (isNaN(num) || num === 0) return null;
-        function trim(v, unit) {
-            return Math.floor(v / unit).toFixed(0);
+        if (num >= 10000000000000000) {
+            const r = num / 10000000000000000;
+            if (!isFinite(r) || isNaN(r)) return '999경+';
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '경';
         }
-        if (num >= 10000000000000000) return trim(num, 10000000000000000) + '경';
-        if (num >= 1000000000000) return trim(num, 1000000000000) + '조';
-        if (num >= 100000000) return trim(num, 100000000) + '억';
+        if (num >= 1000000000000) return Math.floor(num / 1000000000000) + '조';
+        if (num >= 100000000) return Math.floor(num / 100000000) + '억';
         if (num >= 10000) return Math.floor(num / 10000) + '만';
         return num.toLocaleString();
     }
@@ -2019,7 +2020,7 @@
 
         const totalPrice = players.reduce((sum, p) => {
             const bpKey = 'bp' + (p.boost || 8);
-            return sum + (p[bpKey] || 0);
+            return sum + (parseInt(p[bpKey]) || 0);
         }, 0);
         const priceEl = document.getElementById('total-price');
         priceEl.textContent = totalPrice > 0 ? formatPrice(totalPrice) : '—';

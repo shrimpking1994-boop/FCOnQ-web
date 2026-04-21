@@ -2512,17 +2512,22 @@ def card_price(spid):
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT bp1, bp2, bp3, bp4, bp5, bp6, bp7,
-               bp8, bp9, bp10, bp11, bp12, bp13
-        FROM card_prices
+        SELECT full_data
+        FROM card_price_history
         WHERE spid = %s
     """, (spid,))
     row = cur.fetchone()
     cur.close()
     conn.close()
-    if not row:
+    if not row or not row['full_data']:
         return jsonify({})
-    return jsonify(dict(row))
+    
+    result = {}
+    for boost_str, data in row['full_data'].items():
+        values = data.get('values', []) if isinstance(data, dict) else data
+        if values:
+            result[f'bp{boost_str}'] = values[-1]
+    return jsonify(result)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
