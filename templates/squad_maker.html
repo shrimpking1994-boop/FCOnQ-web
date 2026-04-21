@@ -1,0 +1,2653 @@
+{% extends "index.html" %}
+
+{% block title %}엪씨온큐 | 스쿼드 메이커{% endblock %}
+
+{% block content %}
+<style>
+    .sm-container {
+        max-width: 980px;
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    /* 빠른 스쿼드 제작 */
+    .sm-quick {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .sm-quick-vertical {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .sm-quick-label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+    }
+
+    .sm-quick-divider {
+        width: 1px;
+        height: 20px;
+        background: var(--border-color);
+    }
+
+    .sm-btn {
+        padding: 7px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: opacity 0.2s;
+    }
+
+    .sm-btn:hover {
+        opacity: 0.85;
+    }
+
+    .sm-btn-tier {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .sm-btn-ranker {
+        background: #d06c48;
+        color: #fff;
+    }
+
+    .sm-btn-reset {
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        margin-left: auto;
+    }
+
+    /* 요약바 */
+    .sm-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .sm-stat {
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 10px 12px;
+        text-align: center;
+    }
+
+    .sm-stat-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .sm-stat-val {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .sm-stat-sub {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .sm-ovr-row {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2px;
+    }
+
+    .ovr-fw {
+        color: #ee0055;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .ovr-mf {
+        color: #22aa77;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .ovr-df {
+        color: #2277cc;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .ovr-gk {
+        color: #aa6600;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    /* 포메이션 + 적응도 */
+    .sm-ctrl {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .sm-select {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 7px 12px;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+
+    /* 필드 */
+    .sm-field-wrap {
+        background: #2d6a3f;
+        border-radius: 10px;
+        padding: 0;
+        height: 720px;
+        max-width: 640px;
+        margin: 0 auto 10px;
+        position: relative;
+        overflow: hidden;
+        touch-action: none;
+    }
+
+    .sm-field-label {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.35);
+        text-align: center;
+        letter-spacing: 3px;
+        margin-bottom: 14px;
+    }
+
+    .sm-row {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .sm-slot {
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .sm-slot-card {
+        width: 64px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1.5px dashed rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        position: relative;
+    }
+
+    .sm-slot-card:hover {
+        background: rgba(255, 255, 255, 0.16);
+    }
+
+    .sm-slot-card .plus {
+        font-size: 22px;
+        color: rgba(255, 255, 255, 0.4);
+        line-height: 1;
+    }
+
+    .sm-slot-pos {
+        font-size: 0.65rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 5px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    /* 팀컬러 현황 */
+    .sm-tc {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+    }
+
+    .sm-tc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .sm-tc-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .sm-tc-section-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        margin: 0 0 6px;
+        padding: 10px 12px 6px;
+    }
+
+    .sm-tc-count {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .sm-tc-empty {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        padding: 10px 0 14px;
+    }
+
+    .sm-tc-block {
+        background: var(--bg-main);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        overflow: hidden;
+    }
+
+    /* 정보 수정창 */
+    .sm-edit-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sm-edit-overlay.active {
+        display: flex;
+    }
+
+    .sm-edit-box {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px;
+        width: 280px;
+    }
+
+    .sm-edit-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .sm-edit-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        transition: background 0.15s;
+    }
+
+    .sm-edit-menu-item:hover {
+        background: var(--hover-bg);
+    }
+
+    .sm-edit-menu-item.danger {
+        color: #e74c3c;
+        border-color: rgba(231, 76, 60, 0.3);
+    }
+
+    .sm-edit-menu-item.danger:hover {
+        background: rgba(231, 76, 60, 0.08);
+    }
+
+    .sm-edit-cancel {
+        display: block;
+        margin: 0 auto;
+        padding: 6px 24px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        cursor: pointer;
+    }
+
+    /* 강화단계 선택 팝업 */
+    .boost-select-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .boost-select-overlay.active {
+        display: flex;
+    }
+
+    .boost-select-box {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px;
+        width: 280px;
+        text-align: center;
+    }
+
+    .boost-select-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 14px;
+    }
+
+    .boost-select-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+        margin-bottom: 14px;
+    }
+
+    .boost-select-item {
+        padding: 6px 0;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+
+    .boost-select-item {
+        padding: 8px 0;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+
+    .boost-select-item:hover {
+        opacity: 0.8;
+    }
+
+    /* 미페 변경 오버레이 */
+    .sm-miniface-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sm-miniface-overlay.active {
+        display: flex;
+    }
+
+    .sm-miniface-box {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px;
+        width: 90%;
+        max-width: 480px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sm-miniface-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .sm-miniface-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .sm-miniface-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        overflow-y: auto;
+    }
+
+    .sm-miniface-item {
+        background: var(--bg-main);
+        border-radius: 8px;
+        padding: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        text-align: center;
+        transition: border-color 0.15s;
+        position: relative;
+    }
+
+    .sm-miniface-item:hover {
+        border-color: var(--primary-color);
+    }
+
+    .sm-miniface-item img.mf-img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    .sm-miniface-item img.mf-season {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        position: absolute;
+        bottom: 6px;
+        left: 6px;
+    }
+
+    .boost-select-cancel {
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    /* 선수 검색 모달 */
+    .sm-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sm-modal-overlay.active {
+        display: flex;
+    }
+
+    .sm-modal {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px;
+        width: 90%;
+        max-width: 480px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sm-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sm-modal-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .sm-modal-close {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        cursor: pointer;
+        color: var(--text-muted);
+        line-height: 1;
+    }
+
+    .sm-modal-search {
+        width: 100%;
+        padding: 9px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .sm-modal-results {
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .sm-modal-empty {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        padding: 20px 0;
+    }
+
+    .sm-result-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: var(--bg-main);
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .sm-result-item:hover {
+        background: var(--hover-bg);
+    }
+
+    .sm-result-img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .sm-result-season {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .sm-result-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sm-result-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sm-result-meta {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    .sm-result-ovr {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        min-width: 32px;
+        text-align: right;
+    }
+
+    /* 사용률 기반 자동완성 모달 */
+    .sm-tier-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 3000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sm-tier-overlay.active {
+        display: flex;
+    }
+
+    .sm-tier-box {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px;
+        width: 90%;
+        max-width: 420px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sm-tier-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .sm-tier-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .sm-tier-list {
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-right: -12px;
+        padding-right: 4px;
+    }
+
+    .sm-tier-list::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sm-tier-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sm-tier-list::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.4);
+        border-radius: 4px;
+    }
+
+    .sm-tier-option {
+        padding: 11px 14px;
+        border-radius: 8px;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        transition: background 0.15s;
+    }
+
+    .sm-tier-option:hover {
+        background: var(--hover-bg);
+    }
+
+    .sm-tier-tc-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .sm-tier-tc-item:hover {
+        background: var(--hover-bg);
+    }
+
+    .sm-tier-tc-rank {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        min-width: 20px;
+    }
+
+    .sm-tier-tc-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .sm-tier-rank-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .sm-tier-rank-btn {
+        padding: 13px;
+        border-radius: 8px;
+        background: var(--bg-main);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+
+    .sm-tier-rank-btn:hover {
+        opacity: 0.85;
+    }
+
+    /* 랭커 스쿼드 모달 */
+    .sm-ranker-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 3000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sm-ranker-overlay.active {
+        display: flex;
+    }
+
+    .sm-ranker-box {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px 20px 20px 20px;
+        width: 90%;
+        max-width: 420px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sm-ranker-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .sm-ranker-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .sm-ranker-list {
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-right: -12px;
+        padding-right: 4px;
+    }
+
+    .sm-ranker-list::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sm-ranker-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sm-ranker-list::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.4);
+        border-radius: 4px;
+    }
+
+    .sm-ranker-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .sm-ranker-item:hover {
+        background: var(--hover-bg);
+    }
+
+    .sm-ranker-rank {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        min-width: 36px;
+    }
+
+    .sm-ranker-nickname {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    .sm-ranker-value {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .sm-ranker-range {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .sm-ranker-input {
+        flex: 1;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        color: var(--text-primary);
+        font-size: 0.85rem;
+    }
+
+    .sm-ranker-search-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        background: var(--primary-color);
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    /* 모바일 */
+    @media (max-width: 768px) {
+        .sm-summary {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .sm-slot-card {
+            width: 52px;
+            height: 65px;
+        }
+
+        .sm-row {
+            gap: 6px;
+        }
+
+        .sm-quick {
+            gap: 8px;
+        }
+
+        .sm-btn-reset {
+            margin-left: 0;
+        }
+
+        .sm-ranker-range {
+            flex-direction: column;
+            gap: 6px;
+        }
+    }
+</style>
+
+<div class="sm-container">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <!-- 빠른 스쿼드 제작 -->
+        <div class="sm-quick-vertical">
+            <span class="sm-quick-label">✨ 빠른 스쿼드 제작</span>
+            <button class="sm-btn sm-btn-tier" onclick="autoFillByTier()">1. 사용률 기반 자동완성</button>
+            <button class="sm-btn sm-btn-ranker" onclick="loadRankerSquad()">2. 랭커 스쿼드 불러오기</button>
+        </div>
+        <!-- 스쿼드 관리 -->
+        <div class="sm-quick-vertical">
+            <button class="sm-btn" onclick="saveSquad()"
+                style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4);">💾
+                스쿼드 저장</button>
+            <button class="sm-btn" onclick="loadSquadList()"
+                style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4);">📂
+                스쿼드 불러오기</button>
+            <button class="sm-btn" onclick="resetSquad()"
+                style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4); border-radius:0;">🔄
+                초기화</button>
+        </div>
+    </div>
+
+    <!-- 3열: 요약바 -->
+    <div class="sm-summary">
+        <div class="sm-stat">
+            <div class="sm-stat-label">총 급여</div>
+            <div class="sm-stat-val"><span id="total-salary">0</span><span
+                    style="font-size:0.85rem;color:var(--text-muted)">/300</span></div>
+        </div>
+        <div class="sm-stat">
+            <div class="sm-stat-label">총 구단가치</div>
+            <div class="sm-stat-val"><span id="total-price">—</span><span
+                    style="font-size:0.85rem;color:var(--text-muted)"> BP</span></div>
+        </div>
+        <div class="sm-stat">
+            <div class="sm-stat-label">선수 인원</div>
+            <div class="sm-stat-val"><span id="player-count">0</span><span
+                    style="font-size:0.85rem;color:var(--text-muted)">/11</span></div>
+        </div>
+    </div>
+
+    <!-- 포메이션 + 적응도 -->
+    <div class="sm-ctrl">
+        <select class="sm-select" id="formation-select" onchange="changeFormation(this.value)">
+            <option value="42211">4-2-2-1-1</option>
+            <option value="4231">4-2-3-1</option>
+            <option value="42221">4-2-2-2 (1)</option>
+            <option value="42222">4-2-2-2 (2)</option>
+            <option value="4123">4-1-2-3</option>
+            <option value="4141">4-1-4-1</option>
+            <option value="41212">4-1-2-1-2</option>
+        </select>
+        <select class="sm-select" id="adapt-select" onchange="refreshAllOvr()">
+            <option value="5">적응도 Lv.5</option>
+            <option value="1">적응도 Lv.1</option>
+        </select>
+    </div>
+
+    <div style="text-align:center; margin-bottom:8px;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">현재 포메이션: </span>
+        <span id="formation-label" style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">—</span>
+    </div>
+
+    <!-- 필드 -->
+    <div class="sm-field-wrap" id="squad-field">
+
+        <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
+        <div id="field-rows" style="position:relative; width:100%; height:100%;"></div>
+    </div>
+
+    <!-- 강화단계 선택 팝업 -->
+    <div class="boost-select-overlay" id="boost-select-overlay">
+        <div class="boost-select-box" style="width:340px;">
+            <div class="boost-select-title" id="boost-select-title">강화단계 선택</div>
+            <div class="boost-select-grid">
+                <!-- JS로 렌더링 -->
+            </div>
+            <button class="boost-select-cancel" onclick="closeBoostSelect()">취소</button>
+        </div>
+    </div>
+
+    <!-- 미페 변경 오버레이 -->
+    <div class="sm-miniface-overlay" id="miniface-overlay">
+        <div class="sm-miniface-box">
+            <div class="sm-miniface-header">
+                <span class="sm-miniface-title" id="miniface-title">미니페이스온 변경</span>
+                <button style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);"
+                    onclick="closeMiniface()">✕</button>
+            </div>
+            <div class="sm-miniface-grid" id="miniface-grid">
+                <div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 정보 수정창 -->
+    <div class="sm-edit-overlay" id="edit-overlay">
+        <div class="sm-edit-box">
+            <div class="sm-edit-header">
+                <div
+                    style="text-align:center; width:100%; padding-bottom:14px; border-bottom:1px solid var(--border-color); margin-bottom:14px;">
+                    <div style="font-size:1.2rem; font-weight:800; color:var(--text-primary); margin-bottom:6px;"
+                        id="edit-pos-label"></div>
+                    <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <img id="edit-season-img" style="width:24px; height:24px; object-fit:contain;" src="">
+                        <span style="font-size:1.05rem; font-weight:600; color:var(--text-primary);"
+                            id="edit-player-name"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="sm-edit-menu">
+                <div class="sm-edit-menu-item" onclick="editAction('boost')">
+                    ⚡ 강화단계 수정
+                </div>
+                <div class="sm-edit-menu-item" onclick="editAction('season')">
+                    🔄 시즌 변경
+                </div>
+                <div class="sm-edit-menu-item" onclick="editAction('miniface')">
+                    🖼️ 미니페이스온 변경
+                </div>
+                <div class="sm-edit-menu-item danger" onclick="editAction('remove')">
+                    ✕ 스쿼드에서 제외
+                </div>
+            </div>
+            <button class="sm-edit-cancel" onclick="closeEditModal()">취소</button>
+        </div>
+    </div>
+
+    <div class="sm-tc">
+        <div class="sm-tc-header">
+            <span class="sm-tc-title">팀컬러 현황</span>
+        </div>
+
+        <div class="sm-tc-block">
+            <div class="sm-tc-section-title">⚡ 강화 팀컬러</div>
+            <div id="tc-body">
+                <div class="sm-tc-empty">강화 팀컬러 효과가 자동 표시됩니다.</div>
+            </div>
+        </div>
+
+        <div class="sm-tc-block">
+            <div class="sm-tc-section-title">🏟️ 소속 팀컬러</div>
+            <div id="tc-club-body">
+                <div class="sm-tc-empty">국가 및 클럽 팀컬러 효과가 자동 표시됩니다.</div>
+            </div>
+        </div>
+
+        <div class="sm-tc-block">
+            <div class="sm-tc-section-title">🤝 특성 팀컬러</div>
+            <div id="tc-trait-body">
+                <div class="sm-tc-empty">현역 케미, 특정 조합과 같은 팀컬러가 자동 표시됩니다.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 사용률 기반 자동완성 모달 -->
+<div class="sm-tier-overlay" id="tier-overlay">
+    <div class="sm-tier-box">
+        <div class="sm-tier-header">
+            <span class="sm-tier-title" id="tier-step-title">포메이션 선택</span>
+            <button style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);"
+                onclick="closeTierModal()">✕</button>
+        </div>
+        <div class="sm-tier-list" id="tier-content"></div>
+    </div>
+</div>
+
+<!-- 랭커 스쿼드 불러오기 모달 -->
+<div class="sm-ranker-overlay" id="ranker-overlay">
+    <div class="sm-ranker-box">
+        <div class="sm-ranker-header">
+            <span class="sm-ranker-title" id="ranker-step-title">1/3 — 팀컬러 선택</span>
+            <button style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);"
+                onclick="closeRankerModal()">✕</button>
+        </div>
+        <div class="sm-ranker-list" id="ranker-content"></div>
+    </div>
+</div>
+
+<!-- 선수 검색 모달 -->
+<div class="sm-modal-overlay" id="player-modal">
+    <div class="sm-modal">
+        <div class="sm-modal-header">
+            <span class="sm-modal-title" id="modal-title">선수 선택</span>
+            <button class="sm-modal-close" onclick="closePlayerModal()">✕</button>
+        </div>
+        <input class="sm-modal-search" id="modal-search-input" type="text" placeholder="선수 이름 검색..."
+            oninput="onModalSearch(this.value)">
+        <div class="sm-modal-results" id="modal-results">
+            <div class="sm-modal-empty">선수 이름을 입력하세요</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 포지션별 절대좌표 (top%, left%)
+    const POS_COORDS = {
+        // FW
+        'LW': { top: 13, left: 12 },
+        'LF': { top: 23, left: 22 },
+        'LS': { top: 13, left: 35 },
+        'ST': { top: 11, left: 50 },
+        'CF': { top: 23, left: 50 },
+        'RF': { top: 23, left: 78 },
+        'RS': { top: 13, left: 65 },
+        'RW': { top: 13, left: 88 },
+        // AM
+        'LAM': { top: 30, left: 28 },
+        'CAM': { top: 30, left: 50 },
+        'RAM': { top: 30, left: 72 },
+        // MF
+        'LM': { top: 38, left: 12 },
+        'LCM': { top: 40, left: 30 },
+        'CM': { top: 40, left: 50 },
+        'RCM': { top: 40, left: 70 },
+        'RM': { top: 38, left: 88 },
+        // DM
+        'LDM': { top: 55, left: 33 },
+        'CDM': { top: 57, left: 50 },
+        'RDM': { top: 55, left: 67 },
+        // DF
+        'LWB': { top: 68, left: 12 },
+        'LB': { top: 74, left: 12 },
+        'LCB': { top: 74, left: 35 },
+        'CB': { top: 73, left: 50 },
+        'SW': { top: 77, left: 50 },
+        'RCB': { top: 74, left: 65 },
+        'RB': { top: 74, left: 88 },
+        'RWB': { top: 68, left: 88 },
+        // GK
+        'GK': { top: 90, left: 50 },
+    };
+
+    // 포메이션 정의
+    const FORMATIONS = {
+        '42211': { label: '4-2-2-1-1', positions: ['ST', 'CAM', 'LM', 'RM', 'LDM', 'RDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
+        '4231': { label: '4-2-3-1', positions: ['ST', 'LAM', 'CAM', 'RAM', 'LDM', 'RDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
+        '42221': { label: '4-2-2-2 (1)', positions: ['LS', 'RS', 'LAM', 'RAM', 'LDM', 'RDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
+        '42222': { label: '4-2-2-2 (2)', positions: ['LS', 'RS', 'LM', 'RM', 'LDM', 'RDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
+        '4123': { label: '4-1-2-3', positions: ['ST', 'LW', 'RW', 'LCM', 'RCM', 'CDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
+        '4141': { label: '4-1-4-1', positions: ['ST', 'LM', 'RM', 'LCM', 'RCM', 'CDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
+        '41212': { label: '4-1-2-1-2', positions: ['LS', 'RS', 'CAM', 'LCM', 'RCM', 'CDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
+    };
+
+    let squadData = {};
+    let slotPositions = {};
+    let currentFormation = '42211';
+
+    function renderFormation(fKey) {
+        currentFormation = fKey;
+        const f = FORMATIONS[fKey];
+        squadData = {};
+        slotPositions = {};
+        f.positions.forEach(pos => {
+            squadData[pos] = null;
+            slotPositions[pos] = { top: POS_COORDS[pos].top, left: POS_COORDS[pos].left };
+        });
+        document.getElementById('field-rows').innerHTML = '';
+        f.positions.forEach(pos => createSlotElement(pos));
+    }
+
+    function createSlotElement(pos) {
+        const container = document.getElementById('field-rows');
+        const c = slotPositions[pos];
+        const el = document.createElement('div');
+        el.id = `wrapper-${pos}`;
+        el.dataset.pos = pos;
+        el.style.cssText = `position:absolute; top:${c.top}%; left:${c.left}%; transform:translate(-50%,-50%); text-align:center; cursor:pointer;`;
+        el.innerHTML = `
+        <div class="sm-slot-card" id="slot-${pos}">
+            <span class="plus">+</span>
+            <div style="font-size:0.6rem;color:rgba(255,255,255,0.6);margin-top:3px;font-weight:600;">${pos}</div>
+        </div>`;
+        container.appendChild(el);
+    }
+
+    function updateWrapperPosition(pos) {
+        const wrapper = document.getElementById(`wrapper-${pos}`);
+        if (!wrapper) return;
+        const c = slotPositions[pos];
+        wrapper.style.top = c.top + '%';
+        wrapper.style.left = c.left + '%';
+    }
+
+    // ── 드래그 & 자유 이동 ─────────────────────────────────────
+    let dragState = null;
+
+    function getNearestPos(pctX, pctY) {
+        // 1순위: 정확히 구역 안에 있는 포지션
+        for (const [pos, z] of Object.entries(ZONE_DEFS)) {
+            if (pos === 'GK') continue;
+            if (pctX >= z.left && pctX <= z.left + z.w &&
+                pctY >= z.top && pctY <= z.top + z.h) {
+                return pos;
+            }
+        }
+        // 2순위: 구역 밖(필드 경계)이면 가장 가까운 포지션
+        let nearest = null, minDist = Infinity;
+        Object.entries(ZONE_DEFS).forEach(([pos, z]) => {
+            if (pos === 'GK') return;
+            const cx = z.left + z.w / 2;
+            const cy = z.top + z.h / 2;
+            const dist = Math.sqrt((pctX - cx) ** 2 + (pctY - cy) ** 2);
+            if (dist < minDist) { minDist = dist; nearest = pos; }
+        });
+        return nearest;
+    }
+
+    const ZONE_DEFS = {
+        'LW': { top: 0, left: 0, w: 20, h: 28 },
+        'LS': { top: 0, left: 20, w: 17, h: 19 },
+        'ST': { top: 0, left: 37, w: 26, h: 19 },
+        'RS': { top: 0, left: 63, w: 17, h: 19 },
+        'RW': { top: 0, left: 80, w: 20, h: 28 },
+        'LF': { top: 19, left: 20, w: 17, h: 8 },
+        'CF': { top: 19, left: 37, w: 26, h: 8 },
+        'RF': { top: 19, left: 63, w: 17, h: 8 },
+        'LAM': { top: 27, left: 20, w: 17, h: 11 },
+        'CAM': { top: 27, left: 37, w: 26, h: 11 },
+        'RAM': { top: 27, left: 63, w: 17, h: 11 },
+        'LM': { top: 28, left: 0, w: 20, h: 35 },
+        'LCM': { top: 38, left: 20, w: 17, h: 12 },
+        'CM': { top: 38, left: 37, w: 26, h: 12 },
+        'RCM': { top: 38, left: 63, w: 17, h: 12 },
+        'RM': { top: 28, left: 80, w: 20, h: 35 },
+        'LDM': { top: 50, left: 20, w: 17, h: 18 },
+        'CDM': { top: 50, left: 37, w: 26, h: 18 },
+        'RDM': { top: 50, left: 63, w: 17, h: 18 },
+        'LWB': { top: 63, left: 0, w: 20, h: 9 },
+        'RWB': { top: 63, left: 80, w: 20, h: 9 },
+        'LB': { top: 72, left: 0, w: 20, h: 13 },
+        'LCB': { top: 68, left: 20, w: 17, h: 17 },
+        'CB': { top: 68, left: 37, w: 26, h: 9 },
+        'SW': { top: 77, left: 37, w: 26, h: 8 },
+        'RCB': { top: 68, left: 63, w: 17, h: 17 },
+        'RB': { top: 72, left: 80, w: 20, h: 13 },
+    };
+
+    function initDragAndDrop() {
+        document.getElementById('field-rows').addEventListener('pointerdown', onDragStart);
+    }
+
+    function updateZoneHighlight(pos) {
+        document.querySelectorAll('.zone-highlight').forEach(el => el.remove());
+        if (!pos || !ZONE_DEFS[pos]) return;
+
+        const field = document.getElementById('squad-field');
+        const fw = field.offsetWidth;
+        const fh = field.offsetHeight;
+        const z = ZONE_DEFS[pos];
+
+        const highlight = document.createElement('div');
+        highlight.className = 'zone-highlight';
+        highlight.style.cssText = `
+        position:absolute; pointer-events:none; z-index:5;
+        left:${z.left / 100 * fw}px;
+        top:${z.top / 100 * fh}px;
+        width:${z.w / 100 * fw}px;
+        height:${z.h / 100 * fh}px;
+        background:rgba(0,255,100,0.2);
+        border:2px solid rgba(0,255,100,0.6);
+        border-radius:4px;
+        box-sizing:border-box;
+    `;
+        field.appendChild(highlight);
+    }
+
+    function clearZoneHighlight() {
+        document.querySelectorAll('.zone-highlight').forEach(el => el.remove());
+    }
+
+    function onDragStart(e) {
+        const wrapper = e.target.closest('[data-pos]');
+        if (!wrapper) return;
+        e.preventDefault();
+        dragState = {
+            pos: wrapper.dataset.pos,
+            startX: e.clientX,
+            startY: e.clientY,
+            dragging: false,
+            wrapper,
+            ghost: null
+        };
+        document.addEventListener('pointermove', onDragMove);
+        document.addEventListener('pointerup', onDragEnd);
+        document.addEventListener('pointercancel', onDragEnd);
+    }
+
+    function onDragMove(e) {
+        if (!dragState) return;
+        const dx = e.clientX - dragState.startX;
+        const dy = e.clientY - dragState.startY;
+        if (!dragState.dragging && Math.sqrt(dx * dx + dy * dy) > 6) {
+            dragState.dragging = true;
+            const ghost = dragState.wrapper.cloneNode(true);
+            ghost.style.cssText = `
+            position:fixed; z-index:9999; pointer-events:none;
+            opacity:0.85; transform:translate(-50%,-50%) scale(1.05);
+            left:${e.clientX}px; top:${e.clientY}px;`;
+            document.body.appendChild(ghost);
+            dragState.ghost = ghost;
+            dragState.wrapper.style.opacity = '0.25';
+        }
+        if (dragState.dragging && dragState.ghost) {
+            dragState.ghost.style.left = e.clientX + 'px';
+            dragState.ghost.style.top = e.clientY + 'px';
+
+            const field = document.getElementById('squad-field');
+            const rect = field.getBoundingClientRect();
+            const pctX = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+            const pctY = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
+            const hoverPos = getNearestPos(pctX, pctY);
+            updateZoneHighlight(hoverPos);
+
+            // ghost 카드 포지션/OVR 실시간 업데이트
+            if (hoverPos && dragState.ghost) {
+                const fromPos = dragState.pos;
+                const card = squadData[fromPos];
+
+                // 포지션 레이블 업데이트
+                const posLabel = dragState.ghost.querySelector('[data-ghost-pos]');
+                if (posLabel) posLabel.textContent = hoverPos;
+
+                // OVR 업데이트 (카드가 있을 때만)
+                if (card) {
+                    const ovrLabel = dragState.ghost.querySelector('[data-ghost-ovr]');
+                    if (ovrLabel) ovrLabel.textContent = calcOvr(card, hoverPos);
+                }
+            }
+        }
+    }
+
+    function onDragEnd(e) {
+        document.removeEventListener('pointermove', onDragMove);
+        document.removeEventListener('pointerup', onDragEnd);
+        document.removeEventListener('pointercancel', onDragEnd);
+        if (!dragState) return;
+
+        clearZoneHighlight();
+
+        if (dragState.dragging) {
+            if (dragState.ghost) { dragState.ghost.remove(); dragState.ghost = null; }
+            dragState.wrapper.style.opacity = '1';
+
+            if (dragState.pos === 'GK') { dragState = null; return; }
+
+            const field = document.getElementById('squad-field');
+            const rect = field.getBoundingClientRect();
+            const pctX = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
+            const pctY = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
+            const targetPos = getNearestPos(pctX, pctY);
+            const fromPos = dragState.pos;
+
+            if (!targetPos || targetPos === fromPos) {
+                // 같은 구역: 위치만 이동
+                slotPositions[fromPos] = { top: pctY, left: pctX };
+                updateWrapperPosition(fromPos);
+            } else if (!document.getElementById(`wrapper-${targetPos}`)) {
+                // 해당 구역에 슬롯 없음: 이동
+                moveSlot(fromPos, targetPos, pctX, pctY);
+            } else {
+                // 해당 구역에 슬롯 있음 (카드 있든 없든): 교환
+                swapSlots(fromPos, targetPos, pctX, pctY);
+            }
+        } else {
+            openPlayerSearch('field', dragState.pos);
+        }
+        dragState = null;
+    }
+
+    function moveSlot(fromPos, toPos, dropX, dropY) {
+        const fromWrapper = document.getElementById(`wrapper-${fromPos}`);
+        const fromSlotEl = document.getElementById(`slot-${fromPos}`);
+
+        // 기존 toPos 슬롯 DOM에서 제거
+        const existingToWrapper = document.getElementById(`wrapper-${toPos}`);
+        if (existingToWrapper) existingToWrapper.remove();
+
+        // squadData 업데이트
+        squadData[toPos] = squadData[fromPos];
+        delete squadData[fromPos];
+
+        // wrapper를 toPos로 이동
+        fromWrapper.id = `wrapper-${toPos}`;
+        fromWrapper.dataset.pos = toPos;
+        fromSlotEl.id = `slot-${toPos}`;
+        slotPositions[toPos] = { top: dropY, left: dropX };
+        updateWrapperPosition(toPos);
+
+        if (squadData[toPos]) renderSlotCard(toPos, squadData[toPos]);
+        else resetSlotEmpty(toPos);
+
+        updateSummary();
+    }
+
+    function swapSlots(posA, posB, dropX, dropY) {
+        const wrapperA = document.getElementById(`wrapper-${posA}`);
+        const wrapperB = document.getElementById(`wrapper-${posB}`);
+        const slotElA = document.getElementById(`slot-${posA}`);
+        const slotElB = document.getElementById(`slot-${posB}`);
+
+        const cardA = squadData[posA];
+        const cardB = squadData[posB];
+        const oldPosA = { ...slotPositions[posA] };
+
+        // squadData 교환
+        squadData[posA] = cardB;
+        squadData[posB] = cardA;
+
+        // 충돌 방지: A를 임시 ID로
+        wrapperA.id = `wrapper-__tmp`;
+        wrapperA.dataset.pos = '__tmp';
+        slotElA.id = `slot-__tmp`;
+
+        const oldPosB = { ...slotPositions[posB] };
+
+        // B → posA (posA의 기존 위치)
+        wrapperB.id = `wrapper-${posA}`;
+        wrapperB.dataset.pos = posA;
+        slotElB.id = `slot-${posA}`;
+        slotPositions[posA] = oldPosA;
+        updateWrapperPosition(posA);
+
+        // tmp(A) → posB (B의 기존 위치)
+        wrapperA.id = `wrapper-${posB}`;
+        wrapperA.dataset.pos = posB;
+        slotElA.id = `slot-${posB}`;
+        slotPositions[posB] = oldPosB;
+        updateWrapperPosition(posB);
+
+        if (cardB) renderSlotCard(posA, cardB);
+        else resetSlotEmpty(posA);
+        if (cardA) renderSlotCard(posB, cardA);
+        else resetSlotEmpty(posB);
+
+        updateSummary();
+    }
+
+    function resetSlotEmpty(pos) {
+        const el = document.getElementById(`slot-${pos}`);
+        if (!el) return;
+        el.innerHTML = `<span class="plus">+</span><div data-ghost-pos style="font-size:0.6rem;color:rgba(255,255,255,0.6);margin-top:3px;font-weight:600;">${pos}</div>`;
+        el.style.background = 'rgba(255,255,255,0.08)';
+        el.style.border = '1.5px dashed rgba(255,255,255,0.3)';
+        el.style.overflow = 'hidden';
+        el.style.width = '64px';
+        el.style.height = '80px';
+    }
+    // ─────────────────────────────────────────────────────────────
+
+    function changeFormation(val) {
+        const oldSquadData = { ...squadData };
+        renderFormation(val);
+
+        // 새 포메이션 포지션과 일치하는 것 먼저 복원
+        const newPositions = FORMATIONS[val].positions;
+        const usedOldPos = new Set();
+
+        // 1순위: 같은 포지션명이 있으면 그대로 복원
+        newPositions.forEach(pos => {
+            if (oldSquadData[pos]) {
+                squadData[pos] = oldSquadData[pos];
+                renderSlotCard(pos, oldSquadData[pos]);
+                usedOldPos.add(pos);
+            }
+        });
+
+        // 2순위: 남은 카드들을 빈 슬롯에 순서대로 채움
+        const remainingCards = Object.entries(oldSquadData)
+            .filter(([pos, card]) => card && !usedOldPos.has(pos))
+            .map(([, card]) => card);
+
+        const emptySlots = newPositions.filter(pos => !squadData[pos]);
+        remainingCards.forEach((card, i) => {
+            if (i < emptySlots.length) {
+                squadData[emptySlots[i]] = card;
+                renderSlotCard(emptySlots[i], card);
+            }
+        });
+
+        updateSummary();
+    }
+
+    let currentSearchPos = null;
+    let searchTimer = null;
+
+    let currentEditPos = null;
+
+    function openPlayerSearch(type, pos) {
+        // 카드가 있으면 정보 수정창, 없으면 검색창
+        if (squadData[pos]) {
+            openEditModal(pos);
+        } else {
+            currentSearchPos = pos;
+            document.getElementById('modal-title').textContent = `선수 선택 — ${pos}`;
+            document.getElementById('modal-search-input').value = '';
+            document.getElementById('modal-results').innerHTML = '<div class="sm-modal-empty">선수 이름을 입력하세요</div>';
+            document.getElementById('player-modal').classList.add('active');
+            setTimeout(() => document.getElementById('modal-search-input').focus(), 100);
+        }
+    }
+
+    function openEditModal(pos) {
+        currentEditPos = pos;
+        const card = squadData[pos];
+        document.getElementById('edit-pos-label').textContent = pos;
+        document.getElementById('edit-season-img').src = card.season_img;
+        document.getElementById('edit-player-name').textContent = card.player_name;
+        document.getElementById('edit-overlay').classList.add('active');
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-overlay').classList.remove('active');
+        currentEditPos = null;
+    }
+
+    function editAction(action) {
+        if (action === 'remove') {
+            const pos = currentEditPos;
+            squadData[pos] = null;
+            const slotEl = document.getElementById(`slot-${pos}`);
+            if (slotEl) {
+                slotEl.innerHTML = `<span class="plus">+</span><div style="font-size:0.6rem;color:rgba(255,255,255,0.6);margin-top:3px;font-weight:600;">${pos}</div>`;
+                slotEl.style.background = 'rgba(255,255,255,0.08)';
+                slotEl.style.border = '1.5px dashed rgba(255,255,255,0.3)';
+                slotEl.style.overflow = 'hidden';
+                slotEl.style.width = '64px';
+                slotEl.style.height = '80px';
+            }
+            closeEditModal();
+            updateSummary();
+        } else if (action === 'boost') {
+            const pos = currentEditPos;
+            const card = squadData[pos];
+            closeEditModal();
+            openBoostSelect(card, pos);
+        } else if (action === 'season') {
+            const pos = currentEditPos;
+            const card = squadData[pos];
+            closeEditModal();
+            openSeasonChange(card, pos);
+        } else if (action === 'miniface') {
+            const pos = currentEditPos;
+            const card = squadData[pos];
+            closeEditModal();
+            openMinifaceChange(card, pos);
+        }
+    }
+
+    function closePlayerModal() {
+        document.getElementById('player-modal').classList.remove('active');
+        currentSearchPos = null;
+    }
+
+    function onModalSearch(val) {
+        clearTimeout(searchTimer);
+        if (val.trim().length < 1) {
+            document.getElementById('modal-results').innerHTML = '<div class="sm-modal-empty">선수 이름을 입력하세요</div>';
+            return;
+        }
+        searchTimer = setTimeout(() => fetchPlayers(val.trim()), 300);
+    }
+
+    async function fetchPlayers(term) {
+        const res = await fetch(`/api/squad_search?q=${encodeURIComponent(term)}`);
+        const cards = await res.json();
+        renderModalResults(cards);
+    }
+
+    function renderModalResults(cards) {
+        const container = document.getElementById('modal-results');
+        if (!cards.length) {
+            container.innerHTML = '<div class="sm-modal-empty">검색 결과가 없습니다</div>';
+            return;
+        }
+        container.innerHTML = cards.map(c => `
+            <div class="sm-result-item" onclick="selectPlayer(${JSON.stringify(c).replace(/"/g, '&quot;')})">
+                <img class="sm-result-img" src="${c.image}"
+     onerror="this.src='${c.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
+                <img class="sm-result-season" src="${c.season_img}" onerror="this.style.display='none'">
+                <div class="sm-result-info">
+                    <div class="sm-result-name">${c.player_name}</div>
+                    <div class="sm-result-meta">${c.season_name} · ${c.position} · 급여 ${c.salary}</div>
+                </div>
+                <div class="sm-result-ovr">${c.overall}</div>
+            </div>
+        `).join('');
+    }
+
+    let pendingCard = null;
+    let pendingPos = null;
+
+    function selectPlayer(card) {
+        if (!currentSearchPos) return;
+        const newPid = String(card.spid).slice(-6);
+        const duplicate = Object.entries(squadData).find(([pos, c]) =>
+            c && pos !== currentSearchPos && String(c.spid).slice(-6) === newPid
+        );
+        if (duplicate) {
+            alert(`${card.player_name}은(는) 이미 ${duplicate[0]} 포지션에 있습니다.`);
+            return;
+        }
+        pendingCard = card;
+        pendingPos = currentSearchPos;
+        closePlayerModal();
+        openBoostSelect(card);
+    }
+
+    function openBoostSelect(card, pos) {
+        if (pos) currentEditPos = pos;
+        const grid = document.querySelector('.boost-select-grid');
+        document.getElementById('boost-select-title').innerHTML =
+            `<div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:4px;">
+        <img src="${card.season_img}" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'">
+        <span>${card.player_name}</span>
+    </div>
+    <div style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">강화단계 선택</div>`;
+
+        grid.innerHTML = Array.from({ length: 13 }, (_, i) => {
+            const v = i + 1;
+            const c = BOOST_COLORS[v];
+            const tc = v <= 10 ? '#333' : '#fff';
+            return `<div class="boost-select-item"
+                         style="background:${c}; color:${tc};"
+                         onclick="confirmBoostSelect(${v})">
+                        ${v}
+                    </div>`;
+        }).join('');
+
+        document.getElementById('boost-select-overlay').classList.add('active');
+    }
+
+    async function confirmBoostSelect(boost) {
+        if (pendingCard && pendingPos) {
+            pendingCard.boost = boost;
+            await fetchCardPrice(pendingCard);
+            squadData[pendingPos] = pendingCard;
+            renderSlotCard(pendingPos, pendingCard);
+            pendingCard = null;
+            pendingPos = null;
+        } else if (currentEditPos && squadData[currentEditPos]) {
+            squadData[currentEditPos].boost = boost;
+            renderSlotCard(currentEditPos, squadData[currentEditPos]);
+        }
+        closeBoostSelect();
+        updateSummary();
+    }
+
+    function closeBoostSelect() {
+        document.getElementById('boost-select-overlay').classList.remove('active');
+    }
+
+    function openSeasonChange(card, pos) {
+        currentSearchPos = pos;
+        document.getElementById('modal-title').textContent = `시즌 변경 — ${card.player_name}`;
+        document.getElementById('modal-search-input').value = card.player_name;
+        document.getElementById('modal-results').innerHTML = '<div class="sm-modal-empty">불러오는 중...</div>';
+        document.getElementById('player-modal').classList.add('active');
+        fetchPlayersByPid(card.spid, card.boost);
+    }
+
+    async function fetchPlayersByPid(spid, currentBoost) {
+        const res = await fetch(`/api/squad_search_by_pid?spid=${spid}`);
+        const cards = await res.json();
+        renderSeasonResults(cards, currentBoost);
+    }
+
+    function renderSeasonResults(cards, currentBoost) {
+        const container = document.getElementById('modal-results');
+        if (!cards.length) {
+            container.innerHTML = '<div class="sm-modal-empty">검색 결과가 없습니다</div>';
+            return;
+        }
+        container.innerHTML = cards.map(c => `
+            <div class="sm-result-item" onclick="selectSeasonCard(${JSON.stringify(c).replace(/"/g, '&quot;')}, ${currentBoost})">
+                <img class="sm-result-img" src="${c.image}"
+     onerror="this.src='${c.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
+                <img class="sm-result-season" src="${c.season_img}" onerror="this.style.display='none'">
+                <div class="sm-result-info">
+                    <div class="sm-result-name">${c.player_name}</div>
+                    <div class="sm-result-meta">${c.season_name} · ${c.position} · 급여 ${c.salary}</div>
+                </div>
+                <div class="sm-result-ovr">${c.overall}</div>
+            </div>
+        `).join('');
+    }
+
+    async function selectSeasonCard(card, boost) {
+        if (!currentSearchPos) return;
+        const newPid = String(card.spid).slice(-6);
+        const duplicate = Object.entries(squadData).find(([pos, c]) =>
+            c && pos !== currentSearchPos && String(c.spid).slice(-6) === newPid
+        );
+        if (duplicate) {
+            alert(`${card.player_name}은(는) 이미 ${duplicate[0]} 포지션에 있습니다.`);
+            return;
+        }
+        card.boost = boost;
+        await fetchCardPrice(card);
+        squadData[currentSearchPos] = card;
+        renderSlotCard(currentSearchPos, card);
+        closePlayerModal();
+        updateSummary();
+    }
+
+    function openMinifaceChange(card, pos) {
+        currentEditPos = pos;
+        document.getElementById('miniface-title').textContent =
+            `미니페이스온 변경 — ${card.player_name}`;
+        document.getElementById('miniface-grid').innerHTML =
+            '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>';
+        document.getElementById('miniface-overlay').classList.add('active');
+        fetchMinifaceList(card);
+    }
+
+    async function fetchMinifaceList(card) {
+        try {
+            const res = await fetch('/api/search_miniface', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player_name: card.player_name })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                document.getElementById('miniface-grid').innerHTML =
+                    '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">결과가 없습니다</div>';
+                return;
+            }
+            renderMinifaceGrid(data.cards, card);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function renderMinifaceGrid(cards, currentCard) {
+        const grid = document.getElementById('miniface-grid');
+        grid.innerHTML = cards.map(c => {
+            const pid = parseInt(String(c.spid).slice(-6));
+            const actionUrl = `https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${c.spid}.png`;
+            const staticUrl = `https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${pid}.png`;
+            const fallback = 'https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png';
+            return `
+                <div class="sm-miniface-item"
+                     onclick="selectMiniface('${actionUrl}', '${staticUrl}', '${fallback}')">
+                    <img class="mf-img" src="${actionUrl}"
+                         onerror="this.src='${staticUrl}'; this.onerror=()=>this.src='${fallback}'">
+                    <img class="mf-season" src="${c.season_img_url}"
+                         onerror="this.style.display='none'">
+                </div>
+            `;
+        }).join('');
+    }
+
+    function selectMiniface(actionUrl, staticUrl, fallback) {
+        if (!currentEditPos || !squadData[currentEditPos]) return;
+        squadData[currentEditPos].image = actionUrl;
+        squadData[currentEditPos].image_fallback = staticUrl;
+        renderSlotCard(currentEditPos, squadData[currentEditPos]);
+        closeMiniface();
+        updateTeamColor();
+    }
+
+    function closeMiniface() {
+        document.getElementById('miniface-overlay').classList.remove('active');
+    }
+
+    const BOOST_COLORS = {
+        1: '#808080',
+        2: '#CD7F32', 3: '#CD7F32', 4: '#CD7F32',
+        5: '#C0C0C0', 6: '#C0C0C0', 7: '#C0C0C0',
+        8: '#FFD700', 9: '#FFD700', 10: '#FFD700',
+        11: '#DDA0DD', 12: '#DDA0DD', 13: '#DDA0DD'
+    };
+
+    const ENHANCE_BONUS = {
+        1: 0, 2: 1, 3: 2, 4: 4, 5: 6, 6: 8,
+        7: 11, 8: 15, 9: 17, 10: 19, 11: 21, 12: 24, 13: 27
+    };
+
+    const POS_ORDER = ['ST', 'LS', 'RS', 'LW', 'RW', 'CF', 'LF', 'RF', 'CAM', 'LAM', 'RAM', 'LM', 'RM', 'CM', 'LCM', 'RCM', 'CDM', 'LDM', 'RDM', 'LWB', 'RWB', 'LB', 'RB', 'CB', 'LCB', 'RCB', 'SW', 'GK'];
+    function sortByPos(playerList) {
+        // squadData에서 spid → 슬롯 포지션 매핑
+        const spidToSlotPos = {};
+        Object.entries(squadData).forEach(([pos, card]) => {
+            if (card) spidToSlotPos[card.spid] = pos;
+        });
+        return [...playerList].sort((a, b) => {
+            const posA = spidToSlotPos[a.spid] || a.position || '';
+            const posB = spidToSlotPos[b.spid] || b.position || '';
+            const ai = POS_ORDER.indexOf(posA);
+            const bi = POS_ORDER.indexOf(posB);
+            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+        });
+    }
+
+    const ENHANCE_TC = [
+        { name: '백금빛 물결', min: 11, stages: [{ count: 5, bonus: 4 }, { count: 8, bonus: 5 }] },
+        { name: '금빛 물결', min: 8, stages: [{ count: 5, bonus: 3 }, { count: 8, bonus: 4 }] },
+        { name: '은빛 물결', min: 5, stages: [{ count: 5, bonus: 1 }, { count: 8, bonus: 3 }] },
+        { name: '동빛 물결', min: 3, stages: [{ count: 5, bonus: 1 }] },
+    ];
+
+    function calcEnhanceTcBonus(cardBoost) {
+        const players = Object.values(squadData).filter(p => p);
+        for (const tc of ENHANCE_TC) {
+            if (cardBoost < tc.min) continue;
+            const cnt = players.filter(p => (p.boost || 1) >= tc.min).length;
+            let bonus = 0;
+            for (const stage of tc.stages) {
+                if (cnt >= stage.count) bonus = stage.bonus;
+            }
+            if (bonus > 0) return bonus;
+        }
+        return 0;
+    }
+
+    function calcClubTcBonus(spid) {
+        if (!window.clubTcData || !spid) return 0;
+        let maxBonus = 0;
+        for (const tc of window.clubTcData) {
+            if (tc.spids.includes(spid)) {
+                if (tc.ovr_bonus > maxBonus) maxBonus = tc.ovr_bonus;
+            }
+        }
+        return maxBonus;
+    }
+
+    const POS_TO_MAIN = {
+        'LW': 'LW', 'RW': 'RW',
+        'LF': 'CF', 'CF': 'CF', 'RF': 'CF',
+        'LS': 'ST', 'ST': 'ST', 'RS': 'ST',
+        'LAM': 'CAM', 'CAM': 'CAM', 'RAM': 'CAM',
+        'LM': 'LM', 'RM': 'RM',
+        'LCM': 'CM', 'CM': 'CM', 'RCM': 'CM',
+        'LDM': 'CDM', 'CDM': 'CDM', 'RDM': 'CDM',
+        'LWB': 'LWB', 'RWB': 'RWB',
+        'LB': 'LB', 'RB': 'RB',
+        'LCB': 'CB', 'CB': 'CB', 'RCB': 'CB', 'SW': 'SW',
+        'GK': 'GK'
+    };
+
+    function formatPrice(value) {
+        const num = parseFloat(value);
+        if (isNaN(num) || num === 0) return null;
+        function trim(v, unit) {
+            return Math.floor(v / unit).toFixed(0);
+        }
+        if (num >= 10000000000000000) return trim(num, 10000000000000000) + '경';
+        if (num >= 1000000000000) return trim(num, 1000000000000) + '조';
+        if (num >= 100000000) return trim(num, 100000000) + '억';
+        if (num >= 10000) return Math.floor(num / 10000) + '만';
+        return num.toLocaleString();
+    }
+
+    async function fetchCardPrice(card) {
+        try {
+            const res = await fetch(`/api/card_price/${card.spid}`);
+            const data = await res.json();
+            Object.assign(card, data);
+        } catch (e) {
+            console.error('가격 조회 실패', e);
+        }
+    }
+
+    function calcOvr(card, pos) {
+        const boost = card.boost || 1;
+        const adapt = parseInt(document.getElementById('adapt-select').value) || 1;
+        const enhBonus = ENHANCE_BONUS[boost] || 0;
+        const adaptBonus = adapt > 0 ? adapt - 1 : 0;
+
+        // 포지션별 OVR 적용 (없으면 기본 overall 사용)
+        let baseOvr = card.overall;
+        if (pos && card.position_overall) {
+            const mainPos = POS_TO_MAIN[pos] || pos;
+            const posOvr = card.position_overall[mainPos];
+            if (posOvr !== undefined) baseOvr = posOvr;
+        }
+        return baseOvr + enhBonus + adaptBonus + calcEnhanceTcBonus(card.boost || 1) + calcClubTcBonus(card.spid);
+    }
+
+    function refreshAllOvr() {
+        Object.entries(squadData).forEach(([pos, card]) => {
+            if (card) renderSlotCard(pos, card);
+        });
+    }
+
+    function renderSlotCard(pos, card) {
+        const slotEl = document.getElementById(`slot-${pos}`);
+        if (!slotEl) return;
+
+        const isMobile = window.innerWidth <= 768;
+        const imgSize = isMobile ? 46 : 80;
+        const slotW = isMobile ? 46 : 80;
+        const slotH = isMobile ? 58 : 100;
+        const ovrLeft = isMobile ? -20 : -28;
+        const salaryRight = isMobile ? -20 : -30;
+        const ovrFont = isMobile ? '0.65rem' : '0.9rem';
+        const posFont = isMobile ? '0.55rem' : '0.75rem';
+        const hexSize = isMobile ? '20px' : '26px';
+        const salaryFont = isMobile ? '0.55rem' : '0.7rem';
+        const boostW = isMobile ? '22px' : '28px';
+        const boostH = isMobile ? '15px' : '20px';
+        const boostFont = isMobile ? '0.55rem' : '0.7rem';
+        const seasonImgSize = isMobile ? '16px' : '22px';
+        const nameFont = isMobile ? '0.6rem' : '0.75rem';
+        const priceFont = isMobile ? '0.55rem' : '0.7rem';
+
+        const boost = (card.boost || 8);
+        const boostColor = BOOST_COLORS[boost];
+        const boostTextColor = boost >= 8 && boost <= 10 ? '#333' : (boost <= 7 ? '#333' : '#fff');
+
+        slotEl.style.background = 'transparent';
+        slotEl.style.border = 'none';
+        slotEl.style.overflow = 'visible';
+        slotEl.style.width = slotW + 'px';
+        slotEl.style.height = slotH + 'px';
+        slotEl.innerHTML = `
+        <div style="position:relative; width:${slotW}px; text-align:center;">
+
+            <!-- OVR + 포지션 (왼쪽) -->
+            <div style="position:absolute; left:${ovrLeft}px; top:4px; text-align:center; line-height:1.3;">
+                <div data-ghost-ovr style="font-size:${ovrFont}; font-weight:800; color:#fff; text-shadow:1px 1px 2px #000;">
+                    ${calcOvr(card, pos)}
+                </div>
+                <div data-ghost-pos style="font-size:${posFont}; font-weight:700; color:rgba(255,255,255,0.85);">
+                    ${pos}
+                </div>
+            </div>
+
+            <!-- 급여 육각형 + 강화단계 (오른쪽) -->
+            <div style="position:absolute; right:${salaryRight}px; top:2px; text-align:center;">
+                <div style="width:${hexSize}; height:${hexSize}; margin:0 auto;
+                            clip-path:polygon(50% 0%,100% 30%,100% 70%,50% 100%,0% 70%,0% 30%);
+                            background:rgba(255,255,255,0.15);
+                            display:flex; align-items:center; justify-content:center;">
+                                <span style="font-size:${salaryFont}; font-weight:800; color:#fff; text-shadow:1px 1px 2px #000;">
+                        ${card.salary}
+                    </span>
+                </div>
+                <div style="margin-top:4px; width:${boostW}; height:${boostH}; border-radius:4px;
+                            background:${boostColor}; color:${boostTextColor};
+                            font-size:${boostFont}; font-weight:700;
+                            display:flex; align-items:center; justify-content:center;">
+                    ${boost}      
+                </div>    
+            </div>
+
+            <!-- 미페 이미지 -->
+            <img src="${card.image}"
+                 style="width:${imgSize}px; height:${Math.round(imgSize * 1.225)}px; object-fit:contain;"
+                 onerror="this.src='${card.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
+
+            <!-- 시즌 + 이름 한 줄 -->
+            <div style="display:flex; align-items:center; justify-content:center;
+                        gap:3px; margin-top:-6px; flex-wrap:nowrap;">
+                <img src="${card.season_img}"    
+                    style="width:${seasonImgSize}; height:${seasonImgSize}; object-fit:contain; flex-shrink:0;"   
+                    onerror="this.style.display='none'">
+                <span style="font-size:${nameFont}; color:#fff; font-weight:600;  
+                             text-shadow:1px 1px 2px #000; white-space:nowrap;">  
+                    ${card.player_name}    
+                </span>      
+            </div>      
+            ${(() => {
+                const bpKey = 'bp' + (card.boost || 8);
+                const price = formatPrice(card[bpKey]);
+                return price ? `<div style="font-size:${priceFont}; color:#ffe066; font-weight:700;
+                                text-shadow:1px 1px 2px #000; margin-top:-2px;">
+                        ${price} BP
+                    </div>` : '';
+            })()} 
+        </div>
+    `;
+    }
+
+    function updateBoost(pos, val) {
+        if (!squadData[pos]) return;
+        squadData[pos].boost = val;
+        renderSlotCard(pos, squadData[pos]);
+    }
+
+    function resetSquad() {
+        renderFormation(currentFormation);
+        document.getElementById('tc-trait-body').innerHTML =
+            '<div class="sm-tc-empty">현역 케미, 특정 조합과 같은 팀컬러가 자동 표시됩니다.</div>';
+        updateSummary();
+    }
+
+    function updateSummary() {
+        const players = Object.values(squadData).filter(p => p !== null);
+        document.getElementById('player-count').textContent = players.length;
+
+        const totalSalary = players.reduce((sum, p) => sum + (parseInt(p.salary) || 0), 0);
+        const salaryEl = document.getElementById('total-salary');
+        salaryEl.textContent = totalSalary;
+        salaryEl.style.color = totalSalary > 300 ? '#f44336' : 'var(--text-primary)';
+
+        const totalPrice = players.reduce((sum, p) => {
+            const bpKey = 'bp' + (p.boost || 8);
+            return sum + (p[bpKey] || 0);
+        }, 0);
+        const priceEl = document.getElementById('total-price');
+        priceEl.textContent = totalPrice > 0 ? formatPrice(totalPrice) : '—';
+
+        updateFormationLabel();
+        updateTeamColor();
+    }
+
+    const POS_LINE = {
+        'LW': 'FW', 'LF': 'FW', 'LS': 'FW', 'CF': 'FW', 'ST': 'FW', 'RF': 'FW', 'RS': 'FW', 'RW': 'FW',
+        'LAM': 'AM', 'CAM': 'AM', 'RAM': 'AM',
+        'LM': 'MF', 'LCM': 'MF', 'CM': 'MF', 'RCM': 'MF', 'RM': 'MF',
+        'LDM': 'DM', 'CDM': 'DM', 'RDM': 'DM',
+        'LWB': 'DF', 'LB': 'DF', 'LCB': 'DF', 'CB': 'DF', 'SW': 'DF', 'RCB': 'DF', 'RB': 'DF', 'RWB': 'DF',
+    };
+
+    function updateFormationLabel() {
+        const counts = { DF: 0, DM: 0, MF: 0, AM: 0, FW: 0 };
+        document.querySelectorAll('#field-rows [data-pos]').forEach(wrapper => {
+            const pos = wrapper.dataset.pos;
+            if (pos && POS_LINE[pos]) counts[POS_LINE[pos]]++;
+        });
+        const parts = ['DF', 'DM', 'MF', 'AM', 'FW']
+            .map(line => counts[line])
+            .filter(n => n > 0);
+        document.getElementById('formation-label').textContent = parts.length ? parts.join('-') : '—';
+    }
+
+    async function updateTeamColor() {
+        const players = Object.values(squadData).filter(p => p);
+
+        // ── 강화 팀컬러 ──
+        const active = [];
+        for (const tc of ENHANCE_TC) {
+            const cnt = players.filter(p => {
+                const boost = p.boost || 1;
+                if (boost < tc.min) return false;
+                const hasHigher = ENHANCE_TC.some(t => {
+                    if (t.min <= tc.min || boost < t.min) return false;
+                    // 더 높은 물결의 인원 조건이 실제로 충족되는지 확인
+                    const higherCnt = players.filter(p => (p.boost || 1) >= t.min).length;
+                    return higherCnt >= t.stages[0].count;
+                });
+                return !hasHigher;
+            }).length;
+            if (cnt === 0) continue;
+            let activeStage = null;
+            const totalCnt = players.filter(p => (p.boost || 1) >= tc.min).length;
+            for (let i = 0; i < tc.stages.length; i++) {
+                if (totalCnt >= tc.stages[i].count) activeStage = { idx: i + 1, bonus: tc.stages[i].bonus };
+            }
+            if (!activeStage) continue;
+            active.push({ ...tc, ...activeStage, cnt });
+        }
+
+        const body = document.getElementById('tc-body');
+        if (body) {
+            if (active.length === 0 || players.length === 0) {
+                body.innerHTML = '<div class="sm-tc-empty">스쿼드를 구성하면 팀컬러 현황이 표시됩니다.</div>';
+            } else {
+                body.innerHTML = active.map(a => {
+                    const faces = sortByPos(players.filter(p => {
+                        const boost = p.boost || 1;
+                        if (boost < a.min) return false;
+                        return !ENHANCE_TC.some(t => {
+                            if (t.min <= a.min || boost < t.min) return false;
+                            const higherCnt = players.filter(p => (p.boost || 1) >= t.min).length;
+                            return higherCnt >= t.stages[0].count;
+                        });
+                    })).map(p => `
+                    <img src="${p.image}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
+                         onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
+                `).join('');
+                    return `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px;">
+                        <span style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">${a.name} ${a.idx}단계</span>
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); background:var(--bg-secondary); padding:3px 10px; border-radius:20px;">👤 ${a.cnt}명</span>
+                        <span style="font-size:0.85rem; font-weight:700; color:#4caf50; background:rgba(76,175,80,0.12); padding:3px 10px; border-radius:20px;">전체 능력치 +${a.bonus}</span>
+                    </div>
+                    <div style="display:flex; justify-content:center; gap:6px; padding:0 12px 10px; flex-wrap:wrap;">${faces}</div>
+                `;
+                }).join('');
+            }
+        }
+
+        // ── 소속 팀컬러 ──
+        const clubBody = document.getElementById('tc-club-body');
+        if (!clubBody) return;
+
+        if (players.length === 0) {
+            clubBody.innerHTML = '<div class="sm-tc-empty">소속 팀컬러가 표시됩니다.</div>';
+            refreshAllOvr();
+            return;
+        }
+
+        try {
+            const spids = players.map(p => p.spid);
+            const res = await fetch('/api/squad_teamcolor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ spids })
+            });
+            const tcList = await res.json();
+            window.clubTcData = tcList;
+
+            if (tcList.length === 0) {
+                clubBody.innerHTML = '<div class="sm-tc-empty">소속 팀컬러가 표시됩니다.</div>';
+            } else {
+                clubBody.innerHTML = clubBody.innerHTML = tcList.filter(tc => tc.display_spids.length > 0).map(tc => {
+                    const sortedSpids = sortByPos(tc.display_spids.map(spid => players.find(p => p.spid == spid)).filter(Boolean)).map(p => p.spid);
+                    const faces = sortedSpids.map(spid => {
+                        const p = players.find(p => p.spid == spid);
+                        if (!p) return '';
+                        return `<img src="${p.image}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
+                 onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">`;
+                    }).join('');
+
+                    const statBadges = [
+                        tc.stat1_name ? `${tc.stat1_name} +${tc.stat1_value}` : null,
+                        tc.stat2_name ? `${tc.stat2_name} +${tc.stat2_value}` : null,
+                    ].filter(Boolean).map(s => `
+                        <span style="font-size:0.85rem; font-weight:700; color:#64b5f6; background:rgba(100,181,246,0.12); padding:3px 10px; border-radius:20px;">${s}</span>
+                    `).join('');
+
+                    return `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; flex-wrap:wrap;">
+                        <span style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">${tc.name} ${tc.stage}단계</span>
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); background:var(--bg-secondary); padding:3px 10px; border-radius:20px;">👤 ${tc.display_spids.length}명</span>
+                        ${tc.ovr_bonus > 0 ? `<span style="font-size:0.85rem; font-weight:700; color:#4caf50; background:rgba(76,175,80,0.12); padding:3px 10px; border-radius:20px;">전체 능력치 +${tc.ovr_bonus}</span>` : ''}
+                        ${statBadges}
+                    </div>
+                    <div style="display:flex; justify-content:center; gap:6px; padding:0 12px 10px; flex-wrap:wrap;">${faces}</div>
+                `;
+                }).join('');
+            }
+        } catch (e) {
+            console.error('소속 팀컬러 조회 실패', e);
+            clubBody.innerHTML = '<div class="sm-tc-empty">팀컬러 조회 중 오류가 발생했습니다.</div>';
+        }
+
+        // 특성 팀컬러
+        const traitBody = document.getElementById('tc-trait-body');
+        if (!traitBody) return;
+
+        if (players.length === 0) {
+            traitBody.innerHTML = '<div class="sm-tc-empty">현역 케미 특정 조합과 같은 특성 팀컬러가 자동 표시됩니다.</div>';
+            return;
+        }
+
+        try {
+            const spids = players.map(p => p.spid);
+            const res = await fetch('/api/squad_trait_teamcolor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ spids })
+            });
+            const traitList = await res.json();
+
+            if (traitList.length === 0) {
+                traitBody.innerHTML = '<div class="sm-tc-empty">특성 팀컬러가 표시됩니다.</div>';
+            } else {
+                traitBody.innerHTML = traitList.map(tc => {
+                    const sortedSpids = sortByPos(tc.display_spids.map(spid => players.find(p => p.spid == spid)).filter(Boolean)).map(p => p.spid);
+                    const faces = sortedSpids.map(spid => {
+                        const p = players.find(p => p.spid == spid);
+                        if (!p) return '';
+                        return `<img src="${p.image}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
+                 onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">`;
+                    }).join('');
+
+                    const statBadges = [
+                        tc.stat1_name ? `${tc.stat1_name} +${tc.stat1_value}` : null,
+                        tc.stat2_name ? `${tc.stat2_name} +${tc.stat2_value}` : null,
+                        tc.stat3_name ? `${tc.stat3_name} +${tc.stat3_value}` : null,
+                        tc.stat4_name ? `${tc.stat4_name} +${tc.stat4_value}` : null,
+                    ].filter(Boolean).map(s => `
+                        <span style="font-size:0.85rem; font-weight:700; color:#64b5f6; background:rgba(100,181,246,0.12); padding:3px 10px; border-radius:20px;">${s}</span>
+                    `).join('');
+
+                    return `
+                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; flex-wrap:wrap;">
+                        <span style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">${tc.name}</span>
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); background:var(--bg-secondary); padding:3px 10px; border-radius:20px;">👤 ${tc.cnt}명</span>
+                        ${statBadges}
+                    </div>
+                    <div style="display:flex; justify-content:center; gap:6px; padding:0 12px 10px; flex-wrap:wrap;">${faces}</div>
+                `;
+                }).join('');
+            }
+        } catch (e) {
+            console.error('특성 팀컬러 조회 실패', e);
+            traitBody.innerHTML = '<div class="sm-tc-empty">특성 팀컬러 조회 중 오류가 발생했습니다.</div>';
+        }
+
+        refreshAllOvr();
+    }
+
+    const SM_TO_TIERLIST = {
+        'ST': 'ST', 'LS': 'ST', 'RS': 'ST', 'CF': 'ST', 'LF': 'ST', 'RF': 'ST',
+        'LW': 'LWING', 'LM': 'LWING', 'LAM': 'LWING',
+        'RW': 'RWING', 'RM': 'RWING', 'RAM': 'RWING',
+        'CAM': 'CAM',
+        'CM': 'CM', 'LCM': 'CM', 'RCM': 'CM',
+        'LDM': 'LRDM', 'RDM': 'LRDM',
+        'CDM': 'CDM',
+        'CB': 'CB', 'LCB': 'CB', 'RCB': 'CB', 'SW': 'CB',
+        'LB': 'LB', 'LWB': 'LB',
+        'RB': 'RB', 'RWB': 'RB',
+        'GK': 'GK'
+    };
+
+    let tierTcOrder = null;
+    let tierLogos = {};
+    let tierSelectedFormation = null;
+    let tierSelectedTc = null;
+
+    function closeTierModal() {
+        document.getElementById('tier-overlay').classList.remove('active');
+    }
+
+    function autoFillByTier() {
+        document.getElementById('tier-overlay').classList.add('active');
+        renderTierStep1();
+    }
+
+    function renderTierStep1() {
+        document.getElementById('tier-step-title').textContent = '1/3 — 포메이션 선택';
+        const content = document.getElementById('tier-content');
+        content.innerHTML = Object.entries(FORMATIONS).map(([key, f]) =>
+            `<div class="sm-tier-option" onclick="selectTierFormation('${key}')">${f.label}</div>`
+        ).join('');
+    }
+
+    async function selectTierFormation(fKey) {
+        tierSelectedFormation = fKey;
+        document.getElementById('tier-step-title').textContent = '2/3 — 팀컬러 선택';
+        const content = document.getElementById('tier-content');
+        content.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>';
+
+        if (!tierTcOrder) {
+            const res = await fetch('/api/squad_tierlist_teamcolors');
+            const data = await res.json();
+            tierTcOrder = data.order;
+            tierLogos = data.logos || {};
+        }
+
+        content.innerHTML = tierTcOrder.map((tc, i) => {
+            const logo = tierLogos[tc]
+                ? `<img src="${tierLogos[tc]}" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
+                : '';
+            return `<div class="sm-tier-tc-item" onclick="selectTierTc('${tc}')">
+                        <span class="sm-tier-tc-rank">${i + 1}</span>
+                        ${logo}
+                        <span class="sm-tier-tc-name">${tc}</span>
+                    </div>`;
+        }).join('');
+    }
+
+    function selectTierTc(tc) {
+        tierSelectedTc = tc;
+        document.getElementById('tier-step-title').textContent = `3/3 — ${tc} 순위 선택`;
+        const content = document.getElementById('tier-content');
+        content.innerHTML = `<div class="sm-tier-rank-grid">
+            ${[1, 2, 3, 4, 5].map(n =>
+            `<button class="sm-tier-rank-btn" onclick="executeTierFill(${n})">${n}순위 조합</button>`
+        ).join('')}
+        </div>`;
+    }
+
+    async function executeTierFill(rank) {
+        closeTierModal();
+
+        const res = await fetch(`/api/squad_tierlist_cards?teamcolor=${encodeURIComponent(tierSelectedTc)}`);
+        const data = await res.json();
+        if (!data.success) { alert('팀컬러 데이터를 불러오지 못했습니다.'); return; }
+        const tcData = data.data;
+
+        // 포메이션 변경
+        const formSel = document.getElementById('formation-select');
+        if (formSel.value !== tierSelectedFormation) {
+            formSel.value = tierSelectedFormation;
+            changeFormation(tierSelectedFormation);
+        }
+
+        // 포지션 우선순위 정렬
+        const positions = [...FORMATIONS[tierSelectedFormation].positions]
+            .sort((a, b) => (POS_ORDER.indexOf(a) + 1 || 999) - (POS_ORDER.indexOf(b) + 1 || 999));
+
+        const usedPids = new Set();
+        const assignments = {};
+
+        for (const pos of positions) {
+            const tlPos = SM_TO_TIERLIST[pos];
+            const cards = tcData[tlPos] || [];
+            let picked = null, uniqueCount = 0;
+            for (const card of cards) {
+                const pid = String(card.spid).slice(-6);
+                if (!usedPids.has(pid)) {
+                    uniqueCount++;
+                    if (uniqueCount >= rank) { picked = card; break; }
+                }
+            }
+            if (picked) {
+                usedPids.add(String(picked.spid).slice(-6));
+                assignments[pos] = picked;
+            }
+        }
+
+        const spids = Object.values(assignments).map(c => parseInt(c.spid));
+        if (!spids.length) return;
+
+        const cardRes = await fetch('/api/squad_cards_batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ spids })
+        });
+        const cardList = await cardRes.json();
+        const cardMap = {};
+        cardList.forEach(c => { cardMap[String(c.spid)] = c; });
+
+        for (const [pos, tierCard] of Object.entries(assignments)) {
+            const full = cardMap[String(tierCard.spid)];
+            if (!full) continue;
+            full.boost = tierCard.buildup;
+            await fetchCardPrice(full);
+            squadData[pos] = full;
+            renderSlotCard(pos, full);
+        }
+        updateSummary();
+        updateTeamColor();
+    }
+
+    let rankerTcOrder = null;
+    let rankerLogos = {};
+    let rankerSelectedTc = null;
+
+    function closeRankerModal() {
+        document.getElementById('ranker-overlay').classList.remove('active');
+    }
+
+    function formatSquadValue(val) {
+        if (!val) return '—';
+        const 경 = Math.floor(val / 1e16);
+        const 조 = Math.floor((val % 1e16) / 1e12);
+        let str = '';
+        if (경 > 0) str += 경 + '경 ';
+        if (조 > 0) str += 조 + '조';
+        return (str.trim() || '—') + ' BP';
+    }
+
+    async function loadRankerSquad() {
+        document.getElementById('ranker-overlay').classList.add('active');
+        document.getElementById('ranker-step-title').textContent = '1/3 — 팀컬러 선택';
+        const content = document.getElementById('ranker-content');
+        content.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>';
+
+        if (!rankerTcOrder) {
+            const res = await fetch('/api/squad_tierlist_teamcolors');
+            const data = await res.json();
+            rankerTcOrder = data.order;
+            rankerLogos = data.logos || {};
+        }
+
+        content.innerHTML = rankerTcOrder.map((tc, i) => {
+            const logo = rankerLogos[tc]
+                ? `<img src="${rankerLogos[tc]}" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
+                : '';
+            return `<div class="sm-tier-tc-item" onclick="selectRankerTc('${tc}')">
+                        <span class="sm-tier-tc-rank">${i + 1}</span>
+                        ${logo}
+                        <span class="sm-tier-tc-name">${tc}</span>
+                    </div>`;
+        }).join('');
+    }
+
+    function selectRankerTc(tc) {
+        rankerSelectedTc = tc;
+        document.getElementById('ranker-step-title').textContent = `2/3 — 구단가치 범위 설정`;
+        const content = document.getElementById('ranker-content');
+        content.innerHTML = `
+            <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">
+                예: 5경 3000조 / 비워두면 전체 조회
+            </div>
+            <div class="sm-ranker-range">
+                <input class="sm-ranker-input" id="ranker-min" type="text" placeholder="최소 구단가치">
+                <span style="color:var(--text-muted);">~</span>
+                <input class="sm-ranker-input" id="ranker-max" type="text" placeholder="최대 구단가치">
+            </div>
+            <button class="sm-ranker-search-btn" style="width:100%;margin-top:4px;" onclick="searchRankerList()">조회</button>
+        `;
+    }
+
+    function parseSquadValue(str) {
+        if (!str || !str.trim()) return 0;
+        let val = 0;
+        const 경match = str.match(/(\d+)\s*경/);
+        const 조match = str.match(/(\d+)\s*조/);
+        const 억match = str.match(/(\d+)\s*억/);
+        if (경match) val += parseInt(경match[1]) * 1e16;
+        if (조match) val += parseInt(조match[1]) * 1e12;
+        if (억match) val += parseInt(억match[1]) * 1e8;
+        return val;
+    }
+
+    async function searchRankerList() {
+        const minVal = parseSquadValue(document.getElementById('ranker-min').value);
+        const maxVal = parseSquadValue(document.getElementById('ranker-max').value);
+        document.getElementById('ranker-step-title').textContent = `3/3 — ${rankerSelectedTc} 랭커 선택`;
+        const content = document.getElementById('ranker-content');
+        content.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>';
+
+        const res = await fetch(`/api/ranker_squad_list?teamcolor=${encodeURIComponent(rankerSelectedTc)}&min=${minVal}&max=${maxVal}`);
+        const data = await res.json();
+
+        if (!data.success || !data.data.length) {
+            content.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">해당 조건의 랭커가 없습니다.</div>';
+            return;
+        }
+
+        content.innerHTML = data.data.map(r => `
+            <div class="sm-ranker-item" onclick="executeRankerFill(${r.rank})">
+                <span class="sm-ranker-rank">${r.rank}위</span>
+                <span class="sm-ranker-nickname">${r.nickname}</span>
+                <span class="sm-ranker-value">${formatSquadValue(r.squad_value)}</span>
+            </div>
+        `).join('');
+    }
+
+    async function executeRankerFill(rank) {
+        closeRankerModal();
+
+        const res = await fetch(`/api/ranker_squad_detail?teamcolor=${encodeURIComponent(rankerSelectedTc)}&rank=${rank}`);
+        const data = await res.json();
+        if (!data.success) { alert('스쿼드 데이터를 불러오지 못했습니다.'); return; }
+
+        const squad = data.data.squad;
+
+        // spid 조회
+        const spids = squad.map(c => parseInt(c.spid));
+        const cardRes = await fetch('/api/squad_cards_batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ spids })
+        });
+        const cardList = await cardRes.json();
+        const cardMap = {};
+        cardList.forEach(c => { cardMap[String(c.spid)] = c; });
+
+        // 그린필드 초기화 — 랭커 포지션 기반으로 슬롯 직접 생성
+        const positions = squad.map(c => c.position).filter(p => POS_COORDS[p]);
+        squadData = {};
+        slotPositions = {};
+        positions.forEach(pos => {
+            squadData[pos] = null;
+            slotPositions[pos] = { top: POS_COORDS[pos].top, left: POS_COORDS[pos].left };
+        });
+        document.getElementById('field-rows').innerHTML = '';
+        positions.forEach(pos => createSlotElement(pos));
+
+        // 카드 배치
+        for (const slotCard of squad) {
+            const pos = slotCard.position;
+            if (!POS_COORDS[pos]) continue;
+            const full = cardMap[String(slotCard.spid)];
+            if (!full) continue;
+            full.boost = slotCard.buildup;
+            await fetchCardPrice(full);
+            squadData[pos] = full;
+            renderSlotCard(pos, full);
+        }
+        updateSummary();
+        updateTeamColor();
+    }
+
+    // ── 스쿼드 저장/불러오기 ──────────────────────────────────
+    const SQUAD_STORAGE_KEY = 'fconq_saved_squads';
+    const MAX_SAVED_SQUADS = 10;
+
+    function getSavedSquads() {
+        try { return JSON.parse(localStorage.getItem(SQUAD_STORAGE_KEY)) || []; }
+        catch { return []; }
+    }
+
+    function saveSquads(squads) {
+        localStorage.setItem(SQUAD_STORAGE_KEY, JSON.stringify(squads));
+    }
+
+    function saveSquad() {
+        const players = Object.entries(squadData).filter(([, v]) => v !== null);
+        if (players.length === 0) { alert('그린필드에 선수가 없습니다.'); return; }
+        const squads = getSavedSquads();
+        if (squads.length >= MAX_SAVED_SQUADS) {
+            alert('저장 공간이 가득 찼습니다. 기존 스쿼드를 삭제 후 저장해주세요.');
+            return;
+        }
+        document.getElementById('squad-save-name').value = '';
+        document.getElementById('squad-save-modal').classList.add('active');
+        setTimeout(() => document.getElementById('squad-save-name').focus(), 100);
+    }
+
+    function confirmSaveSquad() {
+        const name = document.getElementById('squad-save-name').value.trim();
+        if (!name) { alert('스쿼드 이름을 입력해주세요.'); return; }
+        const squads = getSavedSquads();
+        const squadSnapshot = {};
+        Object.entries(squadData).forEach(([pos, card]) => {
+            if (card) squadSnapshot[pos] = { spid: card.spid, boost: card.boost || 8 };
+            else squadSnapshot[pos] = null;
+        });
+        squads.push({ name, data: squadSnapshot, savedAt: Date.now() });
+        saveSquads(squads);
+        closeSquadSaveModal();
+        alert(`"${name}" 스쿼드가 저장되었습니다.`);
+    }
+
+    function closeSquadSaveModal() {
+        document.getElementById('squad-save-modal').classList.remove('active');
+    }
+
+    function loadSquadList() {
+        const squads = getSavedSquads();
+        const listEl = document.getElementById('squad-load-list');
+        if (squads.length === 0) {
+            listEl.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">저장된 스쿼드가 없습니다.</div>';
+        } else {
+            listEl.innerHTML = squads.map((s, i) => `
+                <div style="display:flex; align-items:center; justify-content:space-between;
+                            padding:10px 12px; margin-bottom:8px; border-radius:8px;
+                            background:var(--bg-secondary); gap:8px; border:1px solid rgba(128,128,128,0.4);">
+                    <span style="font-size:0.9rem; font-weight:600; color:var(--text-primary); flex:1;">${s.name}</span>
+                    <button onclick="loadSquad(${i})" style="padding:4px 10px; border-radius:6px; border:none; background:#2196f3; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">불러오기</button>
+                    <button onclick="deleteSquad(${i})" style="padding:4px 10px; border-radius:6px; border:none; background:#f44336; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">삭제</button>
+                </div>
+            `).join('');
+        }
+        document.getElementById('squad-load-modal').classList.add('active');
+    }
+
+    async function loadSquad(idx) {
+        const squads = getSavedSquads();
+        const s = squads[idx];
+        if (!s) return;
+
+        const positions = Object.keys(s.data);
+        const spids = positions.filter(pos => s.data[pos]).map(pos => s.data[pos].spid);
+
+        // 카드 정보 일괄 조회
+        const res = await fetch('/api/squad_search_by_pid', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ spids })
+        });
+        const cards = await res.json();
+        const cardMap = {};
+        cards.forEach(c => { cardMap[c.spid] = c; });
+
+        // 포메이션 재구성
+        renderFormation(currentFormation);
+        // squadData 초기화 후 새 포지션으로 재설정
+        squadData = {};
+        slotPositions = {};
+        document.getElementById('field-rows').innerHTML = '';
+
+        positions.forEach(pos => {
+            if (!POS_COORDS[pos]) return;
+            slotPositions[pos] = { top: POS_COORDS[pos].top, left: POS_COORDS[pos].left };
+            const saved = s.data[pos];
+            createSlotElement(pos);
+            if (saved && cardMap[saved.spid]) {
+                const card = cardMap[saved.spid];
+                card.boost = saved.boost;
+                squadData[pos] = card;
+                renderSlotCard(pos, card);
+            } else {
+                squadData[pos] = null;
+            }
+        });
+
+        closeSquadLoadModal();
+        // 모든 가격 조회 완료 후 요약 업데이트
+        Promise.all(
+            positions
+                .filter(pos => s.data[pos] && cardMap[s.data[pos].spid])
+                .map(pos => fetchCardPrice(squadData[pos]))
+        ).then(() => updateSummary());
+    }
+
+    function deleteSquad(idx) {
+        const squads = getSavedSquads();
+        const name = squads[idx].name;
+        if (!confirm(`"${name}" 스쿼드를 삭제할까요?`)) return;
+        squads.splice(idx, 1);
+        saveSquads(squads);
+        loadSquadList(); // 목록 새로고침
+    }
+
+    function closeSquadLoadModal() {
+        document.getElementById('squad-load-modal').classList.remove('active');
+    }
+
+    renderFormation('42211');
+    initDragAndDrop();
+</script>
+
+<!-- 스쿼드 저장 모달 -->
+<div id="squad-save-modal" class="sm-modal-overlay">
+    <div class="sm-modal">
+        <div class="sm-modal-header">
+            <span class="sm-modal-title">스쿼드 이름 입력</span>
+            <button class="sm-modal-close" onclick="closeSquadSaveModal()">✕</button>
+        </div>
+        <input id="squad-save-name" class="sm-modal-search" type="text" maxlength="20" placeholder="예: 레알 마드리드 스쿼드">
+        <div style="display:flex; gap:8px; padding:12px 16px;">
+            <button onclick="confirmSaveSquad()"
+                style="flex:1; padding:8px; border-radius:8px; border:none; background:#4caf50; color:#fff; font-weight:700; cursor:pointer;">저장</button>
+        </div>
+    </div>
+</div>
+
+<!-- 스쿼드 불러오기 모달 -->
+<div id="squad-load-modal" class="sm-modal-overlay">
+    <div class="sm-modal">
+        <div class="sm-modal-header">
+            <span class="sm-modal-title">저장된 스쿼드</span>
+            <button class="sm-modal-close" onclick="closeSquadLoadModal()">✕</button>
+        </div>
+        <div id="squad-load-list" class="sm-modal-results"></div>
+    </div>
+</div>
+
+{% endblock %}

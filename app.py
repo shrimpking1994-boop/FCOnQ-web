@@ -1231,14 +1231,6 @@ def compare_cards(spid1, spid2):
     """, (spid1, spid2, spid1))
     
     cards = cur.fetchall()
-
-    cur.execute("""
-        SELECT spid, full_data FROM card_price_history WHERE spid IN (%s, %s)
-    """, (spid1, spid2))
-    ph_rows = cur.fetchall()
-    ph_map = {row['spid']: row['full_data'] for row in ph_rows}
-    price_history1 = ph_map.get(spid1)
-    price_history2 = ph_map.get(spid2)
     
     cur.close()
     conn.close()
@@ -1246,8 +1238,7 @@ def compare_cards(spid1, spid2):
     if len(cards) != 2:
         return "카드를 찾을 수 없습니다", 404
     
-    return render_template('compare.html', card1=cards[0], card2=cards[1],
-                           price_history1=price_history1, price_history2=price_history2)    
+    return render_template('compare.html', card1=cards[0], card2=cards[1])    
     
     
 
@@ -2050,6 +2041,138 @@ def get_card_tierlist_data():
     
     return jsonify({'success': True, 'data': result['full_data']})
 
+@app.route('/api/squad_tierlist_teamcolors')
+def squad_tierlist_teamcolors():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT full_data->'_order' AS tc_order
+        FROM card_tierlist_rankings
+        ORDER BY crawl_date DESC
+        LIMIT 1
+    """)
+    result = cur.fetchone()
+    cur.execute("SELECT team_name, logo_url FROM team_logos")
+    logos = {row['team_name']: row['logo_url'] for row in cur.fetchall()}
+    cur.close()
+    conn.close()
+    if not result:
+        return jsonify({'success': False}), 404
+    return jsonify({'success': True, 'order': result['tc_order'], 'logos': logos})
+
+@app.route('/api/squad_tierlist_cards')
+def squad_tierlist_cards():
+    """스쿼드 메이커용 특정 팀컬러 카드 데이터 반환"""
+    teamcolor = request.args.get('teamcolor', '').strip()
+    if not teamcolor:
+        return jsonify({'success': False}), 400
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT full_data->%s AS tc_data
+        FROM card_tierlist_rankings
+        ORDER BY crawl_date DESC
+        LIMIT 1
+    """, (teamcolor,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not result or not result['tc_data']:
+        return jsonify({'success': False}), 404
+    return jsonify({'success': True, 'data': result['tc_data']})
+
+
+@app.route('/api/squad_cards_batch', methods=['POST'])
+def squad_cards_batch():
+    spids = request.json.get('spids', [])
+    if not spids:
+        return jsonify([])
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT spid, player_name, season_name, overall, position,
+               COALESCE(full_data->'image_info'->>'mini_faceon',
+                        full_data->'image_info'->>'mini_faceon_high') as image,
+               full_data->'image_info'->>'mini_faceon_high' as image_high,
+               full_data->'image_info'->>'season_img' as season_img,
+               full_data->'game_info'->>'salary' as salary,
+               full_data->'stats_info'->'position_overall' as position_overall,
+               full_data->'stats_info'->'main_overall'->>'card_position' as card_position
+        FROM player_cards
+        WHERE spid = ANY(%s)
+    """, (spids,))
+    cards = [dict(row) for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return jsonify(cards)
+
+@app.route('/api/ranker_squad_list')
+def ranker_squad_list():
+    """랭커 스쿼드 목록 반환 (팀컬러 + 구단가치 범위 필터)"""
+    teamcolor = request.args.get('teamcolor', '').strip()
+    min_val = request.args.get('min', 0, type=int)
+    max_val = request.args.get('max', 0, type=int)
+    if not teamcolor:
+        return jsonify({'success': False}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT squad_full_data->%s AS tc_data
+        FROM card_tierlist_rankings
+        ORDER BY crawl_date DESC
+        LIMIT 1
+    """, (teamcolor,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not result or not result['tc_data']:
+        return jsonify({'success': True, 'data': []})
+
+    rankers = result['tc_data']
+    if max_val > 0:
+        rankers = [r for r in rankers if min_val <= r.get('squad_value', 0) <= max_val]
+
+    # 순위 오름차순 정렬, 최대 50명
+    # nickname 중복 제거 (rank 낮은 것 우선)
+    seen = {}
+    for r in sorted(rankers, key=lambda x: x['rank']):
+        if r['nickname'] not in seen:
+            seen[r['nickname']] = r
+    rankers = list(seen.values())[:50]
+    return jsonify({'success': True, 'data': rankers})
+
+
+@app.route('/api/ranker_squad_detail')
+def ranker_squad_detail():
+    """특정 랭커 스쿼드 상세 정보 반환"""
+    teamcolor = request.args.get('teamcolor', '').strip()
+    rank = request.args.get('rank', 0, type=int)
+    if not teamcolor or not rank:
+        return jsonify({'success': False}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT squad_full_data->%s AS tc_data
+        FROM card_tierlist_rankings
+        ORDER BY crawl_date DESC
+        LIMIT 1
+    """, (teamcolor,))
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not result or not result['tc_data']:
+        return jsonify({'success': False}), 404
+
+    ranker = next((r for r in result['tc_data'] if r['rank'] == rank), None)
+    if not ranker:
+        return jsonify({'success': False}), 404
+
+    return jsonify({'success': True, 'data': ranker})
+
 @app.route('/api/get_all_formation_data')
 def get_all_formation_data():
     """모든 날짜의 포메이션 데이터 반환 (최근 6개)"""
@@ -2088,6 +2211,318 @@ def get_all_formation_data():
     
     return jsonify({'success': True, 'data': results})
 
+
+@app.route('/squad_maker')
+def squad_maker():
+    """스쿼드 메이커 페이지"""
+    return render_template('squad_maker.html')
+
+
+@app.route('/api/squad_search')
+def squad_search():
+    """스쿼드 메이커 선수 검색 API"""
+    term = request.args.get('q', '').strip()
+    pos = request.args.get('pos', '').strip()
+    
+    if not term:
+        return jsonify([])
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    query = """
+        SELECT spid, player_name, season_name, overall, position,
+               COALESCE(full_data->'image_info'->>'mini_faceon', full_data->'image_info'->>'mini_faceon_high') as image,
+               full_data->'image_info'->>'season_img' as season_img,
+               full_data->'game_info'->>'salary' as salary,
+               full_data->'image_info'->>'mini_faceon_high' as image_high,
+               full_data->'stats_info'->'position_overall' as position_overall
+        FROM player_cards
+        WHERE player_name ILIKE %s
+        ORDER BY overall DESC
+        LIMIT 30
+    """
+    cur.execute(query, (f"%{term}%",))
+    cards = [dict(row) for row in cur.fetchall()]
+    
+    cur.close()
+    conn.close()
+    
+    return jsonify(cards)
+
+
+@app.route('/api/squad_search_by_pid', methods=['GET', 'POST'])
+def squad_search_by_pid():
+    """동일 선수(pid 기준) 카드 목록 반환"""
+    if request.method == 'POST':
+        data = request.get_json()
+        spids = data.get('spids', [])
+        if not spids:
+            return jsonify([])
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT spid, player_name, season_name, overall, position,
+                   COALESCE(full_data->'image_info'->>'mini_faceon', full_data->'image_info'->>'mini_faceon_high') as image,
+                   full_data->'image_info'->>'season_img' as season_img,
+                   full_data->'game_info'->>'salary' as salary,
+                   full_data->'image_info'->>'mini_faceon_high' as image_high,
+                   full_data->'stats_info'->'position_overall' as position_overall
+            FROM player_cards
+            WHERE spid = ANY(%s)
+        """, (spids,))
+        cards = [dict(row) for row in cur.fetchall()]
+        cur.close()
+        conn.close()
+        return jsonify(cards)
+
+    # GET: 기존 단일 spid 조회
+    spid = request.args.get('spid', '').strip()
+    if not spid or len(spid) < 9:
+        return jsonify([])
+    pid = spid[-6:]
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT spid, player_name, season_name, overall, position,
+               COALESCE(full_data->'image_info'->>'mini_faceon', full_data->'image_info'->>'mini_faceon_high') as image,
+               full_data->'image_info'->>'season_img' as season_img,
+               full_data->'game_info'->>'salary' as salary,
+               full_data->'image_info'->>'mini_faceon_high' as image_high,
+               full_data->'stats_info'->'position_overall' as position_overall
+        FROM player_cards
+        WHERE RIGHT(spid::text, 6) = %s
+        ORDER BY overall DESC
+    """, (pid,))
+    cards = [dict(row) for row in cur.fetchall()]
+    cur.close()
+    conn.close()
+    return jsonify(cards)
+
+@app.route('/api/squad_teamcolor', methods=['POST'])
+def squad_teamcolor():
+    """스쿼드 소속 팀컬러 효과 조회"""
+    data = request.get_json()
+    spids = data.get('spids', [])
+    if not spids:
+        return jsonify([])
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT spid,
+               full_data->'basic_info'->>'nation' as nation,
+               full_data->'basic_info'->'club_history' as club_history,
+               season_name
+        FROM player_cards
+        WHERE spid = ANY(%s)
+    """, (spids,))
+    cards = [dict(row) for row in cur.fetchall()]
+
+    from collections import defaultdict
+    import json as _json
+    groups = defaultdict(set)
+    season_groups = defaultdict(set)
+
+    SPECIAL_SEASONS = {'TOTY', 'TOTS', 'ICONTM'}
+    SEASON_THRESHOLDS = [3, 6, 8]
+    SEASON_OVR_MAP = {1: 1, 2: 2, 3: 3}
+
+    for card in cards:
+        if card['nation']:
+            nation = card['nation'].split(',')[0].strip()
+            groups[nation].add(card['spid'])
+        if card['club_history']:
+            clubs = card['club_history'] if isinstance(card['club_history'], list) else _json.loads(card['club_history'])
+            for club_item in clubs:
+                club_name = club_item.get('club') if isinstance(club_item, dict) else club_item
+                if club_name:
+                    groups[club_name].add(card['spid'])
+        if card['season_name']:
+            sn = card['season_name']
+            if sn.endswith('TOTY') or sn.endswith('TOTN'):
+                season_key = 'TOTY'
+            elif sn.endswith('TOTS'):
+                season_key = 'TOTS'
+            elif sn == 'ICONTM':
+                season_key = 'ICONTM'
+            else:
+                season_key = sn
+            season_groups[season_key].add(card['spid'])
+
+    result = []
+
+    # 국가/클럽 팀컬러
+    for tc_name, tc_spids in groups.items():
+        tc_spids = list(tc_spids)
+        cur.execute("SELECT * FROM teamcolor_effects WHERE name = %s", (tc_name,))
+        effect = cur.fetchone()
+        if not effect:
+            continue
+        effect = dict(effect)
+        cnt = len(tc_spids)
+        if cnt < 3:
+            continue
+
+        thresholds = [3, 6, 8, 11]
+        stage = 0
+        for i, t in enumerate(thresholds[:effect['max_stage']]):
+            if cnt >= t:
+                stage = i + 1
+        if stage == 0:
+            continue
+
+        ovr_map = {1: 1, 2: 3, 3: 3, 4: effect['ovr_bonus']}
+        result.append({
+            'name': effect['name'],
+            'type': effect['type'],
+            'image_url': effect['image_url'],
+            'stage': stage,
+            'max_stage': effect['max_stage'],
+            'cnt': cnt,
+            'spids': tc_spids,
+            'ovr_bonus': ovr_map.get(stage, 0),
+            'stat1_name': effect['stat1_name'] if stage >= effect['max_stage'] - 1 else None,
+            'stat1_value': (2 if stage == effect['max_stage'] - 1 else effect['stat1_value']) if stage >= effect['max_stage'] - 1 else None,
+            'stat2_name': effect['stat2_name'] if stage >= effect['max_stage'] - 1 else None,
+            'stat2_value': (1 if stage == effect['max_stage'] - 1 else effect['stat2_value']) if stage >= effect['max_stage'] - 1 else None,
+        })
+
+    # 시즌 팀컬러
+    for season_key, s_spids in season_groups.items():
+        s_spids = list(s_spids)
+        cnt = len(s_spids)
+        if cnt < 3:
+            continue
+
+        stage = 0
+        for i, t in enumerate(SEASON_THRESHOLDS):
+            if cnt >= t:
+                stage = i + 1
+
+        stat1_name = stat1_value = stat2_name = stat2_value = None
+        if season_key in SPECIAL_SEASONS:
+            cur.execute("SELECT * FROM teamcolor_effects WHERE name = %s", (season_key,))
+            effect = cur.fetchone()
+            if effect:
+                effect = dict(effect)
+                if stage == 3:
+                    stat1_name = effect['stat1_name']
+                    stat1_value = effect['stat1_value']
+                    stat2_name = effect['stat2_name']
+                    stat2_value = effect['stat2_value']
+
+        result.append({
+            'name': season_key,
+            'type': 'season',
+            'image_url': None,
+            'stage': stage,
+            'max_stage': 3,
+            'cnt': cnt,
+            'spids': s_spids,
+            'ovr_bonus': SEASON_OVR_MAP.get(stage, 0),
+            'stat1_name': stat1_name,
+            'stat1_value': stat1_value,
+            'stat2_name': stat2_name,
+            'stat2_value': stat2_value,
+        })
+
+    cur.close()
+    conn.close()
+    
+    result.sort(key=lambda x: (x['stage'], x['cnt']), reverse=True)
+    assigned = set()
+    for tc in result:
+        unique_spids = [s for s in tc['spids'] if s not in assigned]
+        assigned.update(unique_spids)
+        tc['display_spids'] = unique_spids  # 미페 표시용 (교집합 제외)
+        # cnt와 spids는 원래 전체 인원 유지
+    result = [tc for tc in result if tc['stage'] > 0]
+    
+    return jsonify(result)
+
+@app.route('/api/squad_trait_teamcolor', methods=['POST'])
+def squad_trait_teamcolor():
+    """스쿼드 특성 팀컬러 효과 조회"""
+    data = request.get_json()
+    spids = data.get('spids', [])
+    if not spids:
+        return jsonify([])
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # spid → pid 추출
+    pids = [str(spid)[-6:] for spid in spids]
+    pid_to_spid = {str(spid)[-6:]: spid for spid in spids}
+
+    # 각 특성 팀컬러별로 매칭되는 pid 파악
+    cur.execute("""
+        SELECT sc.name, scp.player_id
+        FROM special_teamcolor_players scp
+        JOIN special_teamcolors sc ON scp.teamcolor_id = sc.id
+        WHERE scp.player_id = ANY(%s)
+    """, (pids,))
+    rows = cur.fetchall()
+
+    from collections import defaultdict
+    tc_pids = defaultdict(set)
+    for row in rows:
+        tc_pids[row['name']].add(row['player_id'])
+
+    result = []
+    for tc_name, matched_pids in tc_pids.items():
+        cur.execute("SELECT * FROM teamcolor_effects WHERE name = %s AND type = '특성'", (tc_name,))
+        effect = cur.fetchone()
+        if not effect:
+            continue
+        effect = dict(effect)
+        cnt = len(matched_pids)
+        if cnt < effect['min_count']:
+            continue
+
+        matched_spids = [pid_to_spid[pid] for pid in matched_pids if pid in pid_to_spid]
+        result.append({
+            'name': tc_name,
+            'type': 'trait',
+            'image_url': effect['image_url'],
+            'cnt': cnt,
+            'min_count': effect['min_count'],
+            'spids': matched_spids,
+            'display_spids': matched_spids,
+            'stat1_name': effect['stat1_name'],
+            'stat1_value': effect['stat1_value'],
+            'stat2_name': effect['stat2_name'],
+            'stat2_value': effect['stat2_value'],
+            'stat3_name': effect.get('stat3_name'),
+            'stat3_value': effect.get('stat3_value'),
+            'stat4_name': effect.get('stat4_name'),
+            'stat4_value': effect.get('stat4_value'),
+        })
+
+    cur.close()
+    conn.close()
+
+    result.sort(key=lambda x: x['cnt'], reverse=True)
+    return jsonify(result)
+
+@app.route('/api/card_price/<int:spid>')
+def card_price(spid):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT bp1, bp2, bp3, bp4, bp5, bp6, bp7,
+               bp8, bp9, bp10, bp11, bp12, bp13
+        FROM card_prices
+        WHERE spid = %s
+    """, (spid,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not row:
+        return jsonify({})
+    return jsonify(dict(row))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
