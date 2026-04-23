@@ -59,12 +59,12 @@
     }
 
     .sm-btn-tier {
-        background: var(--primary-color);
+        background: #14944a;
         color: #fff;
     }
 
     .sm-btn-ranker {
-        background: #d06c48;
+        background: #962e23;
         color: #fff;
     }
 
@@ -888,6 +888,10 @@
         cursor: pointer;
     }
 
+    .btn-short {
+        display: none;
+    }
+
     /* 모바일 */
     @media (max-width: 768px) {
         .sm-summary {
@@ -915,6 +919,14 @@
             flex-direction: column;
             gap: 6px;
         }
+
+        .btn-full {
+            display: none;
+        }
+
+        .btn-short {
+            display: inline;
+        }
     }
 </style>
 
@@ -922,10 +934,17 @@
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
         <!-- 빠른 스쿼드 제작 -->
-        <div class="sm-quick-vertical">
+        <div class="sm-quick-vertical"
+            style="border: 1.5px solid var(--primary-color); box-shadow: 0 0 8px rgba(138,43,226,0.25);">
             <span class="sm-quick-label">✨ 빠른 스쿼드 제작</span>
-            <button class="sm-btn sm-btn-tier" onclick="autoFillByTier()">1. 사용률 기반 자동완성</button>
-            <button class="sm-btn sm-btn-ranker" onclick="loadRankerSquad()">2. 랭커 스쿼드 불러오기</button>
+            <button class="sm-btn sm-btn-tier" onclick="autoFillByTier()">
+                <span class="btn-full">1. 사용률 기반 자동 완성</span>
+                <span class="btn-short">1. 사용률<br>자동 완성</span>
+            </button>
+            <button class="sm-btn sm-btn-ranker" onclick="loadRankerSquad()">
+                <span class="btn-full">2. 랭커 스쿼드 불러오기</span>
+                <span class="btn-short">2. 랭커 스쿼드</span>
+            </button>
         </div>
         <!-- 스쿼드 관리 -->
         <div class="sm-quick-vertical">
@@ -934,7 +953,9 @@
                 스쿼드 저장</button>
             <button class="sm-btn" onclick="loadSquadList()"
                 style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4);">📂
-                스쿼드 불러오기</button>
+                <span class="btn-full">스쿼드 불러오기</span>
+                <span class="btn-short">불러오기</span>
+            </button>
             <button class="sm-btn" onclick="resetSquad()"
                 style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4); border-radius:0;">🔄
                 초기화</button>
