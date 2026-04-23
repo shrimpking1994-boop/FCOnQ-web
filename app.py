@@ -2511,23 +2511,40 @@ def squad_trait_teamcolor():
 def card_price(spid):
     conn = get_db_connection()
     cur = conn.cursor()
+
+    # 1순위: card_price_history 최신값
     cur.execute("""
         SELECT full_data
         FROM card_price_history
         WHERE spid = %s
     """, (spid,))
     row = cur.fetchone()
+
+    if row and row['full_data']:
+        result = {}
+        for boost_str, data in row['full_data'].items():
+            values = data.get('values', []) if isinstance(data, dict) else data
+            if values:
+                result[f'bp{boost_str}'] = values[-1]
+        if result:
+            cur.close()
+            conn.close()
+            return jsonify(result)
+
+    # 2순위: card_prices fallback
+    cur.execute("""
+        SELECT bp1, bp2, bp3, bp4, bp5, bp6, bp7,
+               bp8, bp9, bp10, bp11, bp12, bp13
+        FROM card_prices
+        WHERE spid = %s
+    """, (spid,))
+    row = cur.fetchone()
     cur.close()
     conn.close()
-    if not row or not row['full_data']:
+
+    if not row:
         return jsonify({})
-    
-    result = {}
-    for boost_str, data in row['full_data'].items():
-        values = data.get('values', []) if isinstance(data, dict) else data
-        if values:
-            result[f'bp{boost_str}'] = values[-1]
-    return jsonify(result)
+    return jsonify(dict(row))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
