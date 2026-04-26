@@ -1937,9 +1937,9 @@
         if (!slotEl) return;
 
         const isMobile = window.innerWidth <= 768;
-        const imgSize = isMobile ? 46 : 80;
-        const slotW = isMobile ? 46 : 80;
-        const slotH = isMobile ? 58 : 100;
+        const imgSize = isMobile ? 40 : 80;
+        const slotW = isMobile ? 40 : 80;
+        const slotH = isMobile ? 50 : 100;
         const ovrLeft = isMobile ? -20 : -28;
         const salaryRight = isMobile ? -20 : -30;
         const ovrFont = isMobile ? '0.65rem' : '0.9rem';
@@ -2013,7 +2013,7 @@
                 const bpKey = 'bp' + (card.boost || 8);
                 const price = formatPrice(card[bpKey]);
                 return price ? `<div style="font-size:${priceFont}; color:#ffe066; font-weight:700;
-                                text-shadow:1px 1px 2px #000; margin-top:-2px;">
+                                text-shadow:1px 1px 2px #000; margin-top:-2px; white-space:nowrap;">
                         ${price} BP
                     </div>` : '';
             })()} 
