@@ -2365,12 +2365,11 @@
         if (!data.success) { alert('팀컬러 데이터를 불러오지 못했습니다.'); return; }
         const tcData = data.data;
 
-        // 포메이션 변경
+        // 포메이션 변경 및 squadData 초기화
         const formSel = document.getElementById('formation-select');
-        if (formSel.value !== tierSelectedFormation) {
-            formSel.value = tierSelectedFormation;
-            changeFormation(tierSelectedFormation);
-        }
+        formSel.value = tierSelectedFormation;
+        renderFormation(tierSelectedFormation);
+        updateSummary();
 
         // 포지션 우선순위 정렬
         const positions = [...FORMATIONS[tierSelectedFormation].positions]
