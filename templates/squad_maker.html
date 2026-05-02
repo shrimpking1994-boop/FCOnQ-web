@@ -892,6 +892,10 @@
         display: none;
     }
 
+    .price-ratio-label {
+        font-size: 0.8rem;
+    }
+
     /* 모바일 */
     @media (max-width: 768px) {
         .sm-summary {
@@ -930,6 +934,10 @@
 
         .sm-field-wrap {
             height: 500px;
+        }
+
+        .price-ratio-label {
+            font-size: 0.65rem;
         }
     }
 </style>
@@ -991,8 +999,8 @@
     <div style="display:flex; justify-content:center; align-items:center; margin-bottom:8px; position:relative;">
         <span style="font-size:0.8rem; color:var(--text-muted);">현재 포메이션: </span>
         <span id="formation-label" style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">—</span>
-        <label
-            style="position:absolute; right:0; display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.8rem; color:var(--text-muted);">
+        <label class="price-ratio-label"
+            style="position:absolute; right:0; display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--text-muted);">
             <input type="checkbox" id="show-price-ratio" checked onchange="updateSummary()">
             가격 비중 표시
         </label>
