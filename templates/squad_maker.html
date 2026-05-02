@@ -2613,18 +2613,22 @@
     function loadSquadList() {
         const squads = getSavedSquads();
         const listEl = document.getElementById('squad-load-list');
+        document.getElementById('squad-load-title').textContent = `저장된 스쿼드 (${squads.length}/10)`;
         if (squads.length === 0) {
             listEl.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">저장된 스쿼드가 없습니다.</div>';
         } else {
-            listEl.innerHTML = squads.map((s, i) => `
+            listEl.innerHTML = [...squads].reverse().map((s, i) => {
+                const realIdx = squads.length - 1 - i;
+                return `
                 <div style="display:flex; align-items:center; justify-content:space-between;
                             padding:10px 12px; margin-bottom:8px; border-radius:8px;
                             background:var(--bg-secondary); gap:8px; border:1px solid rgba(128,128,128,0.4);">
                     <span style="font-size:0.9rem; font-weight:600; color:var(--text-primary); flex:1;">${s.name}</span>
-                    <button onclick="loadSquad(${i})" style="padding:4px 10px; border-radius:6px; border:none; background:#2196f3; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">불러오기</button>
-                    <button onclick="deleteSquad(${i})" style="padding:4px 10px; border-radius:6px; border:none; background:#f44336; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">삭제</button>
+                    <button onclick="loadSquad(${realIdx})" style="padding:4px 10px; border-radius:6px; border:none; background:#2196f3; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">불러오기</button>
+                    <button onclick="deleteSquad(${realIdx})" style="padding:4px 10px; border-radius:6px; border:none; background:#f44336; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">삭제</button>
                 </div>
-            `).join('');
+    `;
+            }).join('');
         }
         document.getElementById('squad-load-modal').classList.add('active');
     }
@@ -2714,7 +2718,7 @@
 <div id="squad-load-modal" class="sm-modal-overlay">
     <div class="sm-modal">
         <div class="sm-modal-header">
-            <span class="sm-modal-title">저장된 스쿼드</span>
+            <span class="sm-modal-title" id="squad-load-title">저장된 스쿼드</span>
             <button class="sm-modal-close" onclick="closeSquadLoadModal()">✕</button>
         </div>
         <div id="squad-load-list" class="sm-modal-results"></div>
