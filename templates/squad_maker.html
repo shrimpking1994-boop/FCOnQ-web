@@ -988,9 +988,14 @@
         </select>
     </div>
 
-    <div style="text-align:center; margin-bottom:8px;">
+    <div style="display:flex; justify-content:center; align-items:center; margin-bottom:8px; position:relative;">
         <span style="font-size:0.8rem; color:var(--text-muted);">현재 포메이션: </span>
         <span id="formation-label" style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">—</span>
+        <label
+            style="position:absolute; right:0; display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.8rem; color:var(--text-muted);">
+            <input type="checkbox" id="show-price-ratio" checked onchange="updateSummary()">
+            가격 비중 표시
+        </label>
     </div>
 
     <div class="sm-summary">
@@ -1979,9 +1984,9 @@
         if (!slotEl) return;
 
         const isMobile = window.innerWidth <= 768;
-        const imgSize = isMobile ? 40 : 80;
-        const slotW = isMobile ? 40 : 80;
-        const slotH = isMobile ? 50 : 100;
+        const imgSize = isMobile ? 40 : 68;
+        const slotW = isMobile ? 40 : 68;
+        const slotH = isMobile ? 50 : 85;
         const ovrLeft = isMobile ? -20 : -28;
         const salaryRight = isMobile ? -20 : -30;
         const ovrFont = isMobile ? '0.65rem' : '0.9rem';
@@ -2052,13 +2057,25 @@
                 </span>      
             </div>      
             ${(() => {
-                const bpKey = 'bp' + (card.boost || 8);
-                const price = formatPrice(card[bpKey]);
+                const bpKey2 = 'bp' + (card.boost || 8);
+                const price = formatPrice(card[bpKey2]);
+                const cardPrice2 = parseInt(card[bpKey2]) || 0;
+                const totalPrice2 = Object.values(squadData).reduce((sum, p) => {
+                    if (!p) return sum;
+                    const k = 'bp' + (p.boost || 8);
+                    return sum + (parseInt(p[k]) || 0);
+                }, 0);
+                const showRatio2 = document.getElementById('show-price-ratio')?.checked;
+                const ratioText = (showRatio2 && cardPrice2 > 0 && totalPrice2 > 0)
+                    ? `(${(cardPrice2 / totalPrice2 * 100).toFixed(1)}%)` : '';
+
                 return price ? `<div style="font-size:${priceFont}; color:#ffe066; font-weight:700;
                                 text-shadow:1px 1px 2px #000; margin-top:-2px; white-space:nowrap;">
                         ${price} BP
-                    </div>` : '';
-            })()} 
+                    </div>
+                    <div data-price-ratio="${pos}" style="font-size:${priceFont}; color:rgba(255,255,200,0.8);
+                                font-weight:600; text-shadow:1px 1px 2px #000; white-space:nowrap; margin-top:-4px;">${ratioText}</div>` : '';
+            })()}
         </div>
     `;
     }
@@ -2091,6 +2108,18 @@
         }, 0);
         const priceEl = document.getElementById('total-price');
         priceEl.textContent = totalPrice > 0 ? formatPrice(totalPrice) : '—';
+
+        // 각 슬롯 가격 비중 업데이트
+        const showRatio = document.getElementById('show-price-ratio')?.checked;
+        Object.entries(squadData).forEach(([pos, card]) => {
+            const el = document.querySelector(`[data-price-ratio="${pos}"]`);
+            if (!el) return;
+            if (!card || totalPrice === 0 || !showRatio) { el.textContent = ''; return; }
+            const bpKey = 'bp' + (card.boost || 8);
+            const cardPrice = parseInt(card[bpKey]) || 0;
+            const ratio = (cardPrice / totalPrice * 100).toFixed(1);
+            el.textContent = cardPrice > 0 ? `(${ratio}%)` : '';
+        });
 
         updateFormationLabel();
         updateTeamColor();
