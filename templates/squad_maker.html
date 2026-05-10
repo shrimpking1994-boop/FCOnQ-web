@@ -1608,7 +1608,9 @@
         document.getElementById('edit-pos-label').textContent = pos;
         document.getElementById('edit-season-img').src = card.season_img;
         document.getElementById('edit-player-name').textContent = card.player_name;
-        document.getElementById('edit-overlay').classList.add('active');
+        setTimeout(() => {
+            document.getElementById('edit-overlay').classList.add('active');
+        }, 150);
     }
 
     function closeEditModal() {
