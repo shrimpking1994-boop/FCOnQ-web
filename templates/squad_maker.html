@@ -1379,6 +1379,7 @@
             pos: wrapper.dataset.pos,
             startX: e.clientX,
             startY: e.clientY,
+            startTime: Date.now(),
             dragging: false,
             wrapper,
             ghost: null
@@ -1466,7 +1467,10 @@
                 swapSlots(fromPos, targetPos, pctX, pctY);
             }
         } else {
-            openPlayerSearch('field', dragState.pos);
+            const holdTime = Date.now() - dragState.startTime;
+            if (e.type !== 'pointercancel' && (e.pointerType !== 'touch' || holdTime < 300)) {
+                openPlayerSearch('field', dragState.pos);
+            }
         }
         dragState = null;
     }
