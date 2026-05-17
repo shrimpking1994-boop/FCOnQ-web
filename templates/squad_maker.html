@@ -1267,7 +1267,7 @@
         const el = document.createElement('div');
         el.id = `wrapper-${pos}`;
         el.dataset.pos = pos;
-        el.style.cssText = `position:absolute; top:${c.top}%; left:${c.left}%; transform:translate(-50%,-50%); text-align:center; cursor:pointer;`;
+        el.style.cssText = `position:absolute; top:${c.top}%; left:${c.left}%; transform:translate(-50%,-50%); text-align:center; cursor:pointer; touch-action:none;`;
         el.innerHTML = `
         <div class="sm-slot-card" id="slot-${pos}">
             <span class="plus">+</span>
