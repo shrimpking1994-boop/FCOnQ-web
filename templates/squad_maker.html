@@ -1375,7 +1375,6 @@
         const wrapper = e.target.closest('[data-pos]');
         if (!wrapper) return;
         e.preventDefault();
-        e.stopPropagation();
         dragState = {
             pos: wrapper.dataset.pos,
             startX: e.clientX,
@@ -1384,8 +1383,6 @@
             wrapper,
             ghost: null
         };
-        document.body.style.overflow = 'hidden';
-        document.getElementById('squad-field').style.touchAction = 'none';
         document.addEventListener('pointermove', onDragMove);
         document.addEventListener('pointerup', onDragEnd);
         document.addEventListener('pointercancel', onDragEnd);
@@ -1395,8 +1392,7 @@
         if (!dragState) return;
         const dx = e.clientX - dragState.startX;
         const dy = e.clientY - dragState.startY;
-
-        if (!dragState.dragging && Math.sqrt(dx * dx + dy * dy) > 4) {
+        if (!dragState.dragging && Math.sqrt(dx * dx + dy * dy) > 6) {
             dragState.dragging = true;
             const ghost = dragState.wrapper.cloneNode(true);
             ghost.style.cssText = `
@@ -1407,7 +1403,6 @@
             dragState.ghost = ghost;
             dragState.wrapper.style.opacity = '0.25';
         }
-
         if (dragState.dragging && dragState.ghost) {
             dragState.ghost.style.left = e.clientX + 'px';
             dragState.ghost.style.top = e.clientY + 'px';
@@ -1419,11 +1414,16 @@
             const hoverPos = getNearestPos(pctX, pctY);
             updateZoneHighlight(hoverPos);
 
+            // ghost 카드 포지션/OVR 실시간 업데이트
             if (hoverPos && dragState.ghost) {
                 const fromPos = dragState.pos;
                 const card = squadData[fromPos];
+
+                // 포지션 레이블 업데이트
                 const posLabel = dragState.ghost.querySelector('[data-ghost-pos]');
                 if (posLabel) posLabel.textContent = hoverPos;
+
+                // OVR 업데이트 (카드가 있을 때만)
                 if (card) {
                     const ovrLabel = dragState.ghost.querySelector('[data-ghost-ovr]');
                     if (ovrLabel) ovrLabel.textContent = calcOvr(card, hoverPos);
@@ -1439,17 +1439,10 @@
         if (!dragState) return;
 
         clearZoneHighlight();
-        document.body.style.overflow = '';
-        document.getElementById('squad-field').style.touchAction = 'pan-y';
 
         if (dragState.dragging) {
             if (dragState.ghost) { dragState.ghost.remove(); dragState.ghost = null; }
             dragState.wrapper.style.opacity = '1';
-
-            if (e.type === 'pointercancel' || (!e.clientX && !e.clientY)) {
-                dragState = null;
-                return;
-            }
 
             if (dragState.pos === 'GK') { dragState = null; return; }
 
@@ -1461,11 +1454,14 @@
             const fromPos = dragState.pos;
 
             if (!targetPos || targetPos === fromPos) {
+                // 같은 구역: 위치만 이동
                 slotPositions[fromPos] = { top: pctY, left: pctX };
                 updateWrapperPosition(fromPos);
             } else if (!document.getElementById(`wrapper-${targetPos}`)) {
+                // 해당 구역에 슬롯 없음: 이동
                 moveSlot(fromPos, targetPos, pctX, pctY);
             } else {
+                // 해당 구역에 슬롯 있음 (카드 있든 없든): 교환
                 swapSlots(fromPos, targetPos, pctX, pctY);
             }
         } else {
@@ -2744,7 +2740,6 @@
     }
 
     renderFormation('42211');
-    document.getElementById('squad-field').addEventListener('contextmenu', e => e.preventDefault());
     initDragAndDrop();
 </script>
 
