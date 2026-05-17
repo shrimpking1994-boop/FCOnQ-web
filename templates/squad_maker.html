@@ -934,6 +934,9 @@
 
         .sm-field-wrap {
             height: 500px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .price-ratio-label {
@@ -1375,6 +1378,8 @@
         const wrapper = e.target.closest('[data-pos]');
         if (!wrapper) return;
         e.preventDefault();
+        // 롱프레스 컨텍스트 메뉴 방지
+        e.stopPropagation();
         dragState = {
             pos: wrapper.dataset.pos,
             startX: e.clientX,
@@ -1383,6 +1388,9 @@
             wrapper,
             ghost: null
         };
+        // 모바일 드래그 시 스크롤 방지
+        document.body.style.overflow = 'hidden';
+        document.getElementById('squad-field').style.touchAction = 'none';
         document.addEventListener('pointermove', onDragMove);
         document.addEventListener('pointerup', onDragEnd);
         document.addEventListener('pointercancel', onDragEnd);
@@ -1392,7 +1400,7 @@
         if (!dragState) return;
         const dx = e.clientX - dragState.startX;
         const dy = e.clientY - dragState.startY;
-        if (!dragState.dragging && Math.sqrt(dx * dx + dy * dy) > 6) {
+        if (!dragState.dragging && Math.sqrt(dx * dx + dy * dy) > 8) {
             dragState.dragging = true;
             const ghost = dragState.wrapper.cloneNode(true);
             ghost.style.cssText = `
@@ -1470,6 +1478,8 @@
         } else {
             openPlayerSearch('field', dragState.pos);
         }
+        document.body.style.overflow = '';
+        document.getElementById('squad-field').style.touchAction = 'pan-y';
         dragState = null;
     }
 
