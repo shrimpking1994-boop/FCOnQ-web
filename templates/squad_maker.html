@@ -1392,7 +1392,8 @@
         if (!dragState) return;
         const dx = e.clientX - dragState.startX;
         const dy = e.clientY - dragState.startY;
-        if (!dragState.dragging && Math.sqrt(dx * dx + dy * dy) > 6) {
+        const threshold = e.pointerType === 'touch' ? 14 : 6;
+        if (!dragState.dragging && Math.sqrt(dx * dx + dy * dy) > threshold) {
             dragState.dragging = true;
             const ghost = dragState.wrapper.cloneNode(true);
             ghost.style.cssText = `
