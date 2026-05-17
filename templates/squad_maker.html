@@ -1444,6 +1444,12 @@
             if (dragState.ghost) { dragState.ghost.remove(); dragState.ghost = null; }
             dragState.wrapper.style.opacity = '1';
 
+            // pointercancel 또는 좌표 없는 경우 무시
+            if (e.type === 'pointercancel' || (!e.clientX && !e.clientY)) {
+                dragState = null;
+                return;
+            }
+
             if (dragState.pos === 'GK') { dragState = null; return; }
 
             const field = document.getElementById('squad-field');
@@ -1454,14 +1460,11 @@
             const fromPos = dragState.pos;
 
             if (!targetPos || targetPos === fromPos) {
-                // 같은 구역: 위치만 이동
                 slotPositions[fromPos] = { top: pctY, left: pctX };
                 updateWrapperPosition(fromPos);
             } else if (!document.getElementById(`wrapper-${targetPos}`)) {
-                // 해당 구역에 슬롯 없음: 이동
                 moveSlot(fromPos, targetPos, pctX, pctY);
             } else {
-                // 해당 구역에 슬롯 있음 (카드 있든 없든): 교환
                 swapSlots(fromPos, targetPos, pctX, pctY);
             }
         } else {
