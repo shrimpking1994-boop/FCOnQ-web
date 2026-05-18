@@ -638,7 +638,6 @@
 
         // keydown으로 완전 제어
         salePriceInput.addEventListener('keydown', function (e) {
-            keydownFired = true;
             const input = this;
             let userInput = input.dataset.userInput || '';
 
@@ -702,6 +701,7 @@
                 }
             }, 0);
 
+            keydownFired = true;
             calculateTotal();
         });
 
