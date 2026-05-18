@@ -629,6 +629,8 @@
         // 판매 금액 입력 이벤트
         const salePriceInput = box.querySelector('.sale-price');
 
+        let keydownFired = false;
+
         // 초기 사용자 입력값 저장
         if (!salePriceInput.dataset.userInput) {
             salePriceInput.dataset.userInput = '';
@@ -636,6 +638,7 @@
 
         // keydown으로 완전 제어
         salePriceInput.addEventListener('keydown', function (e) {
+            keydownFired = true;
             const input = this;
             let userInput = input.dataset.userInput || '';
 
@@ -727,6 +730,15 @@
         // paste 차단
         salePriceInput.addEventListener('paste', function (e) {
             e.preventDefault();
+        });
+
+        // 모바일 가상 키보드 대응
+        salePriceInput.addEventListener('input', function () {
+            if (keydownFired) { keydownFired = false; return; }
+            const digits = this.value.replace(/[^0-9]/g, '');
+            this.dataset.userInput = digits;
+            this.value = digits ? new Intl.NumberFormat('ko-KR').format(parseFloat(digits) * 100000000000) : '';
+            calculateTotal();
         });
 
         // 클릭/포커스 시 커서 위치 강제
