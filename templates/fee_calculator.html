@@ -743,7 +743,9 @@
             const allDigits = this.value.replace(/[^0-9]/g, '');
 
             let newUserInput;
-            if (allDigits.length > prevFormatted.length) {
+            if (allDigits === '') {
+                newUserInput = '';
+            } else if (allDigits.length > prevFormatted.length) {
                 newUserInput = prevUserInput + allDigits.slice(prevFormatted.length);
             } else if (allDigits.length < prevFormatted.length) {
                 newUserInput = prevUserInput.slice(0, -1);
