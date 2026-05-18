@@ -734,14 +734,7 @@
 
         // 모바일 가상 키보드 대응
         salePriceInput.addEventListener('input', function () {
-            if (keydownFired) {
-                keydownFired = false;
-                if (this.value === '' && this.dataset.userInput !== '') {
-                    this.dataset.userInput = '';
-                    calculateTotal();
-                }
-                return;
-            }
+            if (keydownFired) { keydownFired = false; return; }
 
             const prevUserInput = this.dataset.userInput || '';
             const prevFormatted = prevUserInput
@@ -750,9 +743,7 @@
             const allDigits = this.value.replace(/[^0-9]/g, '');
 
             let newUserInput;
-            if (allDigits === '') {
-                newUserInput = '';
-            } else if (allDigits.length > prevFormatted.length) {
+            if (allDigits.length > prevFormatted.length) {
                 newUserInput = prevUserInput + allDigits.slice(prevFormatted.length);
             } else if (allDigits.length < prevFormatted.length) {
                 newUserInput = prevUserInput.slice(0, -1);
