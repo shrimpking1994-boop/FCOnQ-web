@@ -735,9 +735,24 @@
         // 모바일 가상 키보드 대응
         salePriceInput.addEventListener('input', function () {
             if (keydownFired) { keydownFired = false; return; }
-            const digits = this.value.replace(/[^0-9]/g, '');
-            this.dataset.userInput = digits;
-            this.value = digits ? new Intl.NumberFormat('ko-KR').format(parseFloat(digits) * 100000000000) : '';
+
+            const prevUserInput = this.dataset.userInput || '';
+            const prevFormatted = prevUserInput
+                ? new Intl.NumberFormat('ko-KR').format(parseFloat(prevUserInput) * 100000000000).replace(/[^0-9]/g, '')
+                : '';
+            const allDigits = this.value.replace(/[^0-9]/g, '');
+
+            let newUserInput;
+            if (allDigits.length > prevFormatted.length) {
+                newUserInput = prevUserInput + allDigits.slice(prevFormatted.length);
+            } else if (allDigits.length < prevFormatted.length) {
+                newUserInput = prevUserInput.slice(0, -1);
+            } else {
+                newUserInput = prevUserInput;
+            }
+
+            this.dataset.userInput = newUserInput;
+            this.value = newUserInput ? new Intl.NumberFormat('ko-KR').format(parseFloat(newUserInput) * 100000000000) : '';
             calculateTotal();
         });
 
