@@ -734,7 +734,14 @@
 
         // 모바일 가상 키보드 대응
         salePriceInput.addEventListener('input', function () {
-            if (keydownFired) { keydownFired = false; return; }
+            if (keydownFired) {
+                keydownFired = false;
+                if (this.value === '' && this.dataset.userInput !== '') {
+                    this.dataset.userInput = '';
+                    calculateTotal();
+                }
+                return;
+            }
 
             const prevUserInput = this.dataset.userInput || '';
             const prevFormatted = prevUserInput
