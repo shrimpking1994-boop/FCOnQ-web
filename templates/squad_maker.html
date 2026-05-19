@@ -2746,10 +2746,29 @@
 
     renderFormation('42211');
     initDragAndDrop();
+
+    // 모달 바깥 클릭 시 닫기
+    [
+        { id: 'player-modal', fn: () => closePlayerModal() },
+        { id: 'edit-overlay', fn: () => closeEditModal() },
+        { id: 'tier-overlay', fn: () => closeTierModal() },
+        { id: 'ranker-overlay', fn: () => closeRankerModal() },
+        { id: 'quick-guide-overlay', fn: () => document.getElementById('quick-guide-overlay').classList.remove('active') },
+        { id: 'boost-select-overlay', fn: () => closeBoostSelect() },
+        { id: 'miniface-overlay', fn: () => closeMiniface() },
+        { id: 'squad-save-modal', fn: () => document.getElementById('squad-save-modal').classList.remove('active') },
+        { id: 'squad-load-modal', fn: () => document.getElementById('squad-load-modal').classList.remove('active') },
+    ].forEach(({ id, fn }) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', function (e) {
+            if (e.target === el) fn();
+        });
+    });
 </script>
 
 <!-- 스쿼드 저장 모달 -->
-<div id="squad-save-modal" class="sm-modal-overlay">
+<div id="squad-save-modal" class="sm-modal-overlay" onclick="if(event.target===this)closeSquadSaveModal()">
     <div class="sm-modal">
         <div class="sm-modal-header">
             <span class="sm-modal-title">스쿼드 이름 입력</span>
@@ -2764,7 +2783,7 @@
 </div>
 
 <!-- 스쿼드 불러오기 모달 -->
-<div id="squad-load-modal" class="sm-modal-overlay">
+<div id="squad-load-modal" class="sm-modal-overlay" onclick="if(event.target===this)closeSquadLoadModal()">
     <div class="sm-modal">
         <div class="sm-modal-header">
             <span class="sm-modal-title" id="squad-load-title">저장된 스쿼드</span>
