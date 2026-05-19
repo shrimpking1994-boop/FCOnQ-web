@@ -1636,7 +1636,8 @@ def vote_player_review(review_id, vote_type):
         return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
     
     # IP 해시 생성
-    ip_hash = hash_ip(request.remote_addr)
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+    ip_hash = hash_ip(ip)
     
     conn = get_db_connection()
     cur = conn.cursor()

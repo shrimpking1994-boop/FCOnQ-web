@@ -296,6 +296,9 @@
 
     // 선수 후기 투표 함수
     function voteReview(reviewId, voteType) {
+        const btn = event.currentTarget;
+        if (btn.disabled) return;
+        btn.disabled = true;  // 추가
         fetch(`/player_review/vote/${reviewId}/${voteType}`, {
             method: 'POST',
             headers: {
