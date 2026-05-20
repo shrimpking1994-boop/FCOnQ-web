@@ -1,10 +1,10 @@
 /* CSS 변수 시스템 */
 :root {
-    --gradient-start: #764ba2;
-    --gradient-end: #764ba2;
-    --gradient-bg: #764ba2;
-    --primary-color: #764ba2;
-    --primary-light: #f0e6ff;
+    --gradient-start: #5865b8;
+    --gradient-end: #5865b8;
+    --gradient-bg: #5865b8;
+    --primary-color: #5865b8;
+    --primary-light: #eaecf8;
 
     --bg-main: #e8ecf0;
     --bg-secondary: #f5f7fa;
@@ -29,11 +29,11 @@
 
 /* 다크모드 색상 */
 [data-theme="dark"] {
-    --gradient-start: #9f7aea;
-    --gradient-end: #9f7aea;
-    --gradient-bg: #9f7aea;
-    --primary-color: #9f7aea;
-    --primary-light: #44337a;
+    --gradient-start: #5865b8;
+    --gradient-end: #5865b8;
+    --gradient-bg: #5865b8;
+    --primary-color: #5865b8;
+    --primary-light: #2a2d5a;
 
     --bg-main: #181818;
     --bg-secondary: #242424;
