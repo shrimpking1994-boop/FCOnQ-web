@@ -1361,7 +1361,7 @@
 
             tooltip.innerHTML = `
                 <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-                    ${getSeasonImgUrl(spid) ? `<img src="${getSeasonImgUrl(spid)}" style="width:22px; height:22px;" onerror="this.style.display='none'">` : ''}
+                    <img src="${getSeasonImgUrl(spid)}" style="height:22px; width:auto;" onerror="this.style.display='none'">
                     <span style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">${data.name}</span>
                 </div>
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">
