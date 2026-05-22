@@ -1907,6 +1907,8 @@ def card_hover(spid):
         'body_type': card['basic_info'].get('body_type', ''),
         'salary': card['game_info'].get('salary', ''),
         'traits': card['game_info'].get('traits', []),
+        'preferred_foot': card['game_info'].get('preferred_foot', ''),
+        'weak_foot': card['game_info'].get('weak_foot', ''),
     })
 
 

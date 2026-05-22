@@ -147,7 +147,8 @@
         border: 1px solid var(--border-color);
         border-radius: 10px;
         padding: 12px;
-        width: 280px;
+        width: max-content;
+        max-width: 420px;
         pointer-events: none;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
@@ -1364,7 +1365,16 @@
                     <span style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">${data.name}</span>
                 </div>
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">
-                    급여 ${data.salary} &nbsp;|&nbsp; ${data.height}cm ${data.weight}kg ${data.body_type}
+                    급여 ${data.salary} &nbsp;|&nbsp; ${data.height}cm ${data.weight}kg ${data.body_type} &nbsp;|&nbsp; ${(() => {
+                    const pref = data.preferred_foot;
+                    const weak = data.weak_foot;
+                    const isRightPref = pref.startsWith('R');
+                    const left = isRightPref ? weak : pref;
+                    const right = isRightPref ? pref : weak;
+                    const leftHtml = isRightPref ? left : `<strong>${left}</strong>`;
+                    const rightHtml = isRightPref ? `<strong>${right}</strong>` : right;
+                    return `${leftHtml}-${rightHtml}`;
+                })()}
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:4px;">
                     ${traitsHtml}
