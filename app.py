@@ -1883,6 +1883,32 @@ def miniface_search():
     """미니 페이스온 검색기 페이지"""
     return render_template('miniface_search.html')
 
+@app.route('/api/card_hover/<int:spid>')
+def card_hover(spid):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            pc.full_data->'basic_info' as basic_info,
+            pc.full_data->'game_info' as game_info,
+            pc.full_data->'image_info' as image_info
+        FROM player_cards pc
+        WHERE pc.spid = %s
+    """, (spid,))
+    card = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not card:
+        return jsonify({}), 404
+    return jsonify({
+        'name': card['basic_info']['name'],
+        'height': str(card['basic_info'].get('height', '')).replace('cm', '').strip(),
+        'weight': str(card['basic_info'].get('weight', '')).replace('kg', '').strip(),
+        'body_type': card['basic_info'].get('body_type', ''),
+        'salary': card['game_info'].get('salary', ''),
+        'traits': card['game_info'].get('traits', []),
+    })
+
 
 @app.route('/api/search_miniface', methods=['POST'])
 def search_miniface():
