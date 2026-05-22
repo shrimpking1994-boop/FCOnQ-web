@@ -2319,7 +2319,7 @@
                     return `
                     <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; flex-wrap:wrap;">
                         <span style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">${tc.name}</span>
-                        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); background:var(--bg-secondary); padding:3px 10px; border-radius:20px;">👤 ${tc.cnt}명</span>
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); background:var(--bg-secondary); padding:3px 10px; border-radius:20px;">👤 ${tc.cnt}명 (${tc.min_count}명)</span>
                         ${statBadges}
                     </div>
                     <div style="display:flex; justify-content:center; gap:6px; padding:0 12px 10px; flex-wrap:wrap;">${faces}</div>
@@ -2646,7 +2646,12 @@
         const squads = getSavedSquads();
         const squadSnapshot = {};
         Object.entries(squadData).forEach(([pos, card]) => {
-            if (card) squadSnapshot[pos] = { spid: card.spid, boost: card.boost || 8 };
+            if (card) squadSnapshot[pos] = {
+                spid: card.spid,
+                boost: card.boost || 8,
+                image: card.image || null,
+                image_fallback: card.image_fallback || null
+            };
             else squadSnapshot[pos] = null;
         });
         squads.push({ name, data: squadSnapshot, savedAt: Date.now() });
@@ -2715,6 +2720,8 @@
             if (saved && cardMap[saved.spid]) {
                 const card = cardMap[saved.spid];
                 card.boost = saved.boost;
+                if (saved.image) card.image = saved.image;
+                if (saved.image_fallback) card.image_fallback = saved.image_fallback;
                 squadData[pos] = card;
                 renderSlotCard(pos, card);
             } else {
