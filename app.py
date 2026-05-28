@@ -1079,8 +1079,8 @@ def search():
     club_teamcolors = [row['club_name'] for row in cur.fetchall()]
     
     # 3. 특성 팀컬러
-    cur.execute('SELECT trait_name FROM trait_teamcolors ORDER BY trait_name COLLATE "C"')
-    trait_teamcolors = [row['trait_name'] for row in cur.fetchall()]
+    cur.execute('SELECT name FROM special_teamcolors ORDER BY name COLLATE "C"')
+    trait_teamcolors = [row['name'] for row in cur.fetchall()]
     
     # 4. 고유 특성 데이터 가져오기
     # 신규 특성
