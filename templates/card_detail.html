@@ -860,7 +860,7 @@
 </div>
 
 <!-- 클럽 경력 + 시세 -->
-{% if card.basic_info.club_history or card.bp1 %}
+{% if card.basic_info.club_history or card.bp1 or price_history %}
 <div class="stat-section">
     <div class="row">
         <div class="col-md-6">
@@ -888,7 +888,7 @@
         </div>
 
         <div class="col-md-6">
-            {% if card.bp1 %}
+            {% if card.bp1 or price_history %}
             <style>
                 #btnCurrentPrice,
                 #btnTrend {
