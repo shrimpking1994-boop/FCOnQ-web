@@ -1323,15 +1323,28 @@
         const face = e.target.closest('.card-face');
         if (!face) return;
         const spid = face.onclick?.toString().match(/card\/(\d+)/)?.[1];
+        const buildup = face.onclick?.toString().match(/buildup=(\d+)/)?.[1];
         if (!spid) return;
 
         hoverTimer = setTimeout(async () => {
             let data = hoverCache[spid];
             if (!data) {
-                const res = await fetch(`/api/card_hover/${spid}`);
-                data = await res.json();
+                const [hoverRes, priceRes] = await Promise.all([
+                    fetch(`/api/card_hover/${spid}`),
+                    fetch(`/api/card_price/${spid}`)
+                ]);
+                data = await hoverRes.json();
+                data._prices = await priceRes.json();
                 hoverCache[spid] = data;
             }
+            const price = data._prices?.[`bp${buildup}`];
+            const priceText = price ? (() => {
+                const p = parseInt(price);
+                if (p >= 10000000000000000) return (p / 10000000000000000).toFixed(1) + '경 BP';
+                if (p >= 1000000000000) return Math.floor(p / 1000000000000) + '조 BP';
+                if (p >= 100000000) return Math.floor(p / 100000000) + '억 BP';
+                return p.toLocaleString() + ' BP';
+            })() : '-';
 
             const TRAIT_MAP = {
                 "아크로바틱 피니셔": "trait_icon_50", "크로스 포쳐": "trait_icon_51", "라인 브레이커": "trait_icon_52",
@@ -1363,6 +1376,7 @@
                 <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
                     <img src="${getSeasonImgUrl(spid)}" style="height:22px; width:auto;" onerror="this.style.display='none'">
                     <span style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">${data.name}</span>
+                    <span style="font-size:0.75rem; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(0,0,0,0.5); color:${parseInt(buildup) <= 1 ? '#9ca3af' : parseInt(buildup) <= 4 ? '#cd7f32' : parseInt(buildup) <= 7 ? '#c0c0c0' : parseInt(buildup) <= 10 ? '#fcd34d' : '#d8b4fe'};">+${buildup}</span>
                 </div>
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">
                     급여 ${data.salary} &nbsp;|&nbsp; ${data.height}cm ${data.weight}kg ${data.body_type} &nbsp;|&nbsp; ${(() => {
@@ -1376,8 +1390,11 @@
                     return `${leftHtml}-${rightHtml}`;
                 })()}
                 </div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
                     ${traitsHtml}
+                </div>
+                <div style="font-size:0.85rem; font-weight:700; color:#fcd34d;">
+                    ${priceText}
                 </div>
             `;
             tooltip.style.display = 'block';
