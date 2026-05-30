@@ -1340,10 +1340,10 @@
             const price = data._prices?.[`bp${buildup}`];
             const priceText = price ? (() => {
                 const p = parseInt(price);
-                if (p >= 10000000000000000) return (p / 10000000000000000).toFixed(1) + '경 BP';
-                if (p >= 1000000000000) return Math.floor(p / 1000000000000) + '조 BP';
-                if (p >= 100000000) return Math.floor(p / 100000000) + '억 BP';
-                return p.toLocaleString() + ' BP';
+                if (p >= 10000000000000000) return '약 ' + (p / 10000000000000000).toFixed(1) + '경 BP';
+                if (p >= 1000000000000) return '약 ' + Math.floor(p / 1000000000000) + '조 BP';
+                if (p >= 100000000) return '약 ' + Math.floor(p / 100000000) + '억 BP';
+                return '약 ' + p.toLocaleString() + ' BP';
             })() : '-';
 
             const TRAIT_MAP = {
