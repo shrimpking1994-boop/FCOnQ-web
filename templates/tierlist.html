@@ -1372,6 +1372,7 @@
                 ).join('')
                 : '<span style="font-size:0.75rem; color:var(--text-muted);">없음</span>';
 
+            const priceColor = document.documentElement.getAttribute('data-theme') === 'light' ? 'var(--primary-color)' : '#fcd34d';
             tooltip.innerHTML = `
                 <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
                     <img src="${getSeasonImgUrl(spid)}" style="height:22px; width:auto;" onerror="this.style.display='none'">
@@ -1393,7 +1394,7 @@
                 <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
                     ${traitsHtml}
                 </div>
-                <div style="font-size:0.85rem; font-weight:700; color:#fcd34d;">
+                <div style="font-size:0.85rem; font-weight:700; color:${priceColor};">
                     ${priceText}
                 </div>
             `;
