@@ -4,6 +4,21 @@
 
 {% block content %}
 <style>
+    .tc-share-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 4px 6px;
+        border-radius: 6px;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+    }
+
+    .tc-share-btn:hover {
+        opacity: 1;
+    }
+
     .tierlist-container {
         background: var(--bg-secondary);
         border-radius: 15px;
@@ -1012,6 +1027,7 @@
                             <span class="teamcolor-rank">${idx + 1}</span>
                             ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" onerror="this.style.display='none'">` : ''}
                             <span class="teamcolor-name">${tc}</span>
+                            <button class="tc-share-btn" onclick="copyTcLink(event, '${encodeURIComponent(tc)}')">🔗</button>
                             <span class="teamcolor-arrow">▼</span>
                         </div>
                         <div class="teamcolor-body">${positionsHtml || '<p style="color:var(--text-secondary)">데이터 없음</p>'}</div>
@@ -1020,6 +1036,7 @@
 
             wrap.innerHTML = html;
             wrap.dataset.loaded = 'true';
+            return true;
 
         } catch (e) {
             wrap.innerHTML = '<div class="empty-state"><h3>❌ 데이터를 불러오지 못했습니다</h3></div>';
@@ -1040,6 +1057,27 @@
 
     function toggleTeamcolor(idx) {
         document.getElementById('tcrow-' + idx).classList.toggle('open');
+    }
+
+    function copyTcLink(e, tc) {
+        e.stopPropagation(); // 아코디언 열리는 것 방지
+        const url = `${location.origin}/tierlist?tab=card&tc=${tc}`;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('링크가 복사되었습니다! 🔗');
+        });
+    }
+
+    function showToast(msg) {
+        let toast = document.getElementById('share-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'share-toast';
+            toast.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:0.9rem; z-index:99999; opacity:0; transition:opacity 0.3s;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 2000);
     }
 
     function getSeasonImgUrl(spid) {
@@ -1288,7 +1326,11 @@
 
     // 페이지 로드 시 마지막 상태 복원
     window.addEventListener('DOMContentLoaded', function () {
-        const lastTab = localStorage.getItem('lastTab') || 'teamcolor';
+        const urlParams = new URLSearchParams(location.search);
+        const tabParam = urlParams.get('tab');
+        const tcParam = urlParams.get('tc');
+
+        const lastTab = tabParam || localStorage.getItem('lastTab') || 'teamcolor';
         const lastTeamRanking = localStorage.getItem('lastTeamRanking') || '5000';
         const lastFormationRanking = localStorage.getItem('lastFormationRanking') || '5000';
 
@@ -1308,7 +1350,17 @@
         } else if (lastTab === 'formation') {
             loadFormationTierlist();
         } else if (lastTab === 'card') {
-            loadCardTierlist();
+            loadCardTierlist().then(() => {
+                if (tcParam) {
+                    const rows = document.querySelectorAll('.teamcolor-name');
+                    rows.forEach((el, i) => {
+                        if (el.textContent === decodeURIComponent(tcParam)) {
+                            toggleTeamcolor(i);
+                            el.closest('.teamcolor-row').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
+                }
+            });
         }
     });
 </script>
