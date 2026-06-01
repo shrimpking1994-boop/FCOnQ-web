@@ -1866,11 +1866,23 @@ def tierlist():
     cur.close()
     conn.close()
     
+    tc_param = request.args.get('tc', '')
+    tab_param = request.args.get('tab', '')
+
+    if tab_param == 'card' and tc_param:
+        og_title = f"FCOnQ - {tc_param} 선수 티어리스트"
+        og_description = f"{tc_param} 팀컬러 포지션별 추천 선수를 확인해보세요!"
+    else:
+        og_title = "FCOnQ - FC온라인 전문 선수 DB 및 커뮤니티"
+        og_description = "8만개 이상의 선수 카드 정보와 시세를 확인하고, FC온라인 유저들과 소통하세요!"
+    
     return render_template('tierlist.html', 
                          available_dates=available_dates,
                          team_logos=team_logos,
                          formation_logos=formation_logos,
-                         season_logos=season_logos)
+                         season_logos=season_logos,
+                         og_title=og_title,
+                         og_description=og_description)
 
 
 @app.route('/fee_calculator')
