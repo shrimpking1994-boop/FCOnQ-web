@@ -2256,7 +2256,14 @@ def get_all_formation_data():
 @app.route('/squad_maker')
 def squad_maker():
     """스쿼드 메이커 페이지"""
-    return render_template('squad_maker.html')
+    share_param = request.args.get('share', '')
+    if share_param:
+        og_title = "FCOnQ - 스쿼드 공유"
+        og_description = "공유된 FC온라인 스쿼드를 확인해보세요!"
+    else:
+        og_title = "FCOnQ - FC온라인 전문 선수 DB 및 커뮤니티"
+        og_description = "8만개 이상의 선수 카드 정보와 시세를 확인하고, FC온라인 유저들과 소통하세요!"
+    return render_template('squad_maker.html', og_title=og_title, og_description=og_description)
 
 
 @app.route('/api/squad_search')
