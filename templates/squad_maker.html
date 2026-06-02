@@ -2129,12 +2129,12 @@
         }
         const snapshot = {};
         Object.entries(squadData).forEach(([pos, card]) => {
-            snapshot[pos] = card ? {
-                spid: card.spid,
-                boost: card.boost || 8,
-                image: card.image || null,
-                image_fallback: card.image_fallback || null
-            } : null;
+            snapshot[pos] = card ? (() => {
+                const extractedMspid = card.image ? (card.image.match(/\/p(\d+)\.png/) || [])[1] || null : null;
+                const data = { spid: card.spid, boost: card.boost || 8 };
+                if (extractedMspid && extractedMspid !== String(card.spid)) data.mspid = extractedMspid;
+                return data;
+            })() : null;
         });
         const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(snapshot))));
         const url = `${location.origin}/squad_maker?share=${encoded}`;
@@ -2689,13 +2689,12 @@
         const squads = getSavedSquads();
         const squadSnapshot = {};
         Object.entries(squadData).forEach(([pos, card]) => {
-            if (card) squadSnapshot[pos] = {
+            squadSnapshot[pos] = card ? {
                 spid: card.spid,
                 boost: card.boost || 8,
                 image: card.image || null,
                 image_fallback: card.image_fallback || null
-            };
-            else squadSnapshot[pos] = null;
+            } : null;
         });
         squads.push({ name, data: squadSnapshot, savedAt: Date.now() });
         saveSquads(squads);
@@ -2763,8 +2762,7 @@
             if (saved && cardMap[saved.spid]) {
                 const card = cardMap[saved.spid];
                 card.boost = saved.boost;
-                if (saved.image) card.image = saved.image;
-                if (saved.image_fallback) card.image_fallback = saved.image_fallback;
+                card.image = `https://fo4.dn.nexoncdn.co.kr/live/externalAssets/common/playersActionHigh/p${saved.mspid || saved.spid}.png`;
                 squadData[pos] = card;
                 renderSlotCard(pos, card);
             } else {
@@ -2828,8 +2826,7 @@
                         Object.entries(squad).forEach(([pos, saved]) => {
                             if (saved && cardMap[saved.spid]) {
                                 const card = { ...cardMap[saved.spid], boost: saved.boost };
-                                if (saved.image) card.image = saved.image;
-                                if (saved.image_fallback) card.image_fallback = saved.image_fallback;
+                                card.image = `https://fo4.dn.nexoncdn.co.kr/live/externalAssets/common/playersActionHigh/p${saved.mspid || saved.spid}.png`;
                                 squadData[pos] = card;
                                 renderSlotCard(pos, card);
                                 fetchCardPrice(card).then(() => updateSummary());
