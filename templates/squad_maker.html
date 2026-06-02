@@ -984,6 +984,14 @@
         </div>
     </div>
 
+    <!-- 스쿼드 공유 -->
+    <div style="display:flex; justify-content:center; margin-bottom:8px;">
+        <button class="sm-btn" onclick="shareSquad()"
+            style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4); padding: 7px 60px;">
+            🔗 스쿼드 공유하기
+        </button>
+    </div>
+
     <!-- 포메이션 + 적응도 -->
     <div class="sm-ctrl">
         <select class="sm-select" id="formation-select" onchange="changeFormation(this.value)">
@@ -2113,6 +2121,41 @@
         updateSummary();
     }
 
+    function shareSquad() {
+        const players = Object.entries(squadData).filter(([, v]) => v !== null);
+        if (players.length === 0) {
+            alert('선수가 한 명 이상 있어야 공유할 수 있습니다.');
+            return;
+        }
+        const snapshot = {};
+        Object.entries(squadData).forEach(([pos, card]) => {
+            snapshot[pos] = card ? {
+                spid: card.spid,
+                boost: card.boost || 8,
+                image: card.image || null,
+                image_fallback: card.image_fallback || null
+            } : null;
+        });
+        const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(snapshot))));
+        const url = `${location.origin}/squad_maker?share=${encoded}`;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('그린필드 위 선수 정보를 그대로 담은 링크가 복사되었습니다! 카카오톡, 디스코드 등에 붙여넣기해서 공유해보세요 🔗');
+        });
+    }
+
+    function showToast(msg) {
+        let toast = document.getElementById('share-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'share-toast';
+            toast.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:0.9rem; z-index:99999; opacity:0; transition:opacity 0.3s;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 6000);
+    }
+
     function updateSummary() {
         const players = Object.values(squadData).filter(p => p !== null);
         document.getElementById('player-count').textContent = players.length;
@@ -2753,6 +2796,53 @@
 
     renderFormation('42211');
     initDragAndDrop();
+
+    const shareParam = new URLSearchParams(location.search).get('share');
+    if (shareParam) {
+        try {
+            const squad = JSON.parse(decodeURIComponent(escape(atob(shareParam))));
+
+            // 그린필드 초기화 후 포지션 그대로 슬롯 동적 생성
+            document.getElementById('field-rows').innerHTML = '';
+            squadData = {};
+            slotPositions = {};
+            Object.keys(squad).forEach(pos => {
+                if (POS_COORDS[pos]) {
+                    squadData[pos] = null;
+                    slotPositions[pos] = { top: POS_COORDS[pos].top, left: POS_COORDS[pos].left };
+                    createSlotElement(pos);
+                }
+            });
+
+            setTimeout(() => {
+                const spids = Object.values(squad).filter(c => c).map(c => c.spid);
+                fetch('/api/squad_cards_batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ spids })
+                })
+                    .then(r => r.json())
+                    .then(cards => {
+                        const cardMap = {};
+                        cards.forEach(c => { cardMap[c.spid] = c; });
+                        Object.entries(squad).forEach(([pos, saved]) => {
+                            if (saved && cardMap[saved.spid]) {
+                                const card = { ...cardMap[saved.spid], boost: saved.boost };
+                                if (saved.image) card.image = saved.image;
+                                if (saved.image_fallback) card.image_fallback = saved.image_fallback;
+                                squadData[pos] = card;
+                                renderSlotCard(pos, card);
+                                fetchCardPrice(card).then(() => updateSummary());
+                            }
+                        });
+                        refreshAllOvr();
+                        updateSummary();
+                    });
+            }, 100);
+        } catch (e) {
+            console.error('공유 링크 파싱 실패', e);
+        }
+    }
 
     // 모달 바깥 클릭 시 닫기
     [
