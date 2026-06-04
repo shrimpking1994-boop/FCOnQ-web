@@ -1081,7 +1081,7 @@
         if (!toast) {
             toast = document.createElement('div');
             toast.id = 'share-toast';
-            toast.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:0.9rem; z-index:99999; opacity:0; transition:opacity 0.3s;';
+            toast.style.cssText = 'position:fixed; top:50%; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:0.9rem; z-index:99999; opacity:0; transition:opacity 0.3s;';
             document.body.appendChild(toast);
         }
         toast.textContent = msg;

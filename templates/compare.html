@@ -3,21 +3,17 @@
 {% block title %}{{ card1.season_name }}-{{ card1.player_name }} VS {{ card2.season_name }}-{{ card2.player_name }}{%
 endblock %}
 
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FCOnQ">
+<meta property="og:title" content="{{ og_title }}">
+<meta property="og:description" content="{{ og_description }}">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:url" content="{{ request.url }}">
+{% endblock %}
+
 {% block content %}
 <style>
-    .back-btn {
-        background: var(--bg-main);
-        color: var(--primary-color);
-        padding: 10px 20px;
-        border-radius: 20px;
-        text-decoration: none;
-        display: inline-block;
-        margin-bottom: 20px;
-        transition: all 0.3s;
-        border: 2px solid var(--primary-color);
-        font-weight: 600;
-    }
-
     .back-btn:hover {
         background: var(--primary-color);
         color: var(--bg-main);
@@ -886,12 +882,14 @@ endblock %}
     }
 </style>
 
-<div style="margin-bottom: 20px;">
-    <a href="javascript:history.back()" class="back-btn"
-        style="display: inline-block; padding: 10px 20px; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s; white-space: nowrap;">
-        ← 뒤로 가기
-    </a>
+<div style="text-align:center; margin-bottom:20px;">
+    <button onclick="shareCompare()"
+        style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4); border-radius:8px; padding:10px 20px; font-weight:600; cursor:pointer; transition:opacity 0.2s;"
+        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+        🔗 현재 비교 공유하기
+    </button>
 </div>
+
 <!-- 상단 헤더: 이미지, 이름 -->
 <div class="header-section">
     <!-- 왼쪽 플레이어 헤더 -->
@@ -1539,6 +1537,48 @@ endblock %}
 
         // 초기 차이값 계산
         updateDifferences();
+
+        const urlParams = new URLSearchParams(location.search);
+        const b1 = urlParams.get('b1'), a1 = urlParams.get('a1'), tc1 = urlParams.get('tc1');
+        const b2 = urlParams.get('b2'), a2 = urlParams.get('a2'), tc2 = urlParams.get('tc2');
+        if (b1 || a1 || tc1 || b2 || a2 || tc2) {
+            if (b1) document.getElementById('enhanceLevel1').value = b1;
+            if (a1) document.getElementById('adaptLevel1').value = a1;
+            if (tc1) document.getElementById('teamColor1').value = tc1;
+            if (b2) document.getElementById('enhanceLevel2').value = b2;
+            if (a2) document.getElementById('adaptLevel2').value = a2;
+            if (tc2) document.getElementById('teamColor2').value = tc2;
+            setTimeout(() => { updateStatsForCard(1); updateStatsForCard(2); }, 100);
+        }
     });
 </script>
+
+<script>
+    function shareCompare() {
+        const b1 = document.getElementById('enhanceLevel1').value;
+        const a1 = document.getElementById('adaptLevel1').value;
+        const tc1 = document.getElementById('teamColor1').value;
+        const b2 = document.getElementById('enhanceLevel2').value;
+        const a2 = document.getElementById('adaptLevel2').value;
+        const tc2 = document.getElementById('teamColor2').value;
+        const url = `${location.origin}${location.pathname}?b1=${b1}&a1=${a1}&tc1=${tc1}&b2=${b2}&a2=${a2}&tc2=${tc2}`;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('현재 스탯 정보를 반영한 비교 링크가 복사되었습니다! 🔗');
+        });
+    }
+
+    function showToast(msg) {
+        let toast = document.getElementById('share-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'share-toast';
+            toast.style.cssText = 'position:fixed; top:40%; left:50%; transform:translate(-50%, -50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:0.9rem; z-index:99999; opacity:0; transition:opacity 0.3s;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+    }
+</script>
+
 {% endblock %}

@@ -10,9 +10,8 @@
 {% block og_tags %}
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="FCOnQ">
-<meta property="og:title"
-    content="{{ card['player_name'] }} {{ card['season_name'] }} OVR {{ card['overall'] }} - FCOnQ">
-<meta property="og:description" content="{{ card['player_name'] }}의 상세 능력치, 체형, 특성 정보를 확인하세요.">
+<meta property="og:title" content="{{ og_title }}">
+<meta property="og:description" content="{{ og_description }}">
 <meta property="og:image" content="{{ card['image_info']['action_image'] }}">
 <meta property="og:url" content="https://fconq.com/card/{{ card['spid'] }}">
 {% endblock %}
@@ -43,8 +42,6 @@
     .back-btn:hover {
         background: var(--primary-color);
         color: var(--bg-main);
-        transform: translateX(-5px);
-        box-shadow: 0 4px 15px var(--shadow-hover);
     }
 
     .card-header-section {
@@ -545,6 +542,11 @@
         style="display: inline-block; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s;">
         ← 뒤로 가기
     </a>
+    <button onclick="shareCard()"
+        style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4); border-radius:8px; padding:10px 20px; font-weight:600; cursor:pointer; transition:opacity 0.2s;"
+        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+        🔗 공유하기
+    </button>
     <a href="/player_review/{{ card.spid }}" class="back-btn"
         style="display: inline-block; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s;">
         선수 후기 →
@@ -1000,6 +1002,16 @@
         setTimeout(() => updateStats(), 100);
     }
 
+    const boostParam = urlParams.get('boost');
+    const adaptParam = urlParams.get('adapt');
+    const tcParam = urlParams.get('tc');
+    if (boostParam || adaptParam || tcParam) {
+        if (boostParam) document.getElementById('enhanceLevel').value = boostParam;
+        if (adaptParam) document.getElementById('adaptLevel').value = adaptParam;
+        if (tcParam) document.getElementById('teamColor').value = tcParam;
+        setTimeout(() => updateStats(), 100);
+    }
+
     const enhanceBonus = {
         0: 0, 1: 0, 2: 1, 3: 2, 4: 4, 5: 6, 6: 8,
         7: 11, 8: 15, 9: 17, 10: 19, 11: 21, 12: 24, 13: 27
@@ -1254,4 +1266,30 @@
     }
 </script>
 {% endif %}
+
+<script>
+    function shareCard() {
+        const boost = document.getElementById('enhanceLevel').value;
+        const adapt = document.getElementById('adaptLevel').value;
+        const tc = document.getElementById('teamColor').value;
+        const url = `${location.origin}${location.pathname}?boost=${boost}&adapt=${adapt}&tc=${tc}`;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('현재 스탯 정보를 반영한 해당 카드의 링크가 복사되었습니다! 🔗');
+        });
+    }
+
+    function showToast(msg) {
+        let toast = document.getElementById('share-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'share-toast';
+            toast.style.cssText = 'position:fixed; top:40%; left:50%; transform:translate(-50%, -50%); background:#333; color:#fff; padding:10px 20px; border-radius:8px; font-size:0.9rem; z-index:99999; opacity:0; transition:opacity 0.3s;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+    }
+</script>
+
 {% endblock %}

@@ -1238,7 +1238,13 @@ def compare_cards(spid1, spid2):
     if len(cards) != 2:
         return "카드를 찾을 수 없습니다", 404
     
-    return render_template('compare.html', card1=cards[0], card2=cards[1])    
+    name1 = cards[0]['player_name']
+    name2 = cards[1]['player_name']
+    og_title = f"FCOnQ - {name1} vs {name2} 비교"
+    og_description = f"{name1}과 {name2}의 능력치를 비교해보세요!"
+    
+    return render_template('compare.html', card1=cards[0], card2=cards[1],
+                           og_title=og_title, og_description=og_description)    
     
     
 
@@ -1301,11 +1307,19 @@ def card_detail(spid):
     if not card:
         return "카드를 찾을 수 없습니다", 404
     
+    player_name = card['player_name'] if card else '선수'
+    season_name = card['season_name'] if card else ''
+    position = card['stats_info']['main_overall']['card_position'] if card else ''
+    og_title = f"FCOnQ - {season_name} {player_name} {position}"
+    og_description = f"{player_name}의 능력치와 시세를 확인해보세요!"    
+    
     return render_template('card_detail.html', card=card, 
                                                position_order=POSITION_ORDER,
                                                summary_order=SUMMARY_ORDER,
                                                detailed_order=DETAILED_ORDER,
-                                               price_history=price_history_data)
+                                               price_history=price_history_data,
+                                               og_title=og_title,
+                                               og_description=og_description)
 
 @app.route('/test')
 def test_db():
