@@ -1240,7 +1240,9 @@ def compare_cards(spid1, spid2):
     
     name1 = cards[0]['player_name']
     name2 = cards[1]['player_name']
-    og_title = f"FCOnQ - {name1} vs {name2} 비교"
+    season1 = cards[0]['season_name']
+    season2 = cards[1]['season_name']
+    og_title = f"FCOnQ : {season1} - {name1} VS {season2} - {name2}"
     og_description = f"{name1}과 {name2}의 능력치를 비교해보세요!"
     
     return render_template('compare.html', card1=cards[0], card2=cards[1],
@@ -1310,7 +1312,7 @@ def card_detail(spid):
     player_name = card['player_name'] if card else '선수'
     season_name = card['season_name'] if card else ''
     position = card['stats_info']['main_overall']['card_position'] if card else ''
-    og_title = f"FCOnQ - {season_name} {player_name} {position}"
+    og_title = f"FCOnQ : {season_name} - {player_name}"
     og_description = f"{player_name}의 능력치와 시세를 확인해보세요!"    
     
     return render_template('card_detail.html', card=card, 
