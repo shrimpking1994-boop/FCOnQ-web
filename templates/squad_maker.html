@@ -2667,6 +2667,7 @@
     }
 
     // ── 스쿼드 저장/불러오기 ──────────────────────────────────
+    const IS_LOGGED_IN = {{ 'true' if is_logged_in else 'false' }};
     const SQUAD_STORAGE_KEY = 'fconq_saved_squads';
     const MAX_SAVED_SQUADS = 10;
 
@@ -2695,7 +2696,6 @@
     function confirmSaveSquad() {
         const name = document.getElementById('squad-save-name').value.trim();
         if (!name) { alert('스쿼드 이름을 입력해주세요.'); return; }
-        const squads = getSavedSquads();
         const squadSnapshot = {};
         Object.entries(squadData).forEach(([pos, card]) => {
             squadSnapshot[pos] = card ? {
@@ -2705,41 +2705,65 @@
                 image_fallback: card.image_fallback || null
             } : null;
         });
-        squads.push({ name, data: squadSnapshot, savedAt: Date.now() });
-        saveSquads(squads);
-        closeSquadSaveModal();
-        alert(`"${name}" 스쿼드가 저장되었습니다.`);
+
+        if (IS_LOGGED_IN) {
+            fetch('/api/user_squad/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, squad_data: squadSnapshot })
+            }).then(res => res.json()).then(data => {
+                if (data.error) { alert(data.error); return; }
+                closeSquadSaveModal();
+                alert(`"${name}" 스쿼드가 저장되었습니다.`);
+            });
+        } else {
+            const squads = getSavedSquads();
+            squads.push({ name, data: squadSnapshot, savedAt: Date.now() });
+            saveSquads(squads);
+            closeSquadSaveModal();
+            alert(`"${name}" 스쿼드가 저장되었습니다.`);
+        }
     }
 
     function closeSquadSaveModal() {
         document.getElementById('squad-save-modal').classList.remove('active');
     }
 
-    function loadSquadList() {
-        const squads = getSavedSquads();
+    async function loadSquadList() {
+        let squads;
+        if (IS_LOGGED_IN) {
+            const res = await fetch('/api/user_squad/load');
+            squads = await res.json();
+        } else {
+            squads = getSavedSquads().reverse();
+        }
+
         const listEl = document.getElementById('squad-load-list');
         document.getElementById('squad-load-title').textContent = `저장된 스쿼드 (${squads.length}/10)`;
         if (squads.length === 0) {
             listEl.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">저장된 스쿼드가 없습니다.</div>';
         } else {
-            listEl.innerHTML = [...squads].reverse().map((s, i) => {
-                const realIdx = squads.length - 1 - i;
-                return `
-                <div style="display:flex; align-items:center; justify-content:space-between;
-                            padding:10px 12px; margin-bottom:8px; border-radius:8px;
-                            background:var(--bg-secondary); gap:8px; border:1px solid rgba(128,128,128,0.4);">
-                    <span style="font-size:0.9rem; font-weight:600; color:var(--text-primary); flex:1;">${s.name}</span>
-                    <button onclick="loadSquad(${realIdx})" style="padding:4px 10px; border-radius:6px; border:none; background:#2196f3; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">불러오기</button>
-                    <button onclick="deleteSquad(${realIdx})" style="padding:4px 10px; border-radius:6px; border:none; background:#f44336; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">삭제</button>
-                </div>
-    `;
-            }).join('');
+            listEl.innerHTML = squads.map((s, i) => `
+            <div style="display:flex; align-items:center; justify-content:space-between;
+                        padding:10px 12px; margin-bottom:8px; border-radius:8px;
+                        background:var(--bg-secondary); gap:8px; border:1px solid rgba(128,128,128,0.4);">
+                <span style="font-size:0.9rem; font-weight:600; color:var(--text-primary); flex:1;">${s.name}</span>
+                <button onclick="loadSquad(${i}, ${IS_LOGGED_IN})" style="padding:4px 10px; border-radius:6px; border:none; background:#2196f3; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">불러오기</button>
+                <button onclick="deleteSquad(${IS_LOGGED_IN ? s.id : i}, ${IS_LOGGED_IN})" style="padding:4px 10px; border-radius:6px; border:none; background:#f44336; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">삭제</button>
+            </div>
+        `).join('');
         }
         document.getElementById('squad-load-modal').classList.add('active');
     }
 
-    async function loadSquad(idx) {
-        const squads = getSavedSquads();
+    async function loadSquad(idx, isLoggedIn) {
+        let squads;
+        if (isLoggedIn) {
+            const res = await fetch('/api/user_squad/load');
+            squads = await res.json();
+        } else {
+            squads = getSavedSquads().reverse();
+        }
         const s = squads[idx];
         if (!s) return;
 
@@ -2788,13 +2812,20 @@
         ).then(() => updateSummary());
     }
 
-    function deleteSquad(idx) {
-        const squads = getSavedSquads();
-        const name = squads[idx].name;
-        if (!confirm(`"${name}" 스쿼드를 삭제할까요?`)) return;
-        squads.splice(idx, 1);
-        saveSquads(squads);
-        loadSquadList(); // 목록 새로고침
+    function deleteSquad(idOrIdx, isLoggedIn) {
+        if (!confirm('스쿼드를 삭제할까요?')) return;
+        if (isLoggedIn) {
+            fetch('/api/user_squad/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: idOrIdx })
+            }).then(() => loadSquadList());
+        } else {
+            const squads = getSavedSquads();
+            squads.splice(idOrIdx, 1);
+            saveSquads(squads);
+            loadSquadList();
+        }
     }
 
     function closeSquadLoadModal() {

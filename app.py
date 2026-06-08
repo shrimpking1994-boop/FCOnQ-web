@@ -2273,13 +2273,71 @@ def get_all_formation_data():
 def squad_maker():
     """스쿼드 메이커 페이지"""
     share_param = request.args.get('share', '')
+    is_logged_in = 'user_id' in session
     if share_param:
         og_title = "FCOnQ - 스쿼드 공유"
         og_description = "공유된 FC온라인 스쿼드를 확인해보세요!"
     else:
         og_title = "FCOnQ - FC온라인 전문 선수 DB 및 커뮤니티"
         og_description = "8만개 이상의 선수 카드 정보와 시세를 확인하고, FC온라인 유저들과 소통하세요!"
-    return render_template('squad_maker.html', og_title=og_title, og_description=og_description)
+    return render_template('squad_maker.html', og_title=og_title, og_description=og_description, is_logged_in=is_logged_in)
+
+
+@app.route('/api/user_squad/save', methods=['POST'])
+def user_squad_save():
+    if 'user_id' not in session:
+        return jsonify({'error': 'unauthorized'}), 401
+    data = request.json
+    name = data.get('name', '').strip()
+    squad_data = data.get('squad_data')
+    if not name or not squad_data:
+        return jsonify({'error': 'invalid data'}), 400
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM user_squads WHERE user_id = %s", (session['user_id'],))
+            count = cur.fetchone()['count']
+            if count >= 10:
+                return jsonify({'error': '최대 10개까지 저장 가능합니다'}), 400
+            cur.execute("""
+                INSERT INTO user_squads (user_id, name, squad_data, created_at)
+                VALUES (%s, %s, %s, NOW())
+                RETURNING id
+            """, (session['user_id'], name, json.dumps(squad_data)))
+            new_id = cur.fetchone()['id']
+        conn.commit()
+    return jsonify({'success': True, 'id': new_id})
+
+@app.route('/api/user_squad/load', methods=['GET'])
+def user_squad_load():
+    if 'user_id' not in session:
+        return jsonify({'error': 'unauthorized'}), 401
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, name, squad_data, created_at
+                FROM user_squads WHERE user_id = %s
+                ORDER BY created_at DESC
+            """, (session['user_id'],))
+            squads = cur.fetchall()
+    return jsonify([{
+        'id': s['id'],
+        'name': s['name'],
+        'squad_data': s['squad_data'],
+        'created_at': s['created_at'].strftime('%Y-%m-%d %H:%M')
+    } for s in squads])
+
+@app.route('/api/user_squad/delete', methods=['POST'])
+def user_squad_delete():
+    if 'user_id' not in session:
+        return jsonify({'error': 'unauthorized'}), 401
+    squad_id = request.json.get('id')
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM user_squads WHERE id = %s AND user_id = %s
+            """, (squad_id, session['user_id']))
+        conn.commit()
+    return jsonify({'success': True})
 
 
 @app.route('/api/squad_search')
