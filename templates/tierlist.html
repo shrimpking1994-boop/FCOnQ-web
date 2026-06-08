@@ -2,6 +2,17 @@
 
 {% block title %}엪씨온큐 | 티어리스트{% endblock %}
 
+{% block meta_description %}
+<meta name="description" content="FC온라인의 팀컬러, 선수, 포메이션 티어리스트를 한 눈에!">
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FC온라인 티어리스트 - FCOnQ">
+<meta name="twitter:description" content="FC온라인의 팀컬러, 선수, 포메이션 티어리스트를 한 눈에!">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+{% endblock %}
+
 {% block og_tags %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FCOnQ">
