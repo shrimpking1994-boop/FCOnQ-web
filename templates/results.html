@@ -2,6 +2,26 @@
 
 {% block title %}엪씨온큐 | 검색 결과{% endblock %}
 
+{% block meta_description %}
+<meta name="description" content="FC온라인 선수 DB 검색 결과 - FCOnQ">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FCOnQ">
+<meta property="og:title" content="FC온라인 선수 DB 검색 결과 - FCOnQ">
+<meta property="og:description" content="가장 쉽고 빠른 FC온라인 선수 DB!">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:url" content="https://fconq.com/results">
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FC온라인 선수 DB 검색 결과 - FCOnQ">
+<meta name="twitter:description" content="가장 쉽고 빠른 FC온라인 선수 DB!">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+{% endblock %}
+
 {% block content %}
 <style>
     .back-btn {
