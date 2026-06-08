@@ -2767,8 +2767,9 @@
         const s = squads[idx];
         if (!s) return;
 
-        const positions = Object.keys(s.data);
-        const spids = positions.filter(pos => s.data[pos]).map(pos => s.data[pos].spid);
+        const squadObj = isLoggedIn ? s.squad_data : s.data;
+        const positions = Object.keys(squadObj);
+        const spids = positions.filter(pos => squadObj[pos]).map(pos => squadObj[pos].spid);
 
         // 카드 정보 일괄 조회
         const res = await fetch('/api/squad_search_by_pid', {
@@ -2790,7 +2791,7 @@
         positions.forEach(pos => {
             if (!POS_COORDS[pos]) return;
             slotPositions[pos] = { top: POS_COORDS[pos].top, left: POS_COORDS[pos].left };
-            const saved = s.data[pos];
+            const saved = squadObj[pos];
             createSlotElement(pos);
             if (saved && cardMap[saved.spid]) {
                 const card = cardMap[saved.spid];
@@ -2807,7 +2808,7 @@
         // 모든 가격 조회 완료 후 요약 업데이트
         Promise.all(
             positions
-                .filter(pos => s.data[pos] && cardMap[s.data[pos].spid])
+                .filter(pos => squadObj[pos] && cardMap[squadObj[pos].spid])
                 .map(pos => fetchCardPrice(squadData[pos]))
         ).then(() => updateSummary());
     }
