@@ -13,7 +13,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="https://fconq.com/static/apple-touch-icon.png">
     <link rel="shortcut icon" href="https://fconq.com/static/favicon.ico">
     <link rel="manifest" href="https://fconq.com/static/site.webmanifest">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#5865b8">
 
     <!-- SEO 메타 태그 -->
     {% block meta_description %}
@@ -747,6 +747,16 @@
 
         window.addEventListener('load', positionBanner);
         window.addEventListener('resize', positionBanner);
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service_worker.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
     </script>
 
 </body>

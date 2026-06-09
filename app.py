@@ -87,6 +87,10 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.route('/service_worker.js')
+def service_worker():
+    return app.send_static_file('service_worker.js'), 200, {'Content-Type': 'application/javascript'}
+
 @app.route('/sitemap.xml')
 def sitemap():
     """동적 sitemap 생성"""
