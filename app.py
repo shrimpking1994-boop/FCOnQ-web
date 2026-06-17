@@ -91,6 +91,10 @@ def admin_required(f):
 def privacy():
     return render_template('privacy.html')
 
+@app.route('/delete-account')
+def delete_account():
+    return render_template('delete_account.html')
+
 @app.route('/service_worker.js')
 def service_worker():
     return app.send_static_file('service_worker.js'), 200, {'Content-Type': 'application/javascript'}
