@@ -87,6 +87,10 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
 @app.route('/service_worker.js')
 def service_worker():
     return app.send_static_file('service_worker.js'), 200, {'Content-Type': 'application/javascript'}
