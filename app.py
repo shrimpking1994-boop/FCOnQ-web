@@ -87,6 +87,10 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.route('/.well-known/assetlinks.json')
+def assetlinks():
+    return app.send_static_file('.well-known/assetlinks.json')
+
 @app.route('/privacy')
 def privacy():
     return render_template('privacy.html')
