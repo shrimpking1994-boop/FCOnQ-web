@@ -1043,7 +1043,7 @@
         <div class="sm-stat">
             <div class="sm-stat-label">총 급여</div>
             <div class="sm-stat-val"><span id="total-salary">0</span><span
-                    style="font-size:0.85rem;color:var(--text-muted)">/300</span></div>
+                    style="font-size:0.85rem;color:var(--text-muted)">/310</span></div>
         </div>
         <div class="sm-stat">
             <div class="sm-stat-label">총 구단가치</div>
@@ -2183,7 +2183,7 @@
         const totalSalary = players.reduce((sum, p) => sum + (parseInt(p.salary) || 0), 0);
         const salaryEl = document.getElementById('total-salary');
         salaryEl.textContent = totalSalary;
-        salaryEl.style.color = totalSalary > 300 ? '#f44336' : 'var(--text-primary)';
+        salaryEl.style.color = totalSalary > 310 ? '#f44336' : 'var(--text-primary)';
 
         const totalPrice = players.reduce((sum, p) => {
             const bpKey = 'bp' + (p.boost || 8);
