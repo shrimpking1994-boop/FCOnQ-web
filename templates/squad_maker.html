@@ -2694,10 +2694,12 @@
     function saveSquad() {
         const players = Object.entries(squadData).filter(([, v]) => v !== null);
         if (players.length === 0) { alert('그린필드에 선수가 없습니다.'); return; }
-        const squads = getSavedSquads();
-        if (squads.length >= MAX_SAVED_SQUADS) {
-            alert('저장 공간이 가득 찼습니다. 기존 스쿼드를 삭제 후 저장해주세요.');
-            return;
+        if (!IS_LOGGED_IN) {
+            const squads = getSavedSquads();
+            if (squads.length >= MAX_SAVED_SQUADS) {
+                alert('저장 공간이 가득 찼습니다. 기존 스쿼드를 삭제 후 저장해주세요.');
+                return;
+            }
         }
         document.getElementById('squad-save-name').value = '';
         document.getElementById('squad-save-modal').classList.add('active');
@@ -2750,7 +2752,7 @@
         }
 
         const listEl = document.getElementById('squad-load-list');
-        document.getElementById('squad-load-title').textContent = `저장된 스쿼드 (${squads.length}/10)`;
+        document.getElementById('squad-load-title').textContent = `저장된 스쿼드 (${squads.length}/${IS_LOGGED_IN ? 30 : 10})`;
         if (squads.length === 0) {
             listEl.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">저장된 스쿼드가 없습니다.</div>';
         } else {

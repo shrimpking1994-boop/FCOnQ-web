@@ -2312,8 +2312,8 @@ def user_squad_save():
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM user_squads WHERE user_id = %s", (session['user_id'],))
             count = cur.fetchone()['count']
-            if count >= 10:
-                return jsonify({'error': '최대 10개까지 저장 가능합니다'}), 400
+            if count >= 30:
+                return jsonify({'error': '최대 30개까지 저장 가능합니다'}), 400
             cur.execute("""
                 INSERT INTO user_squads (user_id, name, squad_data, created_at)
                 VALUES (%s, %s, %s, NOW())
