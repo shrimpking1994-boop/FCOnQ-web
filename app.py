@@ -2378,7 +2378,7 @@ def squad_search():
         FROM player_cards
         WHERE player_name ILIKE %s
         ORDER BY overall DESC
-        LIMIT 30
+        LIMIT 100
     """
     cur.execute(query, (f"%{term}%",))
     cards = [dict(row) for row in cur.fetchall()]
