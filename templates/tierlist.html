@@ -1442,7 +1442,7 @@
                     ? `<img src="${BASE}${TRAIT_MAP[t]}.png" title="${t}" style="width:28px; height:28px;">`
                     : `<span style="font-size:0.75rem; background:var(--bg-main); color:var(--text-secondary); padding:2px 7px; border-radius:12px; border:1px solid var(--border-color);">${t}</span>`
                 ).join('')
-                : '<span style="font-size:0.75rem; color:var(--text-muted);">없음</span>';
+                : '<span style="font-size:0.75rem; color:var(--text-muted);">특성 없음</span>';
 
             const priceColor = document.documentElement.getAttribute('data-theme') === 'light' ? 'var(--primary-color)' : '#fcd34d';
             tooltip.innerHTML = `
