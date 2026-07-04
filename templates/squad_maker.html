@@ -1496,7 +1496,7 @@
             }
         } else {
             const holdTime = Date.now() - dragState.startTime;
-            if (e.type !== 'pointercancel' && (e.pointerType !== 'touch' || holdTime < 500)) {
+            if (e.type !== 'pointercancel') {
                 openPlayerSearch('field', dragState.pos);
             }
         }
