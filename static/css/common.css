@@ -58,6 +58,7 @@ body {
     background-color: var(--bg-main);
     min-height: 100vh;
     color-scheme: only light;
+    forced-color-adjust: none;
 }
 
 /* 다크모드 체크박스 라벨 */
