@@ -1407,7 +1407,7 @@
         if (!squadData[pos]) {
             const holdStart = Date.now();
             setTimeout(() => {
-                if (Date.now() - holdStart >= 50) openPlayerSearch('field', pos);
+                if (Date.now() - holdStart >= 190) openPlayerSearch('field', pos);
             }, 50);
             return;
         }
