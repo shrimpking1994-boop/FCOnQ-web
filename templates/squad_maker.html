@@ -1405,10 +1405,7 @@
         e.preventDefault();
         const pos = wrapper.dataset.pos;
         if (!squadData[pos]) {
-            const holdStart = Date.now();
-            setTimeout(() => {
-                if (Date.now() - holdStart >= 190) openPlayerSearch('field', pos);
-            }, 50);
+            openPlayerSearch('field', pos);
             return;
         }
         dragState = {
@@ -1638,7 +1635,9 @@
             document.getElementById('modal-title').textContent = `선수 선택 — ${pos}`;
             document.getElementById('modal-search-input').value = '';
             document.getElementById('modal-results').innerHTML = '<div class="sm-modal-empty">선수 이름을 입력하세요</div>';
-            document.getElementById('player-modal').classList.add('active');
+            setTimeout(() => {
+                document.getElementById('player-modal').classList.add('active');
+            }, 100);
             setTimeout(() => document.getElementById('modal-search-input').focus(), 100);
         }
     }
