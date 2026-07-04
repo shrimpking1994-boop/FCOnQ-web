@@ -2914,7 +2914,7 @@
     ].forEach(({ id, fn }) => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.addEventListener('click', function (e) {
+        el.addEventListener('pointerdown', function (e) {
             if (e.target === el) fn();
         });
     });
