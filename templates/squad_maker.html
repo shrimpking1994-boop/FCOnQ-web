@@ -1403,11 +1403,6 @@
         const wrapper = e.target.closest('[data-pos]');
         if (!wrapper) return;
         e.preventDefault();
-        const pos = wrapper.dataset.pos;
-        if (!squadData[pos]) {
-            openPlayerSearch('field', pos);
-            return;
-        }
         dragState = {
             pos: wrapper.dataset.pos,
             startX: e.clientX,
@@ -1501,7 +1496,7 @@
             }
         } else {
             const holdTime = Date.now() - dragState.startTime;
-            if (e.type !== 'pointercancel') {
+            if (e.type !== 'pointercancel' && (e.pointerType !== 'touch' || holdTime < 500)) {
                 openPlayerSearch('field', dragState.pos);
             }
         }
@@ -1635,9 +1630,7 @@
             document.getElementById('modal-title').textContent = `선수 선택 — ${pos}`;
             document.getElementById('modal-search-input').value = '';
             document.getElementById('modal-results').innerHTML = '<div class="sm-modal-empty">선수 이름을 입력하세요</div>';
-            setTimeout(() => {
-                document.getElementById('player-modal').classList.add('active');
-            }, 100);
+            document.getElementById('player-modal').classList.add('active');
             setTimeout(() => document.getElementById('modal-search-input').focus(), 100);
         }
     }
