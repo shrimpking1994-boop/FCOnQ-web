@@ -1403,6 +1403,11 @@
         const wrapper = e.target.closest('[data-pos]');
         if (!wrapper) return;
         e.preventDefault();
+        const pos = wrapper.dataset.pos;
+        if (!squadData[pos]) {
+            openPlayerSearch('field', pos);
+            return;
+        }
         dragState = {
             pos: wrapper.dataset.pos,
             startX: e.clientX,
