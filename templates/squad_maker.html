@@ -1405,7 +1405,10 @@
         e.preventDefault();
         const pos = wrapper.dataset.pos;
         if (!squadData[pos]) {
-            openPlayerSearch('field', pos);
+            const holdStart = Date.now();
+            setTimeout(() => {
+                if (Date.now() - holdStart >= 50) openPlayerSearch('field', pos);
+            }, 50);
             return;
         }
         dragState = {
