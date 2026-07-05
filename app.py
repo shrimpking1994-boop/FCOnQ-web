@@ -507,7 +507,21 @@ def community_list():
 def community_write():
     """글쓰기"""
     if request.method == 'POST':
+        if 'user_id' not in session:
+             author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+             conn = get_db_connection()
+             cur = conn.cursor()
+             cur.execute("SELECT 1 FROM community.banned_ips WHERE ip = %s", (author_ip,))
+             if cur.fetchone():
+                 cur.close()
+                 conn.close()
+                 return redirect('/community')
+             cur.close()
+             conn.close()
         category = request.form.get('category')
+        VALID_CATEGORIES = ['잡담', '꿀팁', '스쿼드', '선수 후기', '전술', '강화/득템', '감독모드', '미니 페이스온', '명장면']
+        if category not in VALID_CATEGORIES:
+            return redirect('/community')
         title = request.form.get('title')
         content = request.form.get('content')
         
