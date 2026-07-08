@@ -44,7 +44,8 @@ DB_CONFIG = {
     "host": os.getenv('DB_HOST'),
     "database": os.getenv('DB_NAME'),
     "user": os.getenv('DB_USER'),
-    "password": os.getenv('DB_PASSWORD')
+    "password": os.getenv('DB_PASSWORD'),
+    "connect_timeout": 10
 }
 
 # IP 해싱 함수
@@ -1070,64 +1071,55 @@ def edit_post_submit(post_id):
 def search():
     """1페이지: 검색 페이지"""
     conn = get_db_connection()
-    cur = conn.cursor()
-    
-    # 모든 시즌 가져오기
-    cur.execute("""
-        SELECT season_id, season_name, season_img_url 
-        FROM seasons
-    """)
-    all_seasons = cur.fetchall()
-    
-    # 시즌 ID를 키로 하는 딕셔너리 생성
-    seasons_dict = {s['season_id']: s for s in all_seasons}
-    
-    # SEASON_ORDER 순서대로 정렬
-    ordered_seasons = []
-    for sid in SEASON_ORDER:
-        if sid in seasons_dict:
-            ordered_seasons.append(seasons_dict[sid])
-    
-    # 포지션 목록
-    cur.execute("SELECT position FROM positions ORDER BY position")
-    positions = [row['position'] for row in cur.fetchall()]
-   
-    
-    # 팀컬러 데이터 가져오기
-    # 1. 국가 팀컬러
-    cur.execute("""
-        SELECT nation_name 
-        FROM nation_teamcolors 
-        ORDER BY nation_name COLLATE "C"
-    """)
-    nation_data = [row['nation_name'] for row in cur.fetchall()]
-    nations_old = nation_data  # 기존 호환성
-    nation_teamcolors = nation_data  # 팀컬러 필터용    
-    
-    # 2. 소속 팀컬러
-    cur.execute('SELECT club_name FROM club_teamcolors ORDER BY club_name COLLATE "C"')
-    club_teamcolors = [row['club_name'] for row in cur.fetchall()]
-    
-    # 3. 특성 팀컬러
-    cur.execute('SELECT name FROM special_teamcolors ORDER BY name COLLATE "C"')
-    trait_teamcolors = [row['name'] for row in cur.fetchall()]
-    
-    # 4. 고유 특성 데이터 가져오기
-    # 신규 특성
-    cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new' ORDER BY trait_name")
-    new_traits = [row['trait_name'] for row in cur.fetchall()]
-    
-    # 일반 특성
-    cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'normal' ORDER BY trait_name")
-    normal_traits = [row['trait_name'] for row in cur.fetchall()]
-    
-    cur.close()
-    conn.close()
+    try:
+        cur = conn.cursor()
+        
+        # 모든 시즌 가져오기
+        cur.execute("""
+            SELECT season_id, season_name, season_img_url 
+            FROM seasons
+        """)
+        all_seasons = cur.fetchall()
+        
+        seasons_dict = {s['season_id']: s for s in all_seasons}
+        
+        ordered_seasons = []
+        for sid in SEASON_ORDER:
+            if sid in seasons_dict:
+                ordered_seasons.append(seasons_dict[sid])
+        
+        cur.execute("SELECT position FROM positions ORDER BY position")
+        positions = [row['position'] for row in cur.fetchall()]
+        
+        cur.execute("""
+            SELECT nation_name 
+            FROM nation_teamcolors 
+            ORDER BY nation_name COLLATE "C"
+        """)
+        nation_data = [row['nation_name'] for row in cur.fetchall()]
+        nations_old = nation_data
+        nation_teamcolors = nation_data
+        
+        cur.execute('SELECT club_name FROM club_teamcolors ORDER BY club_name COLLATE "C"')
+        club_teamcolors = [row['club_name'] for row in cur.fetchall()]
+        
+        cur.execute('SELECT name FROM special_teamcolors ORDER BY name COLLATE "C"')
+        trait_teamcolors = [row['name'] for row in cur.fetchall()]
+        
+        cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new' ORDER BY trait_name")
+        new_traits = [row['trait_name'] for row in cur.fetchall()]
+        
+        cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'normal' ORDER BY trait_name")
+        normal_traits = [row['trait_name'] for row in cur.fetchall()]
+        
+        cur.close()
+    finally:
+        conn.close()
     
     return render_template('search.html', 
                          seasons=ordered_seasons,
                          positions=positions,
-                         nations=nations_old,  # 기존 호환성 유지
+                         nations=nations_old,
                          nation_teamcolors=nation_teamcolors,
                          club_teamcolors=club_teamcolors,
                          trait_teamcolors=trait_teamcolors,
@@ -1942,20 +1934,24 @@ def miniface_search():
     return render_template('miniface_search.html')
 
 @app.route('/api/card_hover/<int:spid>')
+@app.route('/api/card_hover/<int:spid>')
 def card_hover(spid):
     conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT 
-            pc.full_data->'basic_info' as basic_info,
-            pc.full_data->'game_info' as game_info,
-            pc.full_data->'image_info' as image_info
-        FROM player_cards pc
-        WHERE pc.spid = %s
-    """, (spid,))
-    card = cur.fetchone()
-    cur.close()
-    conn.close()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT 
+                pc.full_data->'basic_info' as basic_info,
+                pc.full_data->'game_info' as game_info,
+                pc.full_data->'image_info' as image_info
+            FROM player_cards pc
+            WHERE pc.spid = %s
+        """, (spid,))
+        card = cur.fetchone()
+        cur.close()
+    finally:
+        conn.close()
+
     if not card:
         return jsonify({}), 404
     return jsonify({
@@ -2371,6 +2367,7 @@ def user_squad_delete():
 
 
 @app.route('/api/squad_search')
+@app.route('/api/squad_search')
 def squad_search():
     """스쿼드 메이커 선수 검색 API"""
     term = request.args.get('q', '').strip()
@@ -2380,25 +2377,27 @@ def squad_search():
         return jsonify([])
     
     conn = get_db_connection()
-    cur = conn.cursor()
-    
-    query = """
-        SELECT spid, player_name, season_name, overall, position,
-               COALESCE(full_data->'image_info'->>'mini_faceon', full_data->'image_info'->>'mini_faceon_high') as image,
-               full_data->'image_info'->>'season_img' as season_img,
-               full_data->'game_info'->>'salary' as salary,
-               full_data->'image_info'->>'mini_faceon_high' as image_high,
-               full_data->'stats_info'->'position_overall' as position_overall
-        FROM player_cards
-        WHERE player_name ILIKE %s
-        ORDER BY overall DESC
-        LIMIT 100
-    """
-    cur.execute(query, (f"%{term}%",))
-    cards = [dict(row) for row in cur.fetchall()]
-    
-    cur.close()
-    conn.close()
+    try:
+        cur = conn.cursor()
+        
+        query = """
+            SELECT spid, player_name, season_name, overall, position,
+                   COALESCE(full_data->'image_info'->>'mini_faceon', full_data->'image_info'->>'mini_faceon_high') as image,
+                   full_data->'image_info'->>'season_img' as season_img,
+                   full_data->'game_info'->>'salary' as salary,
+                   full_data->'image_info'->>'mini_faceon_high' as image_high,
+                   full_data->'stats_info'->'position_overall' as position_overall
+            FROM player_cards
+            WHERE player_name ILIKE %s
+            ORDER BY overall DESC
+            LIMIT 100
+        """
+        cur.execute(query, (f"%{term}%",))
+        cards = [dict(row) for row in cur.fetchall()]
+        
+        cur.close()
+    finally:
+        conn.close()
     
     return jsonify(cards)
 
@@ -2660,39 +2659,39 @@ def squad_trait_teamcolor():
     return jsonify(result)
 
 @app.route('/api/card_price/<int:spid>')
+@app.route('/api/card_price/<int:spid>')
 def card_price(spid):
     conn = get_db_connection()
-    cur = conn.cursor()
+    try:
+        cur = conn.cursor()
 
-    # 1순위: card_price_history 최신값
-    cur.execute("""
-        SELECT full_data
-        FROM card_price_history
-        WHERE spid = %s
-    """, (spid,))
-    row = cur.fetchone()
+        cur.execute("""
+            SELECT full_data
+            FROM card_price_history
+            WHERE spid = %s
+        """, (spid,))
+        row = cur.fetchone()
 
-    if row and row['full_data']:
-        result = {}
-        for boost_str, data in row['full_data'].items():
-            values = data.get('values', []) if isinstance(data, dict) else data
-            if values:
-                result[f'bp{boost_str}'] = values[-1]
-        if result:
-            cur.close()
-            conn.close()
-            return jsonify(result)
+        if row and row['full_data']:
+            result = {}
+            for boost_str, data in row['full_data'].items():
+                values = data.get('values', []) if isinstance(data, dict) else data
+                if values:
+                    result[f'bp{boost_str}'] = values[-1]
+            if result:
+                cur.close()
+                return jsonify(result)
 
-    # 2순위: card_prices fallback
-    cur.execute("""
-        SELECT bp1, bp2, bp3, bp4, bp5, bp6, bp7,
-               bp8, bp9, bp10, bp11, bp12, bp13
-        FROM card_prices
-        WHERE spid = %s
-    """, (spid,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
+        cur.execute("""
+            SELECT bp1, bp2, bp3, bp4, bp5, bp6, bp7,
+                   bp8, bp9, bp10, bp11, bp12, bp13
+            FROM card_prices
+            WHERE spid = %s
+        """, (spid,))
+        row = cur.fetchone()
+        cur.close()
+    finally:
+        conn.close()
 
     if not row:
         return jsonify({})
