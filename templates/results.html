@@ -938,7 +938,7 @@
 <div class="player-card" onclick="location.href='/card/{{ card.spid }}'">
     <div class="card-row">
         {% if card.image %}
-        <img src="{{ card.image }}" alt="{{ card.player_name }}" class="player-image"
+        <img src="{{ card.image }}" alt="{{ card.player_name }}" class="player-image" loading="lazy"
             onerror="if(this.dataset.retry=='1'){this.onerror=null;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';}else{this.dataset.retry='1';this.src='{{ card.image_high }}';}">
         {% else %}
         <div class="player-image d-flex align-items-center justify-content-center" style="color: var(--text-muted);">
@@ -951,9 +951,8 @@
         <div class="player-info">
             <div class="player-header">
                 {% if card.season_img %}
-                <img src="{{ card.season_img }}" alt="{{ card.season_name }}" class="season-icon">
-                {% endif %}
-                <span class="player-name">{{ card.player_name }}</span>
+                <img src="{{ card.season_img }}" alt="{{ card.season_name }}" class="season-icon" loading="lazy" {%
+                    endif %} <span class="player-name">{{ card.player_name }}</span>
 
                 <div style="display: inline-flex; gap: 10px; margin-left: 8px;">
                     {% if card.preferred_positions %}
@@ -1080,7 +1079,7 @@
                     } %}
                     {% for trait in card.traits %}
                     {% if trait in trait_mapping %}
-                    <img src="{{ trait_mapping[trait] }}" alt="{{ trait }}" title="{{ trait }}"
+                    <img src="{{ trait_mapping[trait] }}" alt="{{ trait }}" title="{{ trait }}" loading="lazy"
                         style="width: 28px; height: 28px; object-fit: contain;">
                     {% endif %}
                     {% endfor %}
