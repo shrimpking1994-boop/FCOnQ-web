@@ -1125,98 +1125,100 @@ def search():
                          trait_teamcolors=trait_teamcolors,
                          new_traits=new_traits,
                          normal_traits=normal_traits)
-
+    
 @app.route('/results')
 def results():
     """2페이지: 검색 결과"""
     conn = get_db_connection()
-    cur = conn.cursor()
-    
-    # 검색 파라미터
-    player_name_raw = request.args.get('player_name', '')
-    player_names = [name.strip() for name in player_name_raw.split(',') if name.strip()]
-    selected_seasons = request.args.getlist('seasons')
-    selected_positions = request.args.getlist('positions')  # 포지션 필터 추가
-    min_ovr = request.args.get('min_ovr', '')
-    max_ovr = request.args.get('max_ovr', '')
-    min_salary = request.args.get('min_salary', '')
-    max_salary = request.args.get('max_salary', '')
-    preferred_foot = request.args.get('preferred_foot', '')
-    weak_foot_min = request.args.get('weak_foot_min', '')
-    min_height = request.args.get('min_height', '')
-    max_height = request.args.get('max_height', '')
-    min_weight = request.args.get('min_weight', '')
-    max_weight = request.args.get('max_weight', '')
-    selected_body_types = request.args.getlist('body_types')
-    new_trait = request.args.get('new_trait', '')
-    normal_trait_1 = request.args.get('normal_trait_1', '')
-    normal_trait_2 = request.args.get('normal_trait_2', '')
-    normal_trait_3 = request.args.get('normal_trait_3', '')
-    nation_team_color = request.args.get('nation_team_color', '')
-    club_team_color_1 = request.args.get('club_team_color_1', '')
-    club_team_color_2 = request.args.get('club_team_color_2', '')
-    trait_team_color = request.args.get('trait_team_color', '')
-    
-    # 페이지네이션 파라미터
-    page = 1
-    per_page = 200
-    offset = 0
-    
-    # 특성 리스트 생성
-    selected_traits = []
-    if new_trait:
-        selected_traits.append(new_trait)
-    if normal_trait_1:
-        selected_traits.append(normal_trait_1)
-    if normal_trait_2:
-        selected_traits.append(normal_trait_2)
-    if normal_trait_3:
-        selected_traits.append(normal_trait_3)
-    
-    # 검색 조건 생성 (헬퍼 함수 사용)
-    search_conditions, search_params = build_search_conditions(
-        player_names, selected_seasons, selected_positions, min_ovr, max_ovr,
-        min_salary, max_salary, preferred_foot, weak_foot_min, min_height, max_height,
-        min_weight, max_weight, selected_body_types, selected_traits, nation_team_color,
-        club_team_color_1, club_team_color_2, trait_team_color
-    )
-    
-    # COUNT 쿼리 실행
-    count_query = "SELECT COUNT(*) FROM player_cards WHERE 1=1" + search_conditions
-    cur.execute(count_query, search_params)
-    total_count = cur.fetchone()['count']
-    total_pages = max(1, (total_count + per_page - 1) // per_page) if total_count > 0 else 1
-    
-    # 메인 쿼리 실행
-    query = """
-    SELECT spid, player_name, season_name, overall, position,
-           COALESCE(full_data->'image_info'->>'mini_faceon', full_data->'image_info'->>'mini_faceon_high') as image,
-           full_data->'image_info'->>'mini_faceon_high' as image_high,
-           full_data->'image_info'->>'season_img' as season_img,
-           full_data->'image_info'->>'nation_img' as nation_img,
-           full_data->'game_info'->>'salary' as salary,
-           full_data->'basic_info'->>'nation' as nation,
-           full_data->'stats_info'->'main_overall'->'preferred_positions' as preferred_positions,
-           full_data->'game_info'->>'preferred_foot' as preferred_foot,
-           full_data->'game_info'->>'weak_foot' as weak_foot,
-           full_data->'basic_info'->>'height' as height,
-           full_data->'basic_info'->>'weight' as weight,
-           full_data->'basic_info'->>'body_type' as body_type,
-           full_data->'game_info'->>'skill_moves' as skill_moves,
-           full_data->'game_info'->'traits' as traits,
-           boost_change
-    FROM player_cards
-    WHERE 1=1
-    """ + search_conditions + """
-    ORDER BY overall DESC, player_name
-    LIMIT %s OFFSET %s
-    """
-    
-    query_params = search_params + [per_page, offset]
-    cur.execute(query, query_params)
-    cards = cur.fetchall()     
-    cur.close()
-    conn.close()
+    try:
+        cur = conn.cursor()
+        
+        # 검색 파라미터
+        player_name_raw = request.args.get('player_name', '')
+        player_names = [name.strip() for name in player_name_raw.split(',') if name.strip()]
+        selected_seasons = request.args.getlist('seasons')
+        selected_positions = request.args.getlist('positions')  # 포지션 필터 추가
+        min_ovr = request.args.get('min_ovr', '')
+        max_ovr = request.args.get('max_ovr', '')
+        min_salary = request.args.get('min_salary', '')
+        max_salary = request.args.get('max_salary', '')
+        preferred_foot = request.args.get('preferred_foot', '')
+        weak_foot_min = request.args.get('weak_foot_min', '')
+        min_height = request.args.get('min_height', '')
+        max_height = request.args.get('max_height', '')
+        min_weight = request.args.get('min_weight', '')
+        max_weight = request.args.get('max_weight', '')
+        selected_body_types = request.args.getlist('body_types')
+        new_trait = request.args.get('new_trait', '')
+        normal_trait_1 = request.args.get('normal_trait_1', '')
+        normal_trait_2 = request.args.get('normal_trait_2', '')
+        normal_trait_3 = request.args.get('normal_trait_3', '')
+        nation_team_color = request.args.get('nation_team_color', '')
+        club_team_color_1 = request.args.get('club_team_color_1', '')
+        club_team_color_2 = request.args.get('club_team_color_2', '')
+        trait_team_color = request.args.get('trait_team_color', '')
+        
+        # 페이지네이션 파라미터
+        page = 1
+        per_page = 200
+        offset = 0
+        
+        # 특성 리스트 생성
+        selected_traits = []
+        if new_trait:
+            selected_traits.append(new_trait)
+        if normal_trait_1:
+            selected_traits.append(normal_trait_1)
+        if normal_trait_2:
+            selected_traits.append(normal_trait_2)
+        if normal_trait_3:
+            selected_traits.append(normal_trait_3)
+        
+        # 검색 조건 생성 (헬퍼 함수 사용)
+        search_conditions, search_params = build_search_conditions(
+            player_names, selected_seasons, selected_positions, min_ovr, max_ovr,
+            min_salary, max_salary, preferred_foot, weak_foot_min, min_height, max_height,
+            min_weight, max_weight, selected_body_types, selected_traits, nation_team_color,
+            club_team_color_1, club_team_color_2, trait_team_color
+        )
+        
+        # COUNT 쿼리 실행
+        count_query = "SELECT COUNT(*) FROM player_cards WHERE 1=1" + search_conditions
+        cur.execute(count_query, search_params)
+        total_count = cur.fetchone()['count']
+        total_pages = max(1, (total_count + per_page - 1) // per_page) if total_count > 0 else 1
+        
+        # 메인 쿼리 실행
+        query = """
+        SELECT spid, player_name, season_name, overall, position,
+               COALESCE(full_data->'image_info'->>'mini_faceon', full_data->'image_info'->>'mini_faceon_high') as image,
+               full_data->'image_info'->>'mini_faceon_high' as image_high,
+               full_data->'image_info'->>'season_img' as season_img,
+               full_data->'image_info'->>'nation_img' as nation_img,
+               full_data->'game_info'->>'salary' as salary,
+               full_data->'basic_info'->>'nation' as nation,
+               full_data->'stats_info'->'main_overall'->'preferred_positions' as preferred_positions,
+               full_data->'game_info'->>'preferred_foot' as preferred_foot,
+               full_data->'game_info'->>'weak_foot' as weak_foot,
+               full_data->'basic_info'->>'height' as height,
+               full_data->'basic_info'->>'weight' as weight,
+               full_data->'basic_info'->>'body_type' as body_type,
+               full_data->'game_info'->>'skill_moves' as skill_moves,
+               full_data->'game_info'->'traits' as traits,
+               boost_change
+        FROM player_cards
+        WHERE 1=1
+        """ + search_conditions + """
+        ORDER BY overall DESC, player_name
+        LIMIT %s OFFSET %s
+        """
+        
+        query_params = search_params + [per_page, offset]
+        cur.execute(query, query_params)
+        cards = cur.fetchall()     
+        cur.close()
+    finally:
+        conn.close()
     
     is_limited = total_count > per_page
     
