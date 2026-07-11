@@ -1581,6 +1581,11 @@
 
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('tab') === 'results') {
+            switchTab('results', false);
+        }
+
         new SeasonManager();
 
         // DB 페이지 외에서 오면 초기화
