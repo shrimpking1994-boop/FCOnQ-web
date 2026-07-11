@@ -1581,13 +1581,6 @@
 
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
-        // URL 파라미터 또는 sessionStorage로 탭 상태 복원 (삼성 인터넷 등 URL 복원 이슈 대응)
-        const urlParams = new URLSearchParams(window.location.search);
-        const savedTab = sessionStorage.getItem('activeTab');
-        if (urlParams.get('tab') === 'results' || savedTab === 'results') {
-            switchTab('results', false);
-        }
-
         new SeasonManager();
 
         // DB 페이지 외에서 오면 초기화
@@ -1596,7 +1589,6 @@
         const isFromDB = dbPages.some(page => referrer.includes(page));
         if (!isFromDB) {
             sessionStorage.removeItem('searchState');
-            sessionStorage.removeItem('activeTab');
         }
 
         // ===== 검색 조건 저장 & 복원 =====
@@ -1904,7 +1896,6 @@
         document.getElementById('section-results').style.display = tab === 'results' ? 'block' : 'none';
         document.getElementById('tab-search').classList.toggle('active', tab === 'search');
         document.getElementById('tab-results').classList.toggle('active', tab === 'results');
-        sessionStorage.setItem('activeTab', tab);
         if (pushState) {
             history.pushState({ tab }, '', tab === 'results' ? '/search?tab=results' : '/search');
         }
