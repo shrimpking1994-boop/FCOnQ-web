@@ -1993,7 +1993,7 @@
                </span>` : '';
 
             const imageHtml = card.image
-                ? `<img src="${card.image}" alt="${card.player_name}" class="player-image"
+                ? `<img src="${card.image}" alt="${card.player_name}" class="player-image" loading="lazy"
                 onerror="if(this.dataset.retry=='1'){this.onerror=null;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';}else{this.dataset.retry='1';this.src='${card.image_high || card.image}'}">`
                 : `<div class="player-image d-flex align-items-center justify-content-center" style="color:var(--text-muted);">
                 <svg width="40" height="40" fill="currentColor" viewBox="0 0 16 16">
@@ -2002,7 +2002,7 @@
                </div>`;
 
             const seasonImgHtml = card.season_img
-                ? `<img src="${card.season_img}" alt="${card.season_name}" class="season-icon">` : '';
+                ? `<img src="${card.season_img}" alt="${card.season_name}" class="season-icon" loading="lazy">` : '';
 
             const foot = card.preferred_foot || '';
             const weakFoot = card.weak_foot || '';
@@ -2014,7 +2014,7 @@
 
             const traitsHtml = card.traits && card.traits.length > 0
                 ? card.traits.filter(t => TRAIT_MAP[t]).map(t =>
-                    `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" style="width:28px;height:28px;object-fit:contain;">`
+                    `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" style="width:28px;height:28px;object-fit:contain;" loading="lazy">`
                 ).join('')
                 : '<span style="color:var(--text-muted);">-</span>';
 
