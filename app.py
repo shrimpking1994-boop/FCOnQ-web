@@ -1253,62 +1253,61 @@ def compare_cards(spid1, spid2):
                            og_title=og_title, og_description=og_description)    
     
     
-
 @app.route('/card/<int:spid>')
 def card_detail(spid):
     """3페이지: 카드 상세 정보"""
     conn = get_db_connection()
     cur = conn.cursor()
-    
-    # card_prices 테이블 JOIN 추가
-    cur.execute("""
-        SELECT pc.*, 
-               pc.full_data->'basic_info' as basic_info,
-               pc.full_data->'game_info' as game_info,
-               pc.full_data->'stats_info' as stats_info,
-               pc.full_data->'image_info' as image_info,
-               cp.bp1, cp.bp2, cp.bp3, cp.bp4, cp.bp5, cp.bp6, cp.bp7,
-               cp.bp8, cp.bp9, cp.bp10, cp.bp11, cp.bp12, cp.bp13
-        FROM player_cards pc
-        LEFT JOIN card_prices cp ON pc.spid = cp.spid
-        WHERE pc.spid = %s
-    """, (spid,))
-    
-    card = cur.fetchone()
+    try:
+        # card_prices 테이블 JOIN 추가
+        cur.execute("""
+            SELECT pc.*, 
+                   pc.full_data->'basic_info' as basic_info,
+                   pc.full_data->'game_info' as game_info,
+                   pc.full_data->'stats_info' as stats_info,
+                   pc.full_data->'image_info' as image_info,
+                   cp.bp1, cp.bp2, cp.bp3, cp.bp4, cp.bp5, cp.bp6, cp.bp7,
+                   cp.bp8, cp.bp9, cp.bp10, cp.bp11, cp.bp12, cp.bp13
+            FROM player_cards pc
+            LEFT JOIN card_prices cp ON pc.spid = cp.spid
+            WHERE pc.spid = %s
+        """, (spid,))
+        
+        card = cur.fetchone()
 
-    POSITION_ORDER = ['ST', 'W', 'CF', 'CAM', 'M', 'CM', 'CDM', 'WB', 'B', 'CB', 'SW', 'GK']
+        POSITION_ORDER = ['ST', 'W', 'CF', 'CAM', 'M', 'CM', 'CDM', 'WB', 'B', 'CB', 'SW', 'GK']
 
-     # 요약 스탯 순서 추가
-    if card and card['stats_info']['main_overall']['card_position'] == 'GK':
-        SUMMARY_ORDER = ['다이빙', '핸들링', '킥', '반응속도', '스피드', '위치선정']
-        # 골키퍼용 세부 스탯 순서
-        DETAILED_ORDER = [
-            'GK 다이빙', 'GK 핸들링', 'GK 킥', 'GK 반응속도', 'GK 위치 선정',
-            '속력', '가속력', '골 결정력', '슛 파워', '중거리 슛', '위치 선정', '발리슛',
-            '페널티 킥', '짧은 패스', '시야', '크로스', '긴 패스', '프리킥', '커브',
-            '드리블', '볼 컨트롤', '민첩성', '밸런스', '반응 속도', '대인 수비', '태클',
-            '가로채기', '헤더', '슬라이딩 태클', '몸싸움', '스태미너', '적극성', '점프', '침착성'
-        ]
-    else:
-        SUMMARY_ORDER = ['스피드', '슛', '패스', '드리블', '수비', '피지컬']
-        # 필드 플레이어용 세부 스탯 순서
-        DETAILED_ORDER = [
-            '속력', '가속력', '골 결정력', '슛 파워', '중거리 슛', '위치 선정', '발리슛',
-            '페널티 킥', '짧은 패스', '시야', '크로스', '긴 패스', '프리킥', '커브',
-            '드리블', '볼 컨트롤', '민첩성', '밸런스', '반응 속도', '대인 수비', '태클',
-            '가로채기', '헤더', '슬라이딩 태클', '몸싸움', '스태미너', '적극성', '점프',
-            '침착성', 'GK 다이빙', 'GK 핸들링', 'GK 킥', 'GK 반응속도', 'GK 위치 선정'
-        ]
-    
-    # 가격 추세 데이터 조회
-    cur.execute("""
-        SELECT full_data FROM card_price_history WHERE spid = %s
-    """, (spid,))
-    price_history = cur.fetchone()
-    price_history_data = price_history['full_data'] if price_history else None    
-    
-    cur.close()
-    conn.close()
+        # 요약 스탯 순서 추가
+        if card and card['stats_info']['main_overall']['card_position'] == 'GK':
+            SUMMARY_ORDER = ['다이빙', '핸들링', '킥', '반응속도', '스피드', '위치선정']
+            # 골키퍼용 세부 스탯 순서
+            DETAILED_ORDER = [
+                'GK 다이빙', 'GK 핸들링', 'GK 킥', 'GK 반응속도', 'GK 위치 선정',
+                '속력', '가속력', '골 결정력', '슛 파워', '중거리 슛', '위치 선정', '발리슛',
+                '페널티 킥', '짧은 패스', '시야', '크로스', '긴 패스', '프리킥', '커브',
+                '드리블', '볼 컨트롤', '민첩성', '밸런스', '반응 속도', '대인 수비', '태클',
+                '가로채기', '헤더', '슬라이딩 태클', '몸싸움', '스태미너', '적극성', '점프', '침착성'
+            ]
+        else:
+            SUMMARY_ORDER = ['스피드', '슛', '패스', '드리블', '수비', '피지컬']
+            # 필드 플레이어용 세부 스탯 순서
+            DETAILED_ORDER = [
+                '속력', '가속력', '골 결정력', '슛 파워', '중거리 슛', '위치 선정', '발리슛',
+                '페널티 킥', '짧은 패스', '시야', '크로스', '긴 패스', '프리킥', '커브',
+                '드리블', '볼 컨트롤', '민첩성', '밸런스', '반응 속도', '대인 수비', '태클',
+                '가로채기', '헤더', '슬라이딩 태클', '몸싸움', '스태미너', '적극성', '점프',
+                '침착성', 'GK 다이빙', 'GK 핸들링', 'GK 킥', 'GK 반응속도', 'GK 위치 선정'
+            ]
+        
+        # 가격 추세 데이터 조회
+        cur.execute("""
+            SELECT full_data FROM card_price_history WHERE spid = %s
+        """, (spid,))
+        price_history = cur.fetchone()
+        price_history_data = price_history['full_data'] if price_history else None
+    finally:
+        cur.close()
+        conn.close()
     
     if not card:
         return "카드를 찾을 수 없습니다", 404
