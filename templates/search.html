@@ -1702,7 +1702,7 @@
             // 팀컬러는 Select2 초기화 완료 후 복원
             const teamColorNames = ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color'];
             let restored = 0;
-            $('.teamcolor-select').on('select2:open select2:close', function () { }).each(function () {
+            $('.teamcolor-select').off('select2:init').each(function () {
                 $(this).on('select2:init', function () {
                     restored++;
                     if (restored === teamColorNames.length) {
