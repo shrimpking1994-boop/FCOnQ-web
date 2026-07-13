@@ -1814,8 +1814,9 @@
                     if (currentFocus < 0) currentFocus = items.length - 1;
                     setActive(items);
                 } else if (e.key === 'Enter') {
+                    e.preventDefault();
                     autocompleteList.style.display = 'none';
-                    document.getElementById('searchForm').submit();
+                    document.getElementById('searchForm').requestSubmit();
                 }
             });
 
