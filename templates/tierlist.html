@@ -1025,8 +1025,8 @@
                             <div class="card-item">
                                 <div class="card-img-wrap">
                                     <span class="card-rank-badge ${rankClass}">${rank}</span>
-                                    <img class="card-face" src="${faceUrl}" onerror="this.onerror=null; this.src='${staticFaceUrl}'; this.onerror=function(){this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';};" onclick="window.open('/card/${card.spid}?buildup=${card.buildup}', '_blank')" style="cursor:pointer;">
-                                    ${seasonUrl ? `<img class="card-season-badge" src="${seasonUrl}" onerror="this.style.display='none'">` : ''}
+                                    <img class="card-face" src="${faceUrl}" loading="lazy" onerror="this.onerror=null; this.src='${staticFaceUrl}'; this.onerror=function(){this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';};" onclick="window.open('/card/${card.spid}?buildup=${card.buildup}', '_blank')" style="cursor:pointer;">
+                                    ${seasonUrl ? `<img class="card-season-badge" src="${seasonUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
                                     <span class="card-buildup ${card.buildup === 1 ? 'bu-1' : card.buildup <= 4 ? 'bu-bronze' : card.buildup <= 7 ? 'bu-silver' : card.buildup <= 10 ? 'bu-gold' : 'bu-purple'}">+${card.buildup}</span>
                                 </div>
                                 <span class="card-name" title="${card.name}">${card.name}</span>
@@ -1045,7 +1045,7 @@
                     <div class="teamcolor-row" id="tcrow-${idx}">
                         <div class="teamcolor-header" onclick="toggleTeamcolor(${idx})">
                             <span class="teamcolor-rank">${idx + 1}</span>
-                            ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" onerror="this.style.display='none'">` : ''}
+                            ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
                             <span class="teamcolor-name">${tc}</span>
                             <button class="tc-share-btn" onclick="copyTcLink(event, '${encodeURIComponent(tc)}')">🔗</button>
                             <span class="teamcolor-arrow">▼</span>
