@@ -1724,9 +1724,9 @@
         }
         container.innerHTML = cards.map(c => `
             <div class="sm-result-item" onclick="selectPlayer(${JSON.stringify(c).replace(/"/g, '&quot;')})">
-                <img class="sm-result-img" src="${c.image}"
+                <img class="sm-result-img" src="${c.image}" loading="lazy"
      onerror="this.src='${c.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
-                <img class="sm-result-season" src="${c.season_img}" onerror="this.style.display='none'">
+                <img class="sm-result-season" src="${c.season_img}" loading="lazy" onerror="this.style.display='none'">
                 <div class="sm-result-info">
                     <div class="sm-result-name">${c.player_name}</div>
                     <div class="sm-result-meta">${c.season_name} · ${c.position} · 급여 ${c.salary}</div>
@@ -1822,9 +1822,9 @@
         }
         container.innerHTML = cards.map(c => `
             <div class="sm-result-item" onclick="selectSeasonCard(${JSON.stringify(c).replace(/"/g, '&quot;')}, ${currentBoost})">
-                <img class="sm-result-img" src="${c.image}"
+                <img class="sm-result-img" src="${c.image}" loading="lazy"
      onerror="this.src='${c.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
-                <img class="sm-result-season" src="${c.season_img}" onerror="this.style.display='none'">
+                <img class="sm-result-season" src="${c.season_img}" loading="lazy" onerror="this.style.display='none'">
                 <div class="sm-result-info">
                     <div class="sm-result-name">${c.player_name}</div>
                     <div class="sm-result-meta">${c.season_name} · ${c.position} · 급여 ${c.salary}</div>
@@ -1891,9 +1891,9 @@
             return `
                 <div class="sm-miniface-item"
                      onclick="selectMiniface('${actionUrl}', '${staticUrl}', '${fallback}')">
-                    <img class="mf-img" src="${actionUrl}"
+                    <img class="mf-img" src="${actionUrl}" loading="lazy"
                          onerror="this.src='${staticUrl}'; this.onerror=()=>this.src='${fallback}'">
-                    <img class="mf-season" src="${c.season_img_url}"
+                    <img class="mf-season" src="${c.season_img_url}" loading="lazy"
                          onerror="this.style.display='none'">
                 </div>
             `;
@@ -2096,14 +2096,14 @@
             </div>
 
             <!-- 미페 이미지 -->
-            <img src="${card.image}"
+            <img src="${card.image}" loading="lazy"
                  style="width:${imgSize}px; height:${Math.round(imgSize * 1.225)}px; object-fit:contain;"
                  onerror="this.src='${card.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
 
             <!-- 시즌 + 이름 한 줄 -->
             <div style="display:flex; align-items:center; justify-content:center;
                         gap:3px; margin-top:-6px; flex-wrap:nowrap;">
-                <img src="${card.season_img}"    
+                <img src="${card.season_img}" loading="lazy"    
                     style="width:${seasonImgSize}; height:${seasonImgSize}; object-fit:contain; flex-shrink:0;"   
                     onerror="this.style.display='none'">
                 <span style="font-size:${nameFont}; color:#fff; font-weight:600;  
@@ -2277,7 +2277,7 @@
                             return higherCnt >= t.stages[0].count;
                         });
                     })).map(p => `
-                    <img src="${p.image}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
+                    <img src="${p.image}" loading="lazy" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
                          onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
                 `).join('');
                     return `
@@ -2320,7 +2320,7 @@
                     const faces = sortedSpids.map(spid => {
                         const p = players.find(p => p.spid == spid);
                         if (!p) return '';
-                        return `<img src="${p.image}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
+                        return `<img src="${p.image}" loading="lazy" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
                  onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">`;
                     }).join('');
 
@@ -2373,7 +2373,7 @@
                     const faces = sortedSpids.map(spid => {
                         const p = players.find(p => p.spid == spid);
                         if (!p) return '';
-                        return `<img src="${p.image}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
+                        return `<img src="${p.image}" loading="lazy" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
                  onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">`;
                     }).join('');
 
@@ -2455,7 +2455,7 @@
 
         content.innerHTML = tierTcOrder.map((tc, i) => {
             const logo = tierLogos[tc]
-                ? `<img src="${tierLogos[tc]}" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
+                ? `<img src="${tierLogos[tc]}" loading="lazy" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
                 : '';
             return `<div class="sm-tier-tc-item" onclick="selectTierTc('${tc}')">
                         <span class="sm-tier-tc-rank">${i + 1}</span>
@@ -2575,7 +2575,7 @@
 
         content.innerHTML = rankerTcOrder.map((tc, i) => {
             const logo = rankerLogos[tc]
-                ? `<img src="${rankerLogos[tc]}" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
+                ? `<img src="${rankerLogos[tc]}" loading="lazy" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
                 : '';
             return `<div class="sm-tier-tc-item" onclick="selectRankerTc('${tc}')">
                         <span class="sm-tier-tc-rank">${i + 1}</span>
