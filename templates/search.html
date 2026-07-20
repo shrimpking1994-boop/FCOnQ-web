@@ -1487,14 +1487,14 @@
                     <div class="filter-group-title">고유 특성</div>
                     <div class="row g-2">
                         <div class="col-3">
-                            <label class="form-label label-title">신규 종류 무관</label>
+                            <label class="form-label label-title">신규 특성 종류 무관</label>
                             <label class="trait-has-checkbox-wrap">
                                 <input type="checkbox" name="has_new_trait" id="hasNewTrait" class="trait-has-checkbox">
                                 <span>보유 여부만</span>
                             </label>
                         </div>
                         <div class="col-3">
-                            <label class="form-label label-title">신규</label>
+                            <label class="form-label label-title">신규 특성</label>
                             <select class="form-select trait-select" name="new_trait" data-placeholder="▼">
                                 <option value=""></option>
                                 {% for trait in new_traits %}
@@ -1503,7 +1503,7 @@
                             </select>
                         </div>
                         <div class="col-3">
-                            <label class="form-label label-title">일반 1</label>
+                            <label class="form-label label-title">일반 특성 1</label>
                             <select class="form-select trait-select" name="normal_trait_1" data-placeholder="▼">
                                 <option value=""></option>
                                 {% for trait in normal_traits %}
@@ -1512,7 +1512,7 @@
                             </select>
                         </div>
                         <div class="col-3">
-                            <label class="form-label label-title">일반 2</label>
+                            <label class="form-label label-title">일반 특성 2</label>
                             <select class="form-select trait-select" name="normal_trait_2" data-placeholder="▼">
                                 <option value=""></option>
                                 {% for trait in normal_traits %}
