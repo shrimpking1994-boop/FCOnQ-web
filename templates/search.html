@@ -274,6 +274,29 @@
         border-color: var(--primary-color);
     }
 
+    .trait-has-checkbox-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 38px;
+        box-sizing: border-box;
+        padding: 0 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--bg-main);
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .trait-has-checkbox {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
     .trait-select {
         width: 100%;
         min-height: 100px;
@@ -1430,6 +1453,13 @@
                     <div class="filter-group-title">고유 특성</div>
                     <div class="row g-2">
                         <div class="col-3">
+                            <label class="form-label label-title">신규 종류 무관</label>
+                            <label class="trait-has-checkbox-wrap">
+                                <input type="checkbox" name="has_new_trait" id="hasNewTrait" class="trait-has-checkbox">
+                                <span>보유 여부만</span>
+                            </label>
+                        </div>
+                        <div class="col-3">
                             <label class="form-label label-title">신규</label>
                             <select class="form-select trait-select" name="new_trait" data-placeholder="▼">
                                 <option value=""></option>
@@ -1450,15 +1480,6 @@
                         <div class="col-3">
                             <label class="form-label label-title">일반 2</label>
                             <select class="form-select trait-select" name="normal_trait_2" data-placeholder="▼">
-                                <option value=""></option>
-                                {% for trait in normal_traits %}
-                                <option value="{{ trait }}">{{ trait }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-3">
-                            <label class="form-label label-title">일반 3</label>
-                            <select class="form-select trait-select" name="normal_trait_3" data-placeholder="▼">
                                 <option value=""></option>
                                 {% for trait in normal_traits %}
                                 <option value="{{ trait }}">{{ trait }}</option>

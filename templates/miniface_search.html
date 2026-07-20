@@ -263,10 +263,10 @@
 
             html += `
             <div class="miniface-card">
-                <img src="${actionImgUrl}" class="miniface-img" alt="${card.player_name}" 
+                <img src="${actionImgUrl}" class="miniface-img" alt="${card.player_name}" loading="lazy"
                      onerror="handleImageError(this, '${staticImgUrl}')">
                 <div class="season-badge">
-                    <img src="${card.season_img_url}" class="season-icon" alt="${card.season_name}">
+                    <img src="${card.season_img_url}" class="season-icon" alt="${card.season_name}" loading="lazy">
                 </div>
                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">
                     ${card.player_name}
