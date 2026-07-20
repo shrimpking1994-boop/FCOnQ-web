@@ -769,6 +769,10 @@
         font-size: 14px;
     }
 
+    .trait-icon-mobile-new {
+        display: none;
+    }
+
     /* 모바일 최적화 */
     @media (max-width: 768px) {
 
@@ -864,6 +868,18 @@
 
         .label-title {
             font-size: 0.8rem;
+        }
+
+        .trait-icon-normal {
+            display: none;
+        }
+
+        .trait-icon-mobile-new {
+            display: inline-block !important;
+        }
+
+        .traits-full-row {
+            display: none;
         }
 
         .section-title {
@@ -1946,6 +1962,8 @@
         switchTab(tab, false);
     });
 
+    const NEW_TRAITS = {{ new_traits | tojson }};
+
     const TRAIT_MAP = {
         "아크로바틱 피니셔": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_50.png",
         "크로스 포쳐": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_51.png",
@@ -2053,9 +2071,15 @@
 
             const traitsHtml = card.traits && card.traits.length > 0
                 ? card.traits.filter(t => TRAIT_MAP[t]).map(t =>
-                    `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" style="width:28px;height:28px;object-fit:contain;" loading="lazy">`
+                    `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" class="${NEW_TRAITS.includes(t) ? 'trait-icon-new' : 'trait-icon-normal'}" style="width:28px;height:28px;object-fit:contain;" loading="lazy">`
                 ).join('')
                 : '<span style="color:var(--text-muted);">-</span>';
+
+            const newTraitsMobileHtml = card.traits && card.traits.length > 0
+                ? card.traits.filter(t => NEW_TRAITS.includes(t) && TRAIT_MAP[t]).map(t =>
+                    `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" class="trait-icon-mobile-new" style="width:20px;height:20px;object-fit:contain;" loading="lazy">`
+                ).join('')
+                : '';
 
             return `
         <div class="player-card" onclick="location.href='/card/${card.spid}'">
@@ -2065,6 +2089,7 @@
                     <div class="player-header">
                         ${seasonImgHtml}
                         <span class="player-name">${card.player_name}</span>
+                        ${newTraitsMobileHtml}
                         <div style="display:inline-flex; gap:10px; margin-left:8px;">
                             ${positions}
                             ${boostHtml}
@@ -2081,8 +2106,8 @@
                         <span>${footHtml}</span>
                         <span style="margin: 0 5px; color: var(--text-muted);">|</span>
                         <span class="skill-stars" style="color: gold;">${stars}</span>
-                        <span style="margin: 0 5px; color: var(--text-muted);">|</span>
-                        <span style="display:flex; align-items:center; gap:2px;">${traitsHtml}</span>
+                        <span class="traits-full-row" style="margin: 0 5px; color: var(--text-muted);">|</span>
+                        <span class="traits-full-row" style="display:flex; align-items:center; gap:2px;">${traitsHtml}</span>
                     </div>
                 </div>
                 <button class="add-to-basket-btn"
