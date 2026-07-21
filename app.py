@@ -2168,7 +2168,8 @@ def squad_cards_batch():
                full_data->'image_info'->>'season_img' as season_img,
                full_data->'game_info'->>'salary' as salary,
                full_data->'stats_info'->'position_overall' as position_overall,
-               full_data->'stats_info'->'main_overall'->>'card_position' as card_position
+               full_data->'stats_info'->'main_overall'->>'card_position' as card_position,
+               full_data->'game_info'->'traits' as traits
         FROM player_cards
         WHERE spid = ANY(%s)
     """, (spids,))
@@ -2294,7 +2295,18 @@ def squad_maker():
     else:
         og_title = "FCOnQ - FC온라인 전문 선수 DB 및 커뮤니티"
         og_description = "8만개 이상의 선수 카드 정보와 시세를 확인하고, FC온라인 유저들과 소통하세요!"
-    return render_template('squad_maker.html', og_title=og_title, og_description=og_description, is_logged_in=is_logged_in)
+
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new' ORDER BY trait_name")
+        new_traits = [row['trait_name'] for row in cur.fetchall()]
+        cur.close()
+    finally:
+        conn.close()
+
+    return render_template('squad_maker.html', og_title=og_title, og_description=og_description,
+                           is_logged_in=is_logged_in, new_traits=new_traits)
 
 
 @app.route('/api/user_squad/save', methods=['POST'])
@@ -2374,7 +2386,8 @@ def squad_search():
                    full_data->'image_info'->>'season_img' as season_img,
                    full_data->'game_info'->>'salary' as salary,
                    full_data->'image_info'->>'mini_faceon_high' as image_high,
-                   full_data->'stats_info'->'position_overall' as position_overall
+                   full_data->'stats_info'->'position_overall' as position_overall,
+                   full_data->'game_info'->'traits' as traits
             FROM player_cards
             WHERE player_name ILIKE %s
             ORDER BY overall DESC
@@ -2406,7 +2419,8 @@ def squad_search_by_pid():
                    full_data->'image_info'->>'season_img' as season_img,
                    full_data->'game_info'->>'salary' as salary,
                    full_data->'image_info'->>'mini_faceon_high' as image_high,
-                   full_data->'stats_info'->'position_overall' as position_overall
+                   full_data->'stats_info'->'position_overall' as position_overall,
+                   full_data->'game_info'->'traits' as traits
             FROM player_cards
             WHERE spid = ANY(%s)
         """, (spids,))
@@ -2428,7 +2442,8 @@ def squad_search_by_pid():
                full_data->'image_info'->>'season_img' as season_img,
                full_data->'game_info'->>'salary' as salary,
                full_data->'image_info'->>'mini_faceon_high' as image_high,
-               full_data->'stats_info'->'position_overall' as position_overall
+               full_data->'stats_info'->'position_overall' as position_overall,
+               full_data->'game_info'->'traits' as traits
         FROM player_cards
         WHERE RIGHT(spid::text, 6) = %s
         ORDER BY overall DESC
