@@ -2112,7 +2112,7 @@
         const boostColor = BOOST_COLORS[boost];
         const boostTextColor = boost >= 8 && boost <= 10 ? '#333' : (boost <= 7 ? '#333' : '#fff');
 
-        const newTraitIconSize = isMobile ? 14 : 25;
+        const newTraitIconSize = isMobile ? 13 : 25;
         const newTraitIconHtml = (card.traits || [])
             .filter(t => NEW_TRAITS.includes(t) && TRAIT_MAP[t])
             .map(t => `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" loading="lazy" style="width:${newTraitIconSize}px;height:${newTraitIconSize}px;object-fit:contain;">`)
