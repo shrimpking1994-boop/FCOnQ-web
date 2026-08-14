@@ -1,0 +1,116 @@
+{% extends "index.html" %}
+
+{% block title %}엪씨온큐 | 도구함{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="FC온라인 도구함 - 페이스온 검색, 수수료 계산기 등 편리한 도구 모음">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FCOnQ">
+<meta property="og:title" content="FC온라인 도구함 - FCOnQ">
+<meta property="og:description" content="페이스온 검색, 수수료 계산기 등 편리한 도구 모음">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:url" content="https://fconq.com/utility">
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FC온라인 도구함 - FCOnQ">
+<meta name="twitter:description" content="페이스온 검색, 수수료 계산기 등 편리한 도구 모음">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+{% endblock %}
+
+{% block content %}
+<style>
+    .utility-container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    .utility-title {
+        color: var(--text-primary);
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .utility-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        text-align: center;
+        margin-bottom: 28px;
+    }
+
+    .utility-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+    }
+
+    .utility-card {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 14px;
+        padding: 22px 20px;
+        text-decoration: none;
+        transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .utility-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .utility-card-icon {
+        font-size: 1.8rem;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .utility-card-title {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .utility-card-desc {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+        .utility-container {
+            padding: 0 6px;
+            margin-top: 10px;
+        }
+
+        .utility-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="utility-container">
+
+    <div class="utility-grid">
+        <a class="utility-card" href="/miniface_search">
+            <div class="utility-card-title">🖼️ 미니 페이스온 검색기</div>
+            <div class="utility-card-desc">원하는 선수의 시즌별 미니 페이스온 목록을 확인할 수 있어요.</div>
+        </a>
+
+        <a class="utility-card" href="/fee_calculator">
+            <div class="utility-card-title">💰 수수료 계산기</div>
+            <div class="utility-card-desc">이적시장 거래 시 발생하는 수수료를 매우 쉽고 편리하게 계산해보세요.</div>
+        </a>
+    </div>
+</div>
+
+{% endblock %}

@@ -1911,6 +1911,11 @@ def tierlist():
                          og_description=og_description)
 
 
+@app.route('/utility')
+def utility():
+    """유틸리티 모음 페이지 (미페 검색기, 수수료 계산기 등)"""
+    return render_template('utility.html')
+
 @app.route('/fee_calculator')
 def fee_calculator():
     """수수료 계산기 페이지"""

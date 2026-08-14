@@ -582,10 +582,7 @@
                 <a href="/community" class="nav-link-item" id="nav-community">커뮤니티</a>
             </li>
             <li>
-                <a href="/miniface_search" class="nav-link-item" id="nav-miniface">미페 검색기</a>
-            </li>
-            <li>
-                <a href="/fee_calculator" class="nav-link-item" id="nav-fee-calculator">수수료 계산기</a>
+                <a href="/utility" class="nav-link-item" id="nav-utility">도구함</a>
             </li>
         </ul>
     </nav>
@@ -642,10 +639,8 @@
                     document.getElementById('nav-community').classList.add('active');
                 } else if (currentPath.startsWith('/tierlist')) {
                     document.getElementById('nav-tierlist').classList.add('active');
-                } else if (currentPath.startsWith('/fee_calculator')) {
-                    document.getElementById('nav-fee-calculator').classList.add('active');
-                } else if (currentPath.startsWith('/miniface_search')) {
-                    document.getElementById('nav-miniface').classList.add('active');
+                } else if (currentPath.startsWith('/utility') || currentPath.startsWith('/fee_calculator') || currentPath.startsWith('/miniface_search')) {
+                    document.getElementById('nav-utility').classList.add('active');
                 } else if (currentPath.startsWith('/squad_maker')) {
                     document.getElementById('nav-squadmaker').classList.add('active');
                 }
