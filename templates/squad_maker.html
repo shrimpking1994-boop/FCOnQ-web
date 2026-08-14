@@ -2828,7 +2828,7 @@
                         padding:10px 12px; margin-bottom:8px; border-radius:8px;
                         background:var(--bg-secondary); gap:8px; border:1px solid rgba(128,128,128,0.4);">
                 <span style="font-size:0.9rem; font-weight:600; color:var(--text-primary); flex:1;">${s.name}</span>
-                <button onclick="loadSquad(${i}, ${IS_LOGGED_IN})" style="padding:4px 10px; border-radius:6px; border:none; background:#2196f3; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">불러오기</button>
+                <button onclick="loadSquad(${i}, ${IS_LOGGED_IN})" style="padding:4px 10px; border-radius:6px; border:none; background:#4caf50; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">불러오기</button>
                 <button onclick="deleteSquad(${IS_LOGGED_IN ? s.id : i}, ${IS_LOGGED_IN})" style="padding:4px 10px; border-radius:6px; border:none; background:#f44336; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">삭제</button>
             </div>
         `).join('');
