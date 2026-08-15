@@ -2038,8 +2038,17 @@
 
     function renderResults(data) {
         const container = document.getElementById('section-results');
+
+        const teamcolorInfoMsg = data.teamcolor_info ? `
+            <div style="text-align:center; padding:12px; margin:10px 0; background:var(--bg-card, rgba(255,255,255,0.05)); border-radius:8px; font-size:14px;">
+                <div><strong>특성 팀컬러명 :</strong> ${data.teamcolor_info.name}</div>
+                <div><strong>최소 필요 인원 :</strong> ${data.teamcolor_info.min_count}명</div>
+                <div><strong>케미 효과 :</strong> ${data.teamcolor_info.stats.map(s => `${s.name} +${s.value}`).join(', ')}</div>
+         </div>
+        ` : '';
+
         if (data.cards.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">검색 결과가 없습니다.</div>';
+            container.innerHTML = teamcolorInfoMsg + '<div style="text-align:center; padding:40px; color:var(--text-muted);">검색 결과가 없습니다.</div>';
             return;
         }
 
@@ -2136,7 +2145,7 @@
         </div>`;
         }).join('');
 
-        container.innerHTML = limitMsg + cards;
+        container.innerHTML = teamcolorInfoMsg + limitMsg + cards;
     }
 </script>
 

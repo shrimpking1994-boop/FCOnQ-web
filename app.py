@@ -1182,6 +1182,28 @@ def api_search_results():
         count_query = "SELECT COUNT(*) FROM player_cards WHERE 1=1" + search_conditions
         cur.execute(count_query, search_params)
         total_count = cur.fetchone()['count']
+        
+        teamcolor_info = None
+        if trait_team_color:
+            cur.execute(
+                "SELECT name, min_count, stat1_name, stat1_value, stat2_name, stat2_value, "
+                "stat3_name, stat3_value, stat4_name, stat4_value "
+                "FROM teamcolor_effects WHERE name = %s AND type = '특성'",
+                (trait_team_color,)
+            )
+            effect = cur.fetchone()
+            if effect:
+                stats = []
+                for i in range(1, 5):
+                    stat_name = effect[f'stat{i}_name']
+                    stat_value = effect[f'stat{i}_value']
+                    if stat_name and stat_value is not None:
+                        stats.append({'name': stat_name, 'value': stat_value})
+                teamcolor_info = {
+                    'name': effect['name'],
+                    'min_count': effect['min_count'],
+                    'stats': stats
+                }
 
         query = """
         SELECT spid, player_name, season_name, overall, position,
@@ -1215,7 +1237,8 @@ def api_search_results():
     return jsonify({
         'total_count': total_count,
         'is_limited': total_count > per_page,
-        'cards': [dict(c) for c in cards]
+        'cards': [dict(c) for c in cards],
+        'teamcolor_info': teamcolor_info
     })
 
     
