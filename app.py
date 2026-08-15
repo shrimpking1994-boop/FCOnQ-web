@@ -2122,23 +2122,48 @@ def get_card_tierlist_data():
     """카드 티어리스트 데이터 반환 (가장 최근 날짜)"""
     conn = get_db_connection()
     cur = conn.cursor()
-    
+
     cur.execute("""
         SELECT full_data 
         FROM card_tierlist_rankings 
         ORDER BY crawl_date DESC 
         LIMIT 1
     """)
-    
+
     result = cur.fetchone()
-    
+
+    if not result:
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
+
+    full_data = result['full_data']
+    teamcolor_names = full_data.get('_order') or [k for k in full_data.keys() if k != '_order']
+
+    cur.execute("""
+        SELECT name, min_count, stat1_name, stat1_value, stat2_name, stat2_value,
+               stat3_name, stat3_value, stat4_name, stat4_value
+        FROM teamcolor_effects
+        WHERE type = '소속' AND name = ANY(%s)
+    """, (teamcolor_names,))
+
+    effects = {}
+    for row in cur.fetchall():
+        stats = []
+        for i in range(1, 5):
+            stat_name = row[f'stat{i}_name']
+            stat_value = row[f'stat{i}_value']
+            if stat_name and stat_value is not None:
+                stats.append({'name': stat_name, 'value': stat_value})
+        effects[row['name']] = {
+            'min_count': row['min_count'],
+            'stats': stats
+        }
+
     cur.close()
     conn.close()
-    
-    if not result:
-        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
-    
-    return jsonify({'success': True, 'data': result['full_data']})
+
+    return jsonify({'success': True, 'data': full_data, 'effects': effects})
 
 @app.route('/api/squad_tierlist_teamcolors')
 def squad_tierlist_teamcolors():

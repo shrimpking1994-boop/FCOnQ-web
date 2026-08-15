@@ -999,6 +999,7 @@
 
             const data = json.data;
             const teamcolors = data._order || Object.keys(data).filter(k => k !== '_order');
+            const effects = json.effects || {};
 
             let html = '';
             teamcolors.forEach((tc, idx) => {
@@ -1041,6 +1042,13 @@
                         </div>`;
                 });
 
+                const eff = effects[tc] || { stats: [] };
+                const effectHtml = `
+    <div class="teamcolor-effect-info" style="padding:10px 15px; margin-bottom:10px; background:rgba(255,255,255,0.05); border-radius:8px; font-size:13px;">
+        <strong>풀케미 효과 :</strong> ${eff.stats.length > 0 ? eff.stats.map(s => `${s.name} +${s.value}`).join(', ') : '없음'}
+    </div>
+`;
+
                 html += `
                     <div class="teamcolor-row" id="tcrow-${idx}">
                         <div class="teamcolor-header" onclick="toggleTeamcolor(${idx})">
@@ -1050,7 +1058,7 @@
                             <button class="tc-share-btn" onclick="copyTcLink(event, '${encodeURIComponent(tc)}')">🔗</button>
                             <span class="teamcolor-arrow">▼</span>
                         </div>
-                        <div class="teamcolor-body">${positionsHtml || '<p style="color:var(--text-secondary)">데이터 없음</p>'}</div>
+                        <div class="teamcolor-body">${effectHtml}${positionsHtml || '<p style="color:var(--text-secondary)">데이터 없음</p>'}</div>
                     </div>`;
             });
 
