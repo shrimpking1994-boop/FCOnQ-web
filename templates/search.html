@@ -1638,11 +1638,17 @@
     document.addEventListener('DOMContentLoaded', () => {
         new SeasonManager();
 
-        // DB 페이지 외에서 오면 초기화
+        // DB 페이지 외에서 오면 초기화 (referrer는 브라우저 개인정보 설정에 따라
+        // 비어있을 수 있어, 뒤로가기/앞으로가기 여부도 함께 확인)
+        const navEntries = performance.getEntriesByType('navigation');
+        const navType = navEntries.length ? navEntries[0].type : '';
+        const cameViaBackForward = navType === 'back_forward';
+
         const referrer = document.referrer;
         const dbPages = ['/search', '/results', '/card', '/player_review'];
         const isFromDB = dbPages.some(page => referrer.includes(page));
-        if (!isFromDB) {
+
+        if (!cameViaBackForward && !isFromDB) {
             sessionStorage.removeItem('searchState');
         }
 
