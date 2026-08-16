@@ -174,6 +174,14 @@ SEASON_ORDER = [
     812
 ]
 
+STAT_NAMES = [
+    "속력", "가속력", "골 결정력", "슛 파워", "중거리 슛", "위치 선정", "발리슛",
+    "페널티 킥", "짧은 패스", "시야", "크로스", "긴 패스", "프리킥", "커브",
+    "드리블", "볼 컨트롤", "민첩성", "밸런스", "반응 속도", "대인 수비", "태클",
+    "가로채기", "헤더", "슬라이딩 태클", "몸싸움", "스태미너", "적극성", "점프", "침착성",
+    "GK 다이빙", "GK 핸들링", "GK 킥", "GK 반응속도", "GK 위치 선정"
+]
+
 def get_db_connection():
     """DB 연결 생성"""
     conn = psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
@@ -1948,6 +1956,181 @@ def fee_calculator():
 def miniface_search():
     """미니 페이스온 검색기 페이지"""
     return render_template('miniface_search.html')
+
+def get_nation_club_stages(cur, tc_name):
+    cur.execute("SELECT stat1_name, stat2_name, image_url FROM teamcolor_effects WHERE name = %s", (tc_name,))
+    row = cur.fetchone()
+
+    if not row or (not row['stat1_name'] and not row['stat2_name']):
+        return {'image_url': row['image_url'] if row else None, 'stages': None}
+
+    s1, s2 = row['stat1_name'], row['stat2_name']
+    stages = [
+        {'stage': 1, 'min_count': 3, 'items': ['전체능력치 +1']},
+        {'stage': 2, 'min_count': 6, 'items': ['전체능력치 +3']},
+        {'stage': 3, 'min_count': 8, 'items': ['전체능력치 +3', f'{s1} +2', f'{s2} +1']},
+        {'stage': 4, 'min_count': 11, 'items': ['전체능력치 +4', f'{s1} +3', f'{s2} +3']},
+    ]
+    return {'image_url': row['image_url'], 'stages': stages}
+
+
+def get_trait_teamcolor_detail(cur, tc_name):
+    cur.execute("SELECT id FROM special_teamcolors WHERE name = %s", (tc_name,))
+    tc_row = cur.fetchone()
+
+    if not tc_row:
+        return {'image_url': None, 'min_count': None, 'stats': [], 'players': []}
+
+    teamcolor_id = tc_row['id']
+
+    cur.execute("""
+        SELECT min_count, image_url, stat1_name, stat1_value, stat2_name, stat2_value,
+               stat3_name, stat3_value, stat4_name, stat4_value
+        FROM teamcolor_effects WHERE name = %s AND type = '특성'
+    """, (tc_name,))
+    eff_row = cur.fetchone()
+
+    stats = []
+    min_count = None
+    image_url = None
+    if eff_row:
+        min_count = eff_row['min_count']
+        image_url = eff_row['image_url']
+        for i in range(1, 5):
+            sname = eff_row[f'stat{i}_name']
+            sval = eff_row[f'stat{i}_value']
+            if sname and sval is not None:
+                stats.append({'name': sname, 'value': sval})
+
+    cur.execute("""
+        SELECT pc.spid, pc.player_name
+        FROM player_cards pc
+        WHERE RIGHT(pc.spid::text, 6) IN (
+            SELECT player_id FROM special_teamcolor_players WHERE teamcolor_id = %s
+        )
+        ORDER BY pc.player_name, array_position(%s::integer[], CAST(LEFT(pc.spid::text, 3) AS INTEGER))
+    """, (teamcolor_id, SEASON_ORDER))
+    cards = cur.fetchall()
+
+    players = {}
+    for c in cards:
+        pid = str(c['spid'])[-6:]
+        if pid not in players:
+            players[pid] = {'pid': pid, 'name': c['player_name'], 'cards': []}
+        players[pid]['cards'].append({'spid': c['spid']})
+
+    return {
+        'image_url': image_url,
+        'min_count': min_count,
+        'stats': stats,
+        'players': list(players.values())
+    }
+
+@app.route('/api/teamcolor_search_by_name')
+def api_teamcolor_search_by_name():
+    tc_type = request.args.get('type')
+    tc_name = request.args.get('name', '').strip()
+
+    if not tc_type or not tc_name:
+        return jsonify({'success': False, 'message': '팀컬러를 선택해주세요'}), 400
+
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+
+        if tc_type in ('nation', 'club'):
+            result = get_nation_club_stages(cur, tc_name)
+            return jsonify({'success': True, 'type': tc_type, 'name': tc_name, **result})
+
+        elif tc_type == 'trait':
+            result = get_trait_teamcolor_detail(cur, tc_name)
+            return jsonify({'success': True, 'type': 'trait', 'name': tc_name, **result})
+
+        return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
+
+    finally:
+        conn.close()
+        
+@app.route('/api/teamcolor_search_by_stat')
+def api_teamcolor_search_by_stat():
+    stat_list = [s.strip() for s in request.args.getlist('stat') if s.strip()]
+    stat_list = list(dict.fromkeys(stat_list))  # 중복 제거, 순서 유지
+
+    if not stat_list:
+        return jsonify({'success': False, 'message': '능력치를 선택해주세요'}), 400
+
+    conditions = []
+    params = []
+    for s in stat_list:
+        stripped = s.replace(' ', '')
+        conditions.append("""(
+            REPLACE(stat1_name, ' ', '') = %s
+            OR REPLACE(stat2_name, ' ', '') = %s
+            OR REPLACE(stat3_name, ' ', '') = %s
+            OR REPLACE(stat4_name, ' ', '') = %s
+        )""")
+        params.extend([stripped, stripped, stripped, stripped])
+
+    where_clause = " AND ".join(conditions)
+
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+
+        cur.execute(f"""
+            SELECT DISTINCT type, name,
+                   CASE WHEN type = '특성' THEN 1 ELSE 0 END AS type_order
+            FROM teamcolor_effects
+            WHERE {where_clause}
+            ORDER BY type_order, name
+        """, params)
+        matched = cur.fetchall()
+
+        results = []
+        for row in matched:
+            if row['type'] == '특성':
+                detail = get_trait_teamcolor_detail(cur, row['name'])
+                results.append({'type': 'trait', 'name': row['name'], **detail})
+            else:
+                detail = get_nation_club_stages(cur, row['name'])
+                results.append({'type': 'nation_or_club', 'name': row['name'], **detail})
+
+        return jsonify({'success': True, 'stats': stat_list, 'results': results})
+
+    finally:
+        conn.close()
+
+@app.route('/teamcolor_search')
+def teamcolor_search():
+    """팀컬러 상세 검색 페이지"""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+
+        cur.execute('SELECT nation_name FROM nation_teamcolors ORDER BY nation_name COLLATE "C"')
+        nation_teamcolors = [row['nation_name'] for row in cur.fetchall()]
+
+        cur.execute('SELECT club_name FROM club_teamcolors ORDER BY club_name COLLATE "C"')
+        club_teamcolors = [row['club_name'] for row in cur.fetchall()]
+
+        cur.execute('SELECT name FROM special_teamcolors ORDER BY name COLLATE "C"')
+        trait_teamcolors = [row['name'] for row in cur.fetchall()]
+
+        stat_names = STAT_NAMES
+
+        cur.execute("SELECT season_id, season_img_url FROM seasons")
+        season_logos = {str(row['season_id']): row['season_img_url'] for row in cur.fetchall()}
+
+        cur.close()
+    finally:
+        conn.close()
+
+    return render_template('teamcolor_search.html',
+                            nation_teamcolors=nation_teamcolors,
+                            club_teamcolors=club_teamcolors,
+                            trait_teamcolors=trait_teamcolors,
+                            stat_names=stat_names,
+                            season_logos=season_logos)
 
 @app.route('/api/card_hover/<int:spid>')
 @app.route('/api/card_hover/<int:spid>')

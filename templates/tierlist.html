@@ -1406,6 +1406,7 @@
         const buildup = face.onclick?.toString().match(/buildup=(\d+)/)?.[1];
         if (!spid) return;
 
+        clearTimeout(hoverTimer);
         hoverTimer = setTimeout(async () => {
             let data = hoverCache[spid];
             if (!data) {
@@ -1497,6 +1498,25 @@
         if (!face) return;
         clearTimeout(hoverTimer);
         tooltip.style.display = 'none';
+    });
+
+    document.addEventListener('click', function (e) {
+        const face = e.target.closest('.card-face');
+        if (!face) return;
+        clearTimeout(hoverTimer);
+        tooltip.style.display = 'none';
+    });
+
+    window.addEventListener('blur', function () {
+        clearTimeout(hoverTimer);
+        tooltip.style.display = 'none';
+    });
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            clearTimeout(hoverTimer);
+            tooltip.style.display = 'none';
+        }
     });
 </script>
 

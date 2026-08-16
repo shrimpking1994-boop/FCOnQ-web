@@ -1,0 +1,735 @@
+{% extends "index.html" %}
+
+{% block title %}엪씨온큐 | 팀컬러 상세 검색{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="FC온라인 팀컬러 상세 검색 - 팀컬러 버프 효과 및 특성 팀컬러 대상 선수 확인">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FCOnQ">
+<meta property="og:title" content="팀컬러 상세 검색 - FCOnQ">
+<meta property="og:description" content="팀컬러 버프 효과 및 특성 팀컬러 대상 선수 확인">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:url" content="https://fconq.com/teamcolor_search">
+{% endblock %}
+
+{% block content %}
+<style>
+    .tcs-container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    .tcs-title {
+        color: var(--text-primary);
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .tcs-tab-group {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .tcs-tab-btn {
+        flex: 1;
+        padding: 12px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .tcs-tab-btn.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+    }
+
+    .tcs-panel {
+        display: none;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 14px;
+        padding: 20px;
+    }
+
+    .tcs-panel.active {
+        display: block;
+    }
+
+    .tcs-field {
+        margin-bottom: 16px;
+    }
+
+    .tcs-field label {
+        display: block;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .tcs-field select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    .tcs-search-btn {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary-color);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    #tcs-results {
+        margin-top: 20px;
+    }
+
+    .tcs-result-box {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 14px;
+        padding: 18px 20px;
+    }
+
+    .tcs-result-title {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .tcs-stage-row {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        padding: 8px 0;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .tcs-stage-row:first-of-type {
+        border-top: none;
+    }
+
+    .tcs-result-empty {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 12px 0;
+    }
+
+    .tcs-trait-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        margin-bottom: 8px;
+    }
+
+    .tcs-effect-line {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .tcs-player-row {
+        padding: 10px 0;
+        border-top: 1px solid var(--border-color);
+        cursor: pointer;
+    }
+
+    .tcs-player-row:first-of-type {
+        border-top: none;
+    }
+
+    .tcs-player-row-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .tcs-cards-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .tcs-card-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        width: 80px;
+    }
+
+    .tcs-card-img-wrap {
+        position: relative;
+        width: 72px;
+        height: 72px;
+    }
+
+    .tcs-card-img-wrap img.tcs-card-face {
+        width: 72px;
+        height: 72px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: #333;
+    }
+
+    .tcs-card-season-badge {
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+        height: 18px;
+    }
+
+    .tcs-card-name {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        text-align: center;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+        .tcs-card-item {
+            width: 68px;
+        }
+
+        .tcs-card-img-wrap,
+        .tcs-card-img-wrap img.tcs-card-face {
+            width: 62px;
+            height: 62px;
+        }
+    }
+
+    /* Select2 다크모드 대응 */
+    .select2-container--bootstrap-5 .select2-selection {
+        background: var(--bg-main) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__rendered {
+        color: var(--text-primary) !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__placeholder {
+        color: var(--text-secondary) !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-dropdown {
+        background: #1a202c !important;
+        border: 1px solid var(--border-color) !important;
+        z-index: 9999;
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option {
+        background: #1a202c !important;
+        color: #e2e8f0 !important;
+        padding: 8px 12px;
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option--highlighted {
+        background: #667eea !important;
+        color: #ffffff !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-results__option--selected {
+        background: #4c51bf !important;
+        color: #ffffff !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-search__field {
+        background: var(--bg-main) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-search--dropdown {
+        background: #1a202c !important;
+        padding: 8px;
+    }
+
+    [data-theme="light"] .select2-dropdown {
+        background: #ffffff !important;
+    }
+
+    [data-theme="light"] .select2-results__option {
+        background: #ffffff !important;
+        color: #1a202c !important;
+    }
+
+    [data-theme="light"] .select2-results__option--highlighted {
+        background: #e6f2ff !important;
+        color: #667eea !important;
+    }
+
+    #tcs-hover-tooltip {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 12px 14px;
+        width: max-content;
+        max-width: 420px;
+        pointer-events: none;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+</style>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+    rel="stylesheet" />
+
+<div class="tcs-container">
+
+    <div class="tcs-tab-group">
+        <button class="tcs-tab-btn active" onclick="switchTcsTab('name')">이름으로 검색</button>
+        <button class="tcs-tab-btn" onclick="switchTcsTab('stat')">능력치로 검색</button>
+    </div>
+
+    <!-- 이름으로 검색 -->
+    <div class="tcs-panel active" id="tcs-panel-name">
+        <div class="tcs-field">
+            <label>국가 팀컬러</label>
+            <select id="tcs-nation" class="teamcolor-select" data-placeholder="국가를 선택하세요">
+                <option value=""></option>
+                {% for n in nation_teamcolors %}
+                <option value="{{ n }}">{{ n }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="tcs-field">
+            <label>소속 팀컬러</label>
+            <select id="tcs-club" class="teamcolor-select" data-placeholder="클럽을 선택하세요">
+                <option value=""></option>
+                {% for c in club_teamcolors %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="tcs-field">
+            <label>특성 팀컬러</label>
+            <select id="tcs-trait" class="teamcolor-select" data-placeholder="특성 팀컬러를 선택하세요">
+                <option value=""></option>
+                {% for t in trait_teamcolors %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- 능력치로 검색 -->
+    <div class="tcs-panel" id="tcs-panel-stat">
+        <div class="tcs-field">
+            <label>능력치 1</label>
+            <select id="tcs-stat1" class="teamcolor-select" data-placeholder="능력치를 선택하세요">
+                <option value=""></option>
+                {% for s in stat_names %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="tcs-field">
+            <label>능력치 2</label>
+            <select id="tcs-stat2" class="teamcolor-select" data-placeholder="능력치를 선택하세요">
+                <option value=""></option>
+                {% for s in stat_names %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="tcs-field">
+            <label>능력치 3</label>
+            <select id="tcs-stat3" class="teamcolor-select" data-placeholder="능력치를 선택하세요">
+                <option value=""></option>
+                {% for s in stat_names %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="tcs-search-btn" onclick="runStatSearch()">검색</button>
+    </div>
+
+    <div id="tcs-results"></div>
+</div>
+
+<div id="tcs-hover-tooltip"></div>
+<!-- jQuery & Select2 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/ko.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.teamcolor-select').select2({
+            theme: 'bootstrap-5',
+            language: 'ko',
+            allowClear: true,
+            width: '100%',
+            minimumInputLength: 0,
+            placeholder: function () {
+                return $(this).data('placeholder');
+            }
+        });
+
+        $(document).on('select2:open', function () {
+            document.querySelector('.select2-search__field').focus();
+        });
+
+        const nameSelects = { '#tcs-nation': 'nation', '#tcs-club': 'club', '#tcs-trait': 'trait' };
+
+        Object.keys(nameSelects).forEach(function (sel) {
+            $(sel).on('change', function () {
+                const val = $(this).val();
+                if (!val) return;
+
+                Object.keys(nameSelects).forEach(function (other) {
+                    if (other !== sel) {
+                        $(other).val(null).trigger('change');
+                    }
+                });
+
+                searchByName(nameSelects[sel], val);
+            });
+        });
+
+    });
+
+    function runStatSearch() {
+        const stats = [
+            $('#tcs-stat1').val(),
+            $('#tcs-stat2').val(),
+            $('#tcs-stat3').val()
+        ].filter(v => v);
+
+        if (stats.length === 0) {
+            alert('능력치를 최소 1개 선택해주세요.');
+            return;
+        }
+
+        searchByStat(stats);
+    }
+
+    function switchTcsTab(tab) {
+        document.querySelectorAll('.tcs-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tcs-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('tcs-panel-' + tab).classList.add('active');
+        event.target.classList.add('active');
+        document.getElementById('tcs-results').innerHTML = '';
+    }
+
+    function buildStagesHtml(title, imageUrl, stages) {
+        const titleHtml = `${imageUrl ? `<img src="${imageUrl}" style="height:24px; vertical-align:middle; margin-right:8px;">` : ''}${title}`;
+
+        if (!stages) {
+            return `
+                <div class="tcs-result-box">
+                    <div class="tcs-result-title">${titleHtml}</div>
+                    <div class="tcs-result-empty">버프 효과 없음</div>
+                </div>`;
+        }
+
+        const rows = stages.map(s => `
+            <div class="tcs-stage-row">
+                <strong>${s.stage}단계 (최소 ${s.min_count}명)</strong> : ${s.items.join(', ')}
+            </div>`).join('');
+
+        return `
+            <div class="tcs-result-box">
+                <div class="tcs-result-title">${titleHtml}</div>
+                ${rows}
+            </div>`;
+    }
+
+    function buildTraitHtml(data, uid, collapsed) {
+        const titleHtml = `${data.image_url ? `<img src="${data.image_url}" style="height:24px; vertical-align:middle; margin-right:8px;">` : ''}${data.name}`;
+
+        if (data.min_count === null) {
+            return `
+                <div class="tcs-result-box">
+                    <div class="tcs-result-title">${titleHtml}</div>
+                    <div class="tcs-result-empty">데이터를 찾을 수 없습니다.</div>
+                </div>`;
+        }
+
+        const statsText = data.stats.length > 0
+            ? data.stats.map(s => `${s.name} +${s.value}`).join(', ')
+            : '없음';
+
+        data.players.sort((a, b) => b.cards.length - a.cards.length);
+
+        const playersHtml = data.players.map((p, idx) => `
+            <div class="tcs-player-row" onclick="toggleTcsPlayer('${uid}', ${idx})">
+                <div class="tcs-player-row-head">
+                    <span>${p.name} (${p.cards.length}종)</span>
+                    <span id="tcs-arrow-${uid}-${idx}">▼</span>
+                </div>
+                <div class="tcs-cards-row" id="tcs-cards-${uid}-${idx}" style="display:none;">
+                    ${p.cards.map(c => `
+                        <div class="tcs-card-item">
+                            <div class="tcs-card-img-wrap">
+                                <img class="tcs-card-face" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${c.spid}.png"
+                                     loading="lazy"
+                                     onerror="this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${p.pid}.png'; this.onerror=function(){this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';};"
+                                     onclick="event.stopPropagation(); window.open('/card/${c.spid}', '_blank')" style="cursor:pointer;">
+                                <img class="tcs-card-season-badge" src="${getSeasonImgUrl(c.spid)}" loading="lazy" onerror="this.style.display='none'">
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        const playersSectionId = `tcs-players-section-${uid}`;
+
+        if (collapsed) {
+            return `
+                <div class="tcs-result-box">
+                    <div class="tcs-trait-header" onclick="toggleTcsPlayersSection('${uid}')">
+                        <div class="tcs-result-title" style="margin-bottom:0;">${titleHtml}</div>
+                        <span id="tcs-players-arrow-${uid}">▼</span>
+                    </div>
+                    <div class="tcs-effect-line" onclick="toggleTcsPlayersSection('${uid}')" style="cursor:pointer;">
+                        <div>
+                            <strong>최소 필요 인원 :</strong> ${data.min_count}명
+                        </div>
+                        <div>
+                            <strong>케미 효과 :</strong> ${statsText}
+                        </div>
+                    </div>
+                    <div id="${playersSectionId}" style="display:none; margin-top:12px;">
+                        ${playersHtml || '<div class="tcs-result-empty">대상 카드가 없습니다.</div>'}
+                    </div>
+                </div>`;
+        }
+
+        return `
+            <div class="tcs-result-box">
+                <div class="tcs-result-title">${titleHtml}</div>
+                <div class="tcs-effect-line">
+                    <div>
+                        <strong>최소 필요 인원 :</strong> ${data.min_count}명
+                    </div>
+                    <div>
+                        <strong>케미 효과 :</strong> ${statsText}
+                    </div>
+                </div>
+                ${playersHtml || '<div class="tcs-result-empty">대상 카드가 없습니다.</div>'}
+            </div>`;
+    }
+
+    function toggleTcsPlayersSection(uid) {
+        const el = document.getElementById(`tcs-players-section-${uid}`);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        const arrow = document.getElementById(`tcs-players-arrow-${uid}`);
+        if (arrow) arrow.textContent = arrow.textContent === '▼' ? '▲' : '▼';
+    }
+
+    function toggleTcsPlayer(uid, idx) {
+        const el = document.getElementById(`tcs-cards-${uid}-${idx}`);
+        el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+        const arrow = document.getElementById(`tcs-arrow-${uid}-${idx}`);
+        arrow.textContent = arrow.textContent === '▼' ? '▲' : '▼';
+    }
+
+    async function searchByName(type, name) {
+        const results = document.getElementById('tcs-results');
+        results.innerHTML = `<div class="tcs-result-empty">검색 중...</div>`;
+
+        try {
+            const res = await fetch(`/api/teamcolor_search_by_name?type=${type}&name=${encodeURIComponent(name)}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                results.innerHTML = `<div class="tcs-result-empty">${data.message || '오류가 발생했습니다.'}</div>`;
+                return;
+            }
+
+            if (type === 'trait') {
+                results.innerHTML = buildTraitHtml(data, 'single', false);
+            } else {
+                results.innerHTML = buildStagesHtml(data.name, data.image_url, data.stages);
+            }
+        } catch (e) {
+            results.innerHTML = `<div class="tcs-result-empty">오류가 발생했습니다.</div>`;
+        }
+    }
+
+    async function searchByStat(stats) {
+        const results = document.getElementById('tcs-results');
+        results.innerHTML = `<div class="tcs-result-empty">검색 중...</div>`;
+
+        const params = stats.map(s => `stat=${encodeURIComponent(s)}`).join('&');
+
+        try {
+            const res = await fetch(`/api/teamcolor_search_by_stat?${params}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                results.innerHTML = `<div class="tcs-result-empty">${data.message || '오류가 발생했습니다.'}</div>`;
+                return;
+            }
+
+            if (data.results.length === 0) {
+                results.innerHTML = `<div class="tcs-result-empty">해당 능력치 버프를 주는 팀컬러가 없습니다.</div>`;
+                return;
+            }
+
+            const boxesHtml = data.results.map((r, uid) => {
+                if (r.type === 'trait') {
+                    return buildTraitHtml(r, uid, true);
+                } else {
+                    return buildStagesHtml(r.name, r.image_url, r.stages);
+                }
+            }).join('<div style="height:14px;"></div>');
+
+            results.innerHTML = boxesHtml;
+        } catch (e) {
+            results.innerHTML = `<div class="tcs-result-empty">오류가 발생했습니다.</div>`;
+        }
+    }
+
+    const seasonLogos = {{ season_logos | tojson }};
+    function getSeasonImgUrl(spid) {
+        const seasonId = String(spid).slice(0, 3);
+        return seasonLogos[seasonId] || '';
+    }
+
+    const tcsHoverCache = {};
+    let tcsHoverTimer = null;
+    const tcsTooltip = document.getElementById('tcs-hover-tooltip');
+
+    const TCS_TRAIT_MAP = {
+        "아크로바틱 피니셔": "trait_icon_50", "크로스 포쳐": "trait_icon_51", "라인 브레이커": "trait_icon_52",
+        "와일드 태클러": "trait_icon_53", "체이서": "trait_icon_54", "2개의 심장": "trait_icon_55",
+        "파이터": "trait_icon_56", "GK 빠른 반응": "trait_icon_57", "선호 포지션 고집": "trait_icon_00",
+        "장거리 스로잉": "trait_icon_01", "파울 유도 선호": "trait_icon_03", "유리몸": "trait_icon_04",
+        "강철몸": "trait_icon_05", "주발 선호": "trait_icon_06", "슬라이딩 태클 선호": "trait_icon_07",
+        "개인 플레이 선호": "trait_icon_09", "트러블 메이커": "trait_icon_11", "얼리 크로스 선호": "trait_icon_12",
+        "예리한 감아차기": "trait_icon_13", "화려한 개인기": "trait_icon_14", "긴 패스 선호": "trait_icon_15",
+        "중거리 슛 선호": "trait_icon_16", "스피드 드리블러": "trait_icon_17", "플레이 메이커": "trait_icon_18",
+        "GK 공격 가담": "trait_icon_19", "GK 능숙한 펀칭": "trait_icon_20", "GK 멀리 던지기": "trait_icon_21",
+        "파워 헤더": "trait_icon_22", "GK 침착한 1:1 수비": "trait_icon_23", "초 장거리 스로인": "trait_icon_24",
+        "아웃사이드 슈팅/크로스": "trait_icon_25", "패스 마스터": "trait_icon_27", "승부욕": "trait_icon_28",
+        "화려한 걷어내기": "trait_icon_29", "칩슛 선호": "trait_icon_41", "테크니컬 드리블러": "trait_icon_42",
+        "스위퍼 키퍼": "trait_icon_43", "GK 소극적 크로스 수비": "trait_icon_48", "GK 적극적 크로스 수비": "trait_icon_49",
+        "스피드스터": "trait_icon_63", "타이탄": "trait_icon_64", "커맨더": "trait_icon_59",
+        "블로커": "trait_icon_62", "GK 공중볼 장악": "trait_icon_60", "트릭스터": "trait_icon_65", "레이저 슈터": "trait_icon_66",
+        "GK 데드아이": "trait_icon_68", "프레데터": "trait_icon_67"
+    };
+    const TCS_TRAIT_BASE = "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/";
+
+    document.addEventListener('mouseover', async function (e) {
+        const face = e.target.closest('.tcs-card-face');
+        if (!face) return;
+        const spid = face.onclick?.toString().match(/card\/(\d+)/)?.[1];
+        if (!spid) return;
+        const seasonImg = getSeasonImgUrl(spid);
+
+        clearTimeout(tcsHoverTimer);
+        tcsHoverTimer = setTimeout(async () => {
+            let data = tcsHoverCache[spid];
+            if (!data) {
+                const res = await fetch(`/api/card_hover/${spid}`);
+                data = await res.json();
+                tcsHoverCache[spid] = data;
+            }
+
+            const traitsHtml = (data.traits || []).length > 0
+                ? data.traits.map(t => TCS_TRAIT_MAP[t]
+                    ? `<img src="${TCS_TRAIT_BASE}${TCS_TRAIT_MAP[t]}.png" title="${t}" style="width:28px; height:28px;">`
+                    : `<span style="font-size:0.75rem; background:var(--bg-main); color:var(--text-secondary); padding:2px 7px; border-radius:12px; border:1px solid var(--border-color);">${t}</span>`
+                ).join('')
+                : '<span style="font-size:0.75rem; color:var(--text-muted);">특성 없음</span>';
+
+            tcsTooltip.innerHTML = `
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <img src="${seasonImg}" style="height:22px; width:auto;" onerror="this.style.display='none'">
+                    <span style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">${data.name}</span>
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">
+                    급여 ${data.salary} &nbsp;|&nbsp; ${data.height}cm ${data.weight}kg ${data.body_type} &nbsp;|&nbsp; ${(() => {
+                    const pref = data.preferred_foot;
+                    const weak = data.weak_foot;
+                    const isRightPref = pref.startsWith('R');
+                    const left = isRightPref ? weak : pref;
+                    const right = isRightPref ? pref : weak;
+                    const leftHtml = isRightPref ? left : `<strong>${left}</strong>`;
+                    const rightHtml = isRightPref ? `<strong>${right}</strong>` : right;
+                    return `${leftHtml}-${rightHtml}`;
+                })()}
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                    ${traitsHtml}
+                </div>
+            `;
+            tcsTooltip.style.display = 'block';
+        }, 100);
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (tcsTooltip.style.display === 'block') {
+            const x = e.clientX + 16;
+            const y = e.clientY + 16;
+            tcsTooltip.style.left = (x + 420 > window.innerWidth ? e.clientX - 436 : x) + 'px';
+            tcsTooltip.style.top = (y + 200 > window.innerHeight ? e.clientY - 220 : y) + 'px';
+        }
+    });
+
+    document.addEventListener('mouseout', function (e) {
+        const face = e.target.closest('.tcs-card-face');
+        if (!face) return;
+        clearTimeout(tcsHoverTimer);
+        tcsTooltip.style.display = 'none';
+    });
+
+    document.addEventListener('click', function (e) {
+        const face = e.target.closest('.tcs-card-face');
+        if (!face) return;
+        clearTimeout(tcsHoverTimer);
+        tcsTooltip.style.display = 'none';
+    });
+
+    window.addEventListener('blur', function () {
+        clearTimeout(tcsHoverTimer);
+        tcsTooltip.style.display = 'none';
+    });
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            clearTimeout(tcsHoverTimer);
+            tcsTooltip.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}
