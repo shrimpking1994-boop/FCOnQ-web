@@ -1273,22 +1273,33 @@ def compare_cards(spid1, spid2):
     """, (spid1, spid2, spid1))
     
     cards = cur.fetchall()
-    
+
+    if len(cards) != 2:
+        cur.close()
+        conn.close()
+        return "카드를 찾을 수 없습니다", 404
+
+    cur.execute("SELECT full_data FROM card_price_history WHERE spid = %s", (spid1,))
+    ph1_row = cur.fetchone()
+    price_history1 = ph1_row['full_data'] if ph1_row else None
+
+    cur.execute("SELECT full_data FROM card_price_history WHERE spid = %s", (spid2,))
+    ph2_row = cur.fetchone()
+    price_history2 = ph2_row['full_data'] if ph2_row else None
+
     cur.close()
     conn.close()
-    
-    if len(cards) != 2:
-        return "카드를 찾을 수 없습니다", 404
-    
+
     name1 = cards[0]['player_name']
     name2 = cards[1]['player_name']
     season1 = cards[0]['season_name']
     season2 = cards[1]['season_name']
     og_title = f"FCOnQ : {season1} - {name1} VS {season2} - {name2}"
     og_description = f"{name1}과 {name2}의 능력치를 비교해보세요!"
-    
+
     return render_template('compare.html', card1=cards[0], card2=cards[1],
-                           og_title=og_title, og_description=og_description)    
+                           price_history1=price_history1, price_history2=price_history2,
+                           og_title=og_title, og_description=og_description)
     
     
 @app.route('/card/<int:spid>')
@@ -2897,7 +2908,6 @@ def squad_trait_teamcolor():
     result.sort(key=lambda x: x['cnt'], reverse=True)
     return jsonify(result)
 
-@app.route('/api/card_price/<int:spid>')
 @app.route('/api/card_price/<int:spid>')
 def card_price(spid):
     conn = get_db_connection()
