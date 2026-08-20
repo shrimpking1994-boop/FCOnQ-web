@@ -1422,8 +1422,15 @@
             const priceText = price ? (() => {
                 const p = parseInt(price);
                 if (p >= 10000000000000000) return '약 ' + (p / 10000000000000000).toFixed(1) + '경 BP';
-                if (p >= 1000000000000) return '약 ' + Math.floor(p / 1000000000000) + '조 BP';
-                if (p >= 100000000) return '약 ' + Math.floor(p / 100000000) + '억 BP';
+                if (p >= 1000000000000) {
+                    const r = p / 1000000000000;
+                    return '약 ' + (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '조 BP';
+                }
+                if (p >= 100000000) {
+                    const r = p / 100000000;
+                    return '약 ' + (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '억 BP';
+                }
+                if (p >= 10000) return '약 ' + Math.floor(p / 10000) + '만 BP';
                 return '약 ' + p.toLocaleString() + ' BP';
             })() : '-';
 

@@ -2049,8 +2049,14 @@
             if (!isFinite(r) || isNaN(r)) return '999경+';
             return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '경';
         }
-        if (num >= 1000000000000) return Math.floor(num / 1000000000000) + '조';
-        if (num >= 100000000) return Math.floor(num / 100000000) + '억';
+        if (num >= 1000000000000) {
+            const r = num / 1000000000000;
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '조';
+        }
+        if (num >= 100000000) {
+            const r = num / 100000000;
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '억';
+        }
         if (num >= 10000) return Math.floor(num / 10000) + '만';
         return num.toLocaleString();
     }

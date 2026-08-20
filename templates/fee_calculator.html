@@ -475,8 +475,8 @@
             return '';
         }
 
-        // 사용자 입력값 × 100,000,000 (억 단위)
-        const multiplied = parseFloat(numbers) * 1000000000000;
+        // 사용자 입력값 × 10,000 (만 단위)
+        const multiplied = parseFloat(numbers) * 10000;
 
         // 천 단위 쉼표 추가
         return new Intl.NumberFormat('ko-KR').format(multiplied);
@@ -697,7 +697,7 @@
             if (userInput === '') {
                 input.value = '';
             } else {
-                const multiplied = parseFloat(userInput) * 1000000000000;
+                const multiplied = parseFloat(userInput) * 10000;
                 input.value = new Intl.NumberFormat('ko-KR').format(multiplied);
             }
 
@@ -758,7 +758,7 @@
 
             const prevUserInput = this.dataset.userInput || '';
             const prevFormatted = prevUserInput
-                ? new Intl.NumberFormat('ko-KR').format(parseFloat(prevUserInput) * 1000000000000).replace(/[^0-9]/g, '')
+                ? new Intl.NumberFormat('ko-KR').format(parseFloat(prevUserInput) * 10000).replace(/[^0-9]/g, '')
                 : '';
             const allDigits = this.value.replace(/[^0-9]/g, '');
 
@@ -772,7 +772,7 @@
             }
 
             this.dataset.userInput = newUserInput;
-            this.value = newUserInput ? new Intl.NumberFormat('ko-KR').format(parseFloat(newUserInput) * 1000000000000) : '';
+            this.value = newUserInput ? new Intl.NumberFormat('ko-KR').format(parseFloat(newUserInput) * 10000) : '';
             calculateTotal();
         });
 
