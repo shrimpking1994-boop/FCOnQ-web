@@ -2614,12 +2614,20 @@
 
     function formatSquadValue(val) {
         if (!val) return '—';
-        const 경 = Math.floor(val / 1e16);
-        const 조 = Math.floor((val % 1e16) / 1e12);
-        let str = '';
-        if (경 > 0) str += 경 + '경 ';
-        if (조 > 0) str += 조 + '조';
-        return (str.trim() || '—') + ' BP';
+        if (val >= 1e16) {
+            const r = val / 1e16;
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '경 BP';
+        }
+        if (val >= 1e12) {
+            const r = val / 1e12;
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '조 BP';
+        }
+        if (val >= 1e8) {
+            const r = val / 1e8;
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '억 BP';
+        }
+        if (val >= 1e4) return Math.floor(val / 1e4) + '만 BP';
+        return val.toLocaleString() + ' BP';
     }
 
     function openQuickGuide() {
@@ -2657,7 +2665,7 @@
         const content = document.getElementById('ranker-content');
         content.innerHTML = `
             <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">
-                예: 5경 3000조 / 비워두면 전체 조회
+                예: 500억 3000만 / 비워두면 전체 조회
             </div>
             <div class="sm-ranker-range">
                 <input class="sm-ranker-input" id="ranker-min" type="text" placeholder="최소 구단가치">
@@ -2674,9 +2682,11 @@
         const 경match = str.match(/(\d+)\s*경/);
         const 조match = str.match(/(\d+)\s*조/);
         const 억match = str.match(/(\d+)\s*억/);
+        const 만match = str.match(/(\d+)\s*만/);
         if (경match) val += parseInt(경match[1]) * 1e16;
         if (조match) val += parseInt(조match[1]) * 1e12;
         if (억match) val += parseInt(억match[1]) * 1e8;
+        if (만match) val += parseInt(만match[1]) * 1e4;
         return val;
     }
 
