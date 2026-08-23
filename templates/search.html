@@ -1649,6 +1649,7 @@
         const dbPages = ['/search', '/results', '/card', '/player_review'];
         const isFromDB = dbPages.some(page => referrer.includes(page));
 
+        console.log('[DEBUG]', { navType, cameViaBackForward, referrer, isFromDB });
         if (!cameViaBackForward && !isFromDB) {
             sessionStorage.removeItem('searchState');
             sessionStorage.removeItem('searchResultsData');
