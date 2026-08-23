@@ -256,39 +256,39 @@ def build_search_conditions(player_names, selected_seasons, selected_positions, 
     # 약발
     if weak_foot_min:
         conditions += """ AND (
-            SELECT CAST(regexp_replace(
+            SELECT CAST(NULLIF(regexp_replace(
                 player_cards.full_data->'game_info'->>'weak_foot', 
                 '[^0-9]', '', 'g'
-            ) AS INTEGER)
+            ), '') AS INTEGER)
         ) >= %s"""
         params.append(int(weak_foot_min))
     
     # 키
     if min_height:
-        conditions += """ AND CAST(regexp_replace(
+        conditions += """ AND CAST(NULLIF(regexp_replace(
             player_cards.full_data->'basic_info'->>'height', 
             '[^0-9]', '', 'g'
-        ) AS INTEGER) >= %s"""
+        ), '') AS INTEGER) >= %s"""
         params.append(int(min_height))
     if max_height:
-        conditions += """ AND CAST(regexp_replace(
+        conditions += """ AND CAST(NULLIF(regexp_replace(
             player_cards.full_data->'basic_info'->>'height', 
             '[^0-9]', '', 'g'
-        ) AS INTEGER) <= %s"""
+        ), '') AS INTEGER) <= %s"""
         params.append(int(max_height))
     
     # 몸무게
     if min_weight:
-        conditions += """ AND CAST(regexp_replace(
+        conditions += """ AND CAST(NULLIF(regexp_replace(
             player_cards.full_data->'basic_info'->>'weight', 
             '[^0-9]', '', 'g'
-        ) AS INTEGER) >= %s"""
+        ), '') AS INTEGER) >= %s"""
         params.append(int(min_weight))
     if max_weight:
-        conditions += """ AND CAST(regexp_replace(
+        conditions += """ AND CAST(NULLIF(regexp_replace(
             player_cards.full_data->'basic_info'->>'weight', 
             '[^0-9]', '', 'g'
-        ) AS INTEGER) <= %s"""
+        ), '') AS INTEGER) <= %s"""
         params.append(int(max_weight))
     
     # 체형
