@@ -1597,6 +1597,7 @@
                 const data = await res.json();
 
                 renderResults(data);
+                sessionStorage.setItem('searchResultsData', JSON.stringify(data));
             });
         }
 
@@ -1650,6 +1651,7 @@
 
         if (!cameViaBackForward && !isFromDB) {
             sessionStorage.removeItem('searchState');
+            sessionStorage.removeItem('searchResultsData');
         }
 
         // ===== 검색 조건 저장 & 복원 =====
@@ -1791,6 +1793,15 @@
 
         // 페이지 로드 시 복원
         setTimeout(restoreSearchState, 0);
+
+        const urlParams = new URLSearchParams(location.search);
+        if (urlParams.get('tab') === 'results') {
+            const savedResults = sessionStorage.getItem('searchResultsData');
+            if (savedResults) {
+                switchTab('results', false);
+                renderResults(JSON.parse(savedResults));
+            }
+        }
 
         window.addEventListener('pageshow', function (e) {
             // bfcache 복원이든 아니든 항상 체크박스 상태와 시각적 표시 동기화
