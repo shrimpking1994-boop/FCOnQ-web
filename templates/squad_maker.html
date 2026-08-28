@@ -968,6 +968,24 @@
         display: flex;
     }
 
+    @keyframes rankerQueuePulse {
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 rgba(138, 43, 226, 0);
+            border-color: var(--border-color);
+        }
+
+        50% {
+            box-shadow: 0 0 12px rgba(138, 43, 226, 0.5);
+            border-color: var(--primary-color);
+        }
+    }
+
+    .sm-ranker-queue-bar.pulse {
+        animation: rankerQueuePulse 0.9s ease-in-out 2;
+    }
+
     .sm-ranker-queue-main {
         display: flex;
         align-items: center;
@@ -2930,6 +2948,10 @@
         rankerQueueIndex = 0;
         closeRankerModal();
         applyRankerQueueItem();
+
+        const bar = document.getElementById('ranker-queue-bar');
+        bar.classList.add('pulse');
+        bar.addEventListener('animationend', () => bar.classList.remove('pulse'), { once: true });
     }
 
     function navigateRankerQueue(dir) {
