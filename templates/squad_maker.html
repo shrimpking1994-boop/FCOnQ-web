@@ -831,6 +831,15 @@
         gap: 6px;
         margin-right: -12px;
         padding-right: 4px;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .sm-ranker-footer {
+        display: none;
+        flex-shrink: 0;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
     }
 
     .sm-ranker-list::-webkit-scrollbar {
@@ -862,6 +871,11 @@
         background: var(--hover-bg);
     }
 
+    .sm-ranker-item.selected {
+        background: rgba(138, 43, 226, 0.15);
+        border-color: var(--primary-color);
+    }
+
     .sm-ranker-rank {
         font-size: 0.8rem;
         color: var(--text-muted);
@@ -887,6 +901,38 @@
         align-items: center;
     }
 
+    .sm-ranker-value-row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .sm-ranker-value-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        min-width: 32px;
+    }
+
+    .sm-ranker-input-num {
+        flex: none;
+        width: 70px;
+    }
+
+    .sm-ranker-input-num::-webkit-inner-spin-button,
+    .sm-ranker-input-num::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .sm-ranker-input-num[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    .sm-ranker-unit {
+        font-size: 0.85rem;
+        color: var(--text-primary);
+    }
+
     .sm-ranker-input {
         flex: 1;
         padding: 8px 10px;
@@ -906,6 +952,113 @@
         font-size: 0.85rem;
         font-weight: 700;
         cursor: pointer;
+    }
+
+    .sm-ranker-queue-bar {
+        display: none;
+        flex-direction: column;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+
+    .sm-ranker-queue-bar.active {
+        display: flex;
+    }
+
+    .sm-ranker-queue-main {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+    }
+
+    .sm-ranker-queue-nav {
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .sm-ranker-queue-info {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+    }
+
+    .sm-ranker-queue-name {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .sm-ranker-queue-toggle {
+        background: none;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-muted);
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: transform 0.15s;
+    }
+
+    .sm-ranker-queue-toggle.open {
+        transform: rotate(180deg);
+    }
+
+    .sm-ranker-queue-close {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1rem;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .sm-ranker-queue-dropdown {
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        padding: 0 14px 12px;
+        max-height: 240px;
+        overflow-y: auto;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .sm-ranker-queue-dropdown.open {
+        display: flex;
+        padding-top: 10px;
+    }
+
+    .sm-ranker-queue-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        font-size: 0.85rem;
+    }
+
+    .sm-ranker-queue-dropdown-item.current {
+        border-color: var(--primary-color);
+        background: rgba(138, 43, 226, 0.15);
     }
 
     .btn-short {
@@ -1002,6 +1155,20 @@
                 style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4); border-radius:0;">🔄
                 초기화</button>
         </div>
+    </div>
+
+    <!-- 랭커 큐 순회 바 -->
+    <div class="sm-ranker-queue-bar" id="ranker-queue-bar">
+        <div class="sm-ranker-queue-main">
+            <button class="sm-ranker-queue-nav" onclick="navigateRankerQueue(-1)">◀</button>
+            <span class="sm-ranker-queue-info" id="ranker-queue-info">1 / 5</span>
+            <span class="sm-ranker-queue-name" id="ranker-queue-name"></span>
+            <button class="sm-ranker-queue-nav" onclick="navigateRankerQueue(1)">▶</button>
+            <button class="sm-ranker-queue-toggle" id="ranker-queue-toggle"
+                onclick="toggleRankerQueueDropdown()">▼</button>
+            <button class="sm-ranker-queue-close" onclick="closeRankerQueueBar()">✕</button>
+        </div>
+        <div class="sm-ranker-queue-dropdown" id="ranker-queue-dropdown"></div>
     </div>
 
     <!-- 스쿼드 공유 -->
@@ -1206,6 +1373,7 @@
                 onclick="closeRankerModal()">✕</button>
         </div>
         <div class="sm-ranker-list" id="ranker-content"></div>
+        <div class="sm-ranker-footer" id="ranker-footer"></div>
     </div>
 </div>
 
@@ -2607,6 +2775,10 @@
     let rankerTcOrder = null;
     let rankerLogos = {};
     let rankerSelectedTc = null;
+    let rankerListData = [];
+    let rankerSelectedKeys = new Set();
+    let rankerQueue = [];
+    let rankerQueueIndex = 0;
 
     function closeRankerModal() {
         document.getElementById('ranker-overlay').classList.remove('active');
@@ -2636,44 +2808,63 @@
 
     async function loadRankerSquad() {
         document.getElementById('ranker-overlay').classList.add('active');
-        document.getElementById('ranker-step-title').textContent = '1/3 — 팀컬러 선택';
+        document.getElementById('ranker-step-title').textContent = '1/2 — 구단가치 범위 설정';
         const content = document.getElementById('ranker-content');
-        content.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>';
+        const footer = document.getElementById('ranker-footer');
+        footer.style.display = 'none';
+        footer.innerHTML = '';
 
-        if (!rankerTcOrder) {
+        if (!Object.keys(rankerLogos).length) {
             const res = await fetch('/api/squad_tierlist_teamcolors');
             const data = await res.json();
-            rankerTcOrder = data.order;
             rankerLogos = data.logos || {};
         }
 
-        content.innerHTML = rankerTcOrder.map((tc, i) => {
-            const logo = rankerLogos[tc]
-                ? `<img src="${rankerLogos[tc]}" loading="lazy" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
-                : '';
-            return `<div class="sm-tier-tc-item" onclick="selectRankerTc('${tc}')">
-                        <span class="sm-tier-tc-rank">${i + 1}</span>
-                        ${logo}
-                        <span class="sm-tier-tc-name">${tc}</span>
-                    </div>`;
-        }).join('');
+        content.innerHTML = `
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">
+            구단가치 범위를 입력하세요 (비워두면 전체 조회)
+        </div>
+        <div class="sm-ranker-value-row">
+            <span class="sm-ranker-value-label">최소</span>
+            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-min-eok" type="number" placeholder="0">
+            <span class="sm-ranker-unit">억</span>
+            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-min-man" type="number" placeholder="0">
+            <span class="sm-ranker-unit">만</span>
+        </div>
+        <div style="text-align:center;color:var(--text-muted);">~</div>
+        <div class="sm-ranker-value-row">
+            <span class="sm-ranker-value-label">최대</span>
+            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-max-eok" type="number" placeholder="0">
+            <span class="sm-ranker-unit">억</span>
+            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-max-man" type="number" placeholder="0">
+            <span class="sm-ranker-unit">만</span>
+        </div>
+        <button class="sm-ranker-search-btn" style="width:100%;margin-top:4px;" onclick="searchRankerList()">조회</button>
+    `;
     }
 
-    function selectRankerTc(tc) {
-        rankerSelectedTc = tc;
-        document.getElementById('ranker-step-title').textContent = `2/3 — 구단가치 범위 설정`;
-        const content = document.getElementById('ranker-content');
-        content.innerHTML = `
-            <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">
-                예: 5000만, 9억 / 비워두면 전체 조회
-            </div>
-            <div class="sm-ranker-range">
-                <input class="sm-ranker-input" id="ranker-min" type="text" placeholder="최소 구단가치">
-                <span style="color:var(--text-muted);">~</span>
-                <input class="sm-ranker-input" id="ranker-max" type="text" placeholder="최대 구단가치">
-            </div>
-            <button class="sm-ranker-search-btn" style="width:100%;margin-top:4px;" onclick="searchRankerList()">조회</button>
-        `;
+    const RANKER_MAX_SELECT = 10;
+
+    function toggleRankerCheck(i) {
+        const checkbox = document.getElementById(`ranker-check-${i}`);
+        const item = document.getElementById(`ranker-item-${i}`);
+        if (rankerSelectedKeys.has(i)) {
+            rankerSelectedKeys.delete(i);
+            checkbox.checked = false;
+            item.classList.remove('selected');
+        } else {
+            if (rankerSelectedKeys.size >= RANKER_MAX_SELECT) {
+                checkbox.checked = false;
+                alert(`최대 ${RANKER_MAX_SELECT}개까지 선택할 수 있습니다.`);
+                return;
+            }
+            rankerSelectedKeys.add(i);
+            checkbox.checked = true;
+            item.classList.add('selected');
+        }
+        const btn = document.getElementById('ranker-confirm-btn');
+        btn.textContent = `선택 완료 (${rankerSelectedKeys.size}/${RANKER_MAX_SELECT})`;
+        btn.disabled = rankerSelectedKeys.size === 0;
     }
 
     function parseSquadValue(str) {
@@ -2691,13 +2882,15 @@
     }
 
     async function searchRankerList() {
-        const minVal = parseSquadValue(document.getElementById('ranker-min').value);
-        const maxVal = parseSquadValue(document.getElementById('ranker-max').value);
-        document.getElementById('ranker-step-title').textContent = `3/3 — ${rankerSelectedTc} 랭커 선택`;
+        const minVal = (parseInt(document.getElementById('ranker-min-eok').value) || 0) * 1e8
+            + (parseInt(document.getElementById('ranker-min-man').value) || 0) * 1e4;
+        const maxVal = (parseInt(document.getElementById('ranker-max-eok').value) || 0) * 1e8
+            + (parseInt(document.getElementById('ranker-max-man').value) || 0) * 1e4;
+        document.getElementById('ranker-step-title').textContent = `2/2 — 랭커 선택`;
         const content = document.getElementById('ranker-content');
         content.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>';
 
-        const res = await fetch(`/api/ranker_squad_list?teamcolor=${encodeURIComponent(rankerSelectedTc)}&min=${minVal}&max=${maxVal}`);
+        const res = await fetch(`/api/ranker_squad_list_all?min=${minVal}&max=${maxVal}`);
         const data = await res.json();
 
         if (!data.success || !data.data.length) {
@@ -2705,19 +2898,104 @@
             return;
         }
 
-        content.innerHTML = data.data.map(r => `
-            <div class="sm-ranker-item" onclick="executeRankerFill(${r.rank})">
-                <span class="sm-ranker-rank">${r.rank}위</span>
-                <span class="sm-ranker-nickname">${r.nickname}</span>
-                <span class="sm-ranker-value">${formatSquadValue(r.squad_value)}</span>
-            </div>
-        `).join('');
+        rankerListData = data.data;
+        rankerSelectedKeys = new Set();
+
+        const itemsHtml = data.data.map((r, i) => {
+            const logo = rankerLogos[r.teamcolor]
+                ? `<img src="${rankerLogos[r.teamcolor]}" loading="lazy" style="width:20px;height:20px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
+                : '';
+            return `
+        <div class="sm-ranker-item" onclick="toggleRankerCheck(${i})" id="ranker-item-${i}">
+            <input type="checkbox" id="ranker-check-${i}" onclick="event.stopPropagation(); toggleRankerCheck(${i})">
+            <span class="sm-ranker-rank">${r.rank}위</span>
+            ${logo}
+            <span class="sm-ranker-nickname">${r.nickname}</span>
+            <span class="sm-ranker-value">${formatSquadValue(r.squad_value)}</span>
+        </div>`;
+        }).join('');
+
+        content.innerHTML = itemsHtml;
+
+        const footer = document.getElementById('ranker-footer');
+        footer.style.display = 'block';
+        footer.innerHTML = `
+        <button class="sm-ranker-search-btn" id="ranker-confirm-btn" style="width:100%;" onclick="confirmRankerQueue()" disabled>
+            선택 완료 (0/${RANKER_MAX_SELECT})
+        </button>`;
     }
 
-    async function executeRankerFill(rank) {
+    function confirmRankerQueue() {
+        rankerQueue = Array.from(rankerSelectedKeys).sort((a, b) => a - b).map(i => rankerListData[i]);
+        rankerQueueIndex = 0;
         closeRankerModal();
+        applyRankerQueueItem();
+    }
 
-        const res = await fetch(`/api/ranker_squad_detail?teamcolor=${encodeURIComponent(rankerSelectedTc)}&rank=${rank}`);
+    function navigateRankerQueue(dir) {
+        const next = rankerQueueIndex + dir;
+        if (next < 0 || next >= rankerQueue.length) return;
+        rankerQueueIndex = next;
+        applyRankerQueueItem();
+    }
+
+    function closeRankerQueueBar() {
+        document.getElementById('ranker-queue-bar').classList.remove('active');
+        document.getElementById('ranker-queue-dropdown').classList.remove('open');
+        document.getElementById('ranker-queue-toggle').classList.remove('open');
+        rankerQueue = [];
+        rankerQueueIndex = 0;
+    }
+
+    async function applyRankerQueueItem() {
+        const item = rankerQueue[rankerQueueIndex];
+        const bar = document.getElementById('ranker-queue-bar');
+        bar.classList.add('active');
+        document.getElementById('ranker-queue-info').textContent = `${rankerQueueIndex + 1} / ${rankerQueue.length}`;
+        document.getElementById('ranker-queue-name').textContent = `${item.teamcolor} · ${item.nickname}`;
+        if (document.getElementById('ranker-queue-dropdown').classList.contains('open')) {
+            renderRankerQueueDropdown();
+        }
+        await executeRankerFill(item.teamcolor, item.rank);
+    }
+
+    function renderRankerQueueDropdown() {
+        const dropdown = document.getElementById('ranker-queue-dropdown');
+        dropdown.innerHTML = rankerQueue.map((item, i) => {
+            const logo = rankerLogos[item.teamcolor]
+                ? `<img src="${rankerLogos[item.teamcolor]}" loading="lazy" style="width:18px;height:18px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
+                : '';
+            const activeClass = i === rankerQueueIndex ? ' current' : '';
+            return `
+            <div class="sm-ranker-queue-dropdown-item${activeClass}" onclick="jumpToRankerQueueItem(${i})">
+                ${logo}
+                <span style="flex:1;">${item.teamcolor} · ${item.nickname}</span>
+                <span style="color:var(--text-muted);">${formatSquadValue(item.squad_value)}</span>
+            </div>`;
+        }).join('');
+    }
+
+    function toggleRankerQueueDropdown() {
+        const dropdown = document.getElementById('ranker-queue-dropdown');
+        const toggle = document.getElementById('ranker-queue-toggle');
+        if (dropdown.classList.contains('open')) {
+            dropdown.classList.remove('open');
+            toggle.classList.remove('open');
+        } else {
+            renderRankerQueueDropdown();
+            dropdown.classList.add('open');
+            toggle.classList.add('open');
+        }
+    }
+
+    function jumpToRankerQueueItem(i) {
+        if (i === rankerQueueIndex) return;
+        rankerQueueIndex = i;
+        applyRankerQueueItem();
+    }
+
+    async function executeRankerFill(teamcolor, rank) {
+        const res = await fetch(`/api/ranker_squad_detail?teamcolor=${encodeURIComponent(teamcolor)}&rank=${rank}`);
         const data = await res.json();
         if (!data.success) { alert('스쿼드 데이터를 불러오지 못했습니다.'); return; }
 

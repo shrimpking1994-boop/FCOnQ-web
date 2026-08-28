@@ -2492,6 +2492,50 @@ def ranker_squad_detail():
 
     return jsonify({'success': True, 'data': ranker})
 
+@app.route('/api/ranker_squad_list_all')
+def ranker_squad_list_all():
+    """전체 팀컬러 통합 랭커 목록 반환 (구단가치 범위 필터, 서버 전체 순위 기준 정렬)"""
+    min_val = request.args.get('min', 0, type=int)
+    max_val = request.args.get('max', 0, type=int)
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT squad_full_data
+        FROM card_tierlist_rankings
+        ORDER BY crawl_date DESC
+        LIMIT 1
+    """)
+    result = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not result or not result['squad_full_data']:
+        return jsonify({'success': True, 'data': []})
+
+    all_data = result['squad_full_data']
+    combined = []
+
+    for tc, rankers in all_data.items():
+        if tc == '_order' or not isinstance(rankers, list):
+            continue
+        filtered = rankers
+        if max_val > 0:
+            filtered = [r for r in filtered if min_val <= r.get('squad_value', 0) <= max_val]
+
+        # 팀컬러 내 nickname 중복 제거 (rank 낮은 것 우선)
+        seen = {}
+        for r in sorted(filtered, key=lambda x: x['rank']):
+            if r['nickname'] not in seen:
+                seen[r['nickname']] = r
+        for r in seen.values():
+            r['teamcolor'] = tc
+            combined.append(r)
+
+    # 서버 전체 순위 기준 오름차순 정렬, 최대 100명
+    combined = sorted(combined, key=lambda x: x['rank'])[:100]
+    return jsonify({'success': True, 'data': combined})
+
 @app.route('/api/get_all_formation_data')
 def get_all_formation_data():
     """모든 날짜의 포메이션 데이터 반환 (최근 6개)"""
