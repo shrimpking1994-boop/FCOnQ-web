@@ -2494,9 +2494,11 @@ def ranker_squad_detail():
 
 @app.route('/api/ranker_squad_list_all')
 def ranker_squad_list_all():
-    """전체 팀컬러 통합 랭커 목록 반환 (구단가치 범위 필터, 서버 전체 순위 기준 정렬)"""
+    """전체 팀컬러 통합 랭커 목록 반환 (구단가치 범위 + 팀컬러 필터, 서버 전체 순위 기준 정렬)"""
     min_val = request.args.get('min', 0, type=int)
     max_val = request.args.get('max', 0, type=int)
+    tc_filter_raw = request.args.get('teamcolors', '', type=str)
+    tc_filter = set(t for t in tc_filter_raw.split(',') if t)
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -2515,9 +2517,11 @@ def ranker_squad_list_all():
 
     all_data = result['squad_full_data']
     combined = []
-
+    
     for tc, rankers in all_data.items():
         if tc == '_order' or not isinstance(rankers, list):
+            continue
+        if tc_filter and tc not in tc_filter:
             continue
         filtered = rankers
         if max_val > 0:

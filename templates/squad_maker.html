@@ -954,6 +954,31 @@
         cursor: pointer;
     }
 
+    .sm-ranker-tc-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .sm-ranker-tc-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        font-size: 0.8rem;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .sm-ranker-tc-chip.active {
+        border-color: var(--primary-color);
+        background: rgba(138, 43, 226, 0.15);
+        color: var(--primary-color);
+    }
+
     .sm-ranker-queue-bar {
         display: none;
         flex-direction: column;
@@ -2797,6 +2822,10 @@
     let rankerSelectedKeys = new Set();
     let rankerQueue = [];
     let rankerQueueIndex = 0;
+    let rankerTcOrderAll = [];
+    let rankerTcFilterSelected = new Set();
+    let rankerMinVal = 0;
+    let rankerMaxVal = 0;
 
     function closeRankerModal() {
         document.getElementById('ranker-overlay').classList.remove('active');
@@ -2826,16 +2855,18 @@
 
     async function loadRankerSquad() {
         document.getElementById('ranker-overlay').classList.add('active');
-        document.getElementById('ranker-step-title').textContent = '1/2 — 구단가치 범위 설정';
+        document.getElementById('ranker-step-title').textContent = '1/3 — 구단가치 범위 설정';
         const content = document.getElementById('ranker-content');
         const footer = document.getElementById('ranker-footer');
         footer.style.display = 'none';
         footer.innerHTML = '';
+        rankerTcFilterSelected = new Set();
 
         if (!Object.keys(rankerLogos).length) {
             const res = await fetch('/api/squad_tierlist_teamcolors');
             const data = await res.json();
             rankerLogos = data.logos || {};
+            rankerTcOrderAll = data.order || [];
         }
 
         content.innerHTML = `
@@ -2857,8 +2888,63 @@
             <input class="sm-ranker-input sm-ranker-input-num" id="ranker-max-man" type="number" placeholder="0">
             <span class="sm-ranker-unit">만</span>
         </div>
-        <button class="sm-ranker-search-btn" style="width:100%;margin-top:4px;" onclick="searchRankerList()">조회</button>
+                <button class="sm-ranker-search-btn" style="width:100%;margin-top:4px;" onclick="goToRankerTcStep()">다음</button>
     `;
+    }
+
+    function goToRankerTcStep() {
+        rankerMinVal = (parseInt(document.getElementById('ranker-min-eok').value) || 0) * 1e8
+            + (parseInt(document.getElementById('ranker-min-man').value) || 0) * 1e4;
+        rankerMaxVal = (parseInt(document.getElementById('ranker-max-eok').value) || 0) * 1e8
+            + (parseInt(document.getElementById('ranker-max-man').value) || 0) * 1e4;
+        showRankerTcStep();
+    }
+
+    function showRankerTcStep() {
+        document.getElementById('ranker-step-title').textContent = '2/3 — 팀컬러 필터 (선택)';
+        const content = document.getElementById('ranker-content');
+        const footer = document.getElementById('ranker-footer');
+
+        content.innerHTML = `
+        <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px;">
+            원하는 팀컬러만 골라보세요 (비워두면 전체 조회, 최대 5개)
+        </div>
+        <div class="sm-ranker-tc-grid" id="ranker-tc-grid"></div>
+        `;
+        renderRankerTcChips();
+
+        footer.style.display = 'block';
+        footer.innerHTML = `
+        <button class="sm-ranker-search-btn" id="ranker-tc-next-btn" style="width:100%;" onclick="searchRankerList()">
+            다음
+        </button>`;
+    }
+
+    function renderRankerTcChips() {
+        const grid = document.getElementById('ranker-tc-grid');
+        grid.innerHTML = rankerTcOrderAll.map(tc => {
+            const logo = rankerLogos[tc]
+                ? `<img src="${rankerLogos[tc]}" loading="lazy" style="width:18px;height:18px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
+                : '';
+            const activeClass = rankerTcFilterSelected.has(tc) ? ' active' : '';
+            return `<div class="sm-ranker-tc-chip${activeClass}" onclick="toggleRankerTcChip('${tc}')">${logo}<span>${tc}</span></div>`;
+        }).join('');
+    }
+
+    function toggleRankerTcChip(tc) {
+        if (rankerTcFilterSelected.has(tc)) {
+            rankerTcFilterSelected.delete(tc);
+        } else {
+            if (rankerTcFilterSelected.size >= 5) {
+                alert('팀컬러는 최대 5개까지 선택할 수 있습니다.');
+                return;
+            }
+            rankerTcFilterSelected.add(tc);
+        }
+        renderRankerTcChips();
+        const btn = document.getElementById('ranker-tc-next-btn');
+        const count = rankerTcFilterSelected.size;
+        btn.textContent = count > 0 ? `다음 (${count}/5)` : '다음';
     }
 
     const RANKER_MAX_SELECT = 10;
@@ -2900,15 +2986,14 @@
     }
 
     async function searchRankerList() {
-        const minVal = (parseInt(document.getElementById('ranker-min-eok').value) || 0) * 1e8
-            + (parseInt(document.getElementById('ranker-min-man').value) || 0) * 1e4;
-        const maxVal = (parseInt(document.getElementById('ranker-max-eok').value) || 0) * 1e8
-            + (parseInt(document.getElementById('ranker-max-man').value) || 0) * 1e4;
-        document.getElementById('ranker-step-title').textContent = `2/2 — 랭커 선택`;
+        document.getElementById('ranker-step-title').textContent = `3/3 — 랭커 선택`;
         const content = document.getElementById('ranker-content');
+        const footer = document.getElementById('ranker-footer');
+        footer.style.display = 'none';
         content.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>';
 
-        const res = await fetch(`/api/ranker_squad_list_all?min=${minVal}&max=${maxVal}`);
+        const tcParam = Array.from(rankerTcFilterSelected).join(',');
+        const res = await fetch(`/api/ranker_squad_list_all?min=${rankerMinVal}&max=${rankerMaxVal}&teamcolors=${encodeURIComponent(tcParam)}`);
         const data = await res.json();
 
         if (!data.success || !data.data.length) {
@@ -2935,7 +3020,6 @@
 
         content.innerHTML = itemsHtml;
 
-        const footer = document.getElementById('ranker-footer');
         footer.style.display = 'block';
         footer.innerHTML = `
         <button class="sm-ranker-search-btn" id="ranker-confirm-btn" style="width:100%;" onclick="confirmRankerQueue()" disabled>
