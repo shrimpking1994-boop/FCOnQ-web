@@ -719,13 +719,15 @@
     </script>
 
     <!-- 짱대낙 광고 배너 -->
-    <a id="jjangdaenak-banner" href="https://jjangdaenak.com/" target="_blank" rel="noopener">
+    <a id="jjangdaenak-banner" href="https://jjangdaenak.com/" target="_blank" rel="noopener"
+        onclick="gtag('event', 'ad_click', { 'ad_name': 'jjangdaenak', 'placement': 'index_left_banner' });">
         <img src="{{ url_for('static', filename='짱대낙 2.png') }}" alt="짱대낙 광고"
             style="width: 250px; border-radius: 8px; cursor: pointer; display: block;">
     </a>
 
     <!-- X05 PRO 광고 배너 -->
-    <a id="x05pro-banner" href="https://link.coupang.com/a/gQvGOGMErA" target="_blank" rel="noopener">
+    <a id="x05pro-banner" href="https://link.coupang.com/a/gQvGOGMErA" target="_blank" rel="noopener"
+        onclick="gtag('event', 'ad_click', { 'ad_name': 'x05pro_pad', 'placement': 'index_left_banner' });">
         <img src="{{ url_for('static', filename='x05pro_banner.png') }}" alt="X05 PRO 게임패드 광고"
             style="width: 250px; border-radius: 8px; cursor: pointer; display: block;">
     </a>
