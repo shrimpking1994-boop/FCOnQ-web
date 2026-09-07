@@ -724,9 +724,16 @@
             style="width: 250px; border-radius: 8px; cursor: pointer; display: block;">
     </a>
 
+    <!-- X05 PRO 광고 배너 -->
+    <a id="x05pro-banner" href="https://link.coupang.com/a/gQvGOGMErA" target="_blank" rel="noopener">
+        <img src="{{ url_for('static', filename='x05pro_banner.png') }}" alt="X05 PRO 게임패드 광고"
+            style="width: 250px; border-radius: 8px; cursor: pointer; display: block;">
+    </a>
+
     <script>
         function positionBanner() {
             const banner = document.getElementById('jjangdaenak-banner');
+            const banner2 = document.getElementById('x05pro-banner');
             const container = document.querySelector('.container');
             if (!banner || !container) return;
 
@@ -737,8 +744,16 @@
                 banner.style.position = 'absolute';
                 banner.style.top = '170px';
                 banner.style.left = (containerLeft / 2 - banner.offsetWidth / 2) + 'px';
+
+                if (banner2) {
+                    banner2.style.display = 'block';
+                    banner2.style.position = 'absolute';
+                    banner2.style.top = (170 + banner.offsetHeight + 20) + 'px';
+                    banner2.style.left = (containerLeft / 2 - banner2.offsetWidth / 2) + 'px';
+                }
             } else {
                 banner.style.display = 'none';
+                if (banner2) banner2.style.display = 'none';
             }
         }
 
