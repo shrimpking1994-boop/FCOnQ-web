@@ -1060,6 +1060,17 @@
                         </div>
                         <div class="teamcolor-body">${effectHtml}${positionsHtml || '<p style="color:var(--text-secondary)">데이터 없음</p>'}</div>
                     </div>`;
+
+                if (idx === 9) {
+                    html += `
+                    <a class="teamcolor-row" href="https://link.coupang.com/a/gQvGOGMErA" target="_blank" rel="noopener nofollow sponsored"
+                        onclick="gtag('event', 'ad_click', { 'ad_name': 'x05pro_pad', 'placement': 'tierlist_card' });"
+                        style="text-decoration:none; display:block; background: rgba(255,184,0,0.06); border-color: rgba(255,184,0,0.3);">
+                        <div class="teamcolor-header">
+                            <span class="teamcolor-name">🎮 EasySMX-X05PRO 패드 - 쿠팡에서 매우 핫한 평점 5점 최고의 가성비 패드 (AD)</span>
+                        </div>
+                    </a>`;
+                }
             });
 
             wrap.innerHTML = html;
