@@ -2032,7 +2032,7 @@
         grid.innerHTML = Array.from({ length: 13 }, (_, i) => {
             const v = i + 1;
             const c = BOOST_COLORS[v];
-            const tc = v <= 10 ? '#333' : '#fff';
+            const tc = v <= 13 ? '#333' : '#fff';
             return `<div class="boost-select-item"
                          style="background:${c}; color:${tc};"
                          onclick="confirmBoostSelect(${v})">
@@ -2182,7 +2182,9 @@
         2: '#CD7F32', 3: '#CD7F32', 4: '#CD7F32',
         5: '#C0C0C0', 6: '#C0C0C0', 7: '#C0C0C0',
         8: '#FFD700', 9: '#FFD700', 10: '#FFD700',
-        11: '#DDA0DD', 12: '#DDA0DD', 13: '#DDA0DD'
+        11: 'linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%)',
+        12: 'linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%)',
+        13: 'linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%)'
     };
 
     const ENHANCE_BONUS = {
@@ -2327,7 +2329,7 @@
 
         const boost = (card.boost || 8);
         const boostColor = BOOST_COLORS[boost];
-        const boostTextColor = boost >= 8 && boost <= 10 ? '#333' : (boost <= 7 ? '#333' : '#fff');
+        const boostTextColor = boost <= 13 ? '#333' : '#fff';
 
         const newTraitIconSize = isMobile ? 13 : 25;
         const newTraitIconHtml = (card.traits || [])
