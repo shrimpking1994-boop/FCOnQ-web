@@ -486,6 +486,35 @@
         color: #d8b4fe;
     }
 
+    .card-salary {
+        position: absolute;
+        bottom: 18px;
+        left: 0px;
+        width: 19px;
+        height: 21px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+        background: var(--text-secondary);
+        color: var(--bg-main);
+        font-size: 0.65rem;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    .card-new-trait {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 2px;
+        object-fit: contain;
+    }
+
     .card-rank-badge {
         position: absolute;
         top: -6px;
@@ -569,6 +598,53 @@
             width: 100%;
             height: 100%;
         }
+
+        .card-rank-badge {
+            width: 16px;
+            height: 16px;
+            top: -4px;
+            left: -4px;
+            font-size: 0.55rem;
+        }
+
+        .card-season-badge {
+            height: 16px;
+        }
+
+        .card-buildup {
+            font-size: 0.6rem;
+            padding: 1px 4px;
+        }
+
+        .card-salary {
+            position: absolute;
+            bottom: 16px;
+            left: 0px;
+            width: 17px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+            background: var(--text-secondary);
+            color: var(--bg-main);
+            font-size: 0.55rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .card-new-trait {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1px;
+            object-fit: contain;
+        }
+
     }
 </style>
 
@@ -1014,19 +1090,41 @@
     // 포지션 표시 순서
     const POSITION_ORDER = ['ST', 'CAM', 'LWING', 'RWING', 'CM', 'LRDM', 'CDM', 'CB', 'LB', 'RB', 'GK'];
 
+    // 신규특성 아이콘 매핑 (모바일 카드 배지용)
+    const TRAIT_ICON_BASE = "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/";
+    const TRAIT_ICON_MAP = {
+        "아크로바틱 피니셔": "trait_icon_50", "크로스 포쳐": "trait_icon_51", "라인 브레이커": "trait_icon_52",
+        "와일드 태클러": "trait_icon_53", "체이서": "trait_icon_54", "2개의 심장": "trait_icon_55",
+        "파이터": "trait_icon_56", "GK 빠른 반응": "trait_icon_57", "선호 포지션 고집": "trait_icon_00",
+        "장거리 스로잉": "trait_icon_01", "파울 유도 선호": "trait_icon_03", "유리몸": "trait_icon_04",
+        "강철몸": "trait_icon_05", "주발 선호": "trait_icon_06", "슬라이딩 태클 선호": "trait_icon_07",
+        "개인 플레이 선호": "trait_icon_09", "트러블 메이커": "trait_icon_11", "얼리 크로스 선호": "trait_icon_12",
+        "예리한 감아차기": "trait_icon_13", "화려한 개인기": "trait_icon_14", "긴 패스 선호": "trait_icon_15",
+        "중거리 슛 선호": "trait_icon_16", "스피드 드리블러": "trait_icon_17", "플레이 메이커": "trait_icon_18",
+        "GK 공격 가담": "trait_icon_19", "GK 능숙한 펀칭": "trait_icon_20", "GK 멀리 던지기": "trait_icon_21",
+        "파워 헤더": "trait_icon_22", "GK 침착한 1:1 수비": "trait_icon_23", "초 장거리 스로인": "trait_icon_24",
+        "아웃사이드 슈팅/크로스": "trait_icon_25", "패스 마스터": "trait_icon_27", "승부욕": "trait_icon_28",
+        "화려한 걷어내기": "trait_icon_29", "칩슛 선호": "trait_icon_41", "테크니컬 드리블러": "trait_icon_42",
+        "스위퍼 키퍼": "trait_icon_43", "GK 소극적 크로스 수비": "trait_icon_48", "GK 적극적 크로스 수비": "trait_icon_49",
+        "스피드스터": "trait_icon_63", "타이탄": "trait_icon_64", "커맨더": "trait_icon_59",
+        "블로커": "trait_icon_62", "GK 공중볼 장악": "trait_icon_60", "트릭스터": "trait_icon_65", "레이저 슈터": "trait_icon_66",
+        "GK 데드아이": "trait_icon_68", "프레데터": "trait_icon_67"
+    };
+
     // 카드 티어리스트 불러오기
     async function loadCardTierlist() {
         const wrap = document.getElementById('cardTierlistWrap');
         if (wrap.dataset.loaded === 'true') return;
 
         try {
-            const res = await fetch('/api/get_card_tierlist_data');
+            const res = await fetch('/api/get_card_tierlist_data?include_hover=true');
             const json = await res.json();
             if (!json.success) throw new Error(json.message);
 
             const data = json.data;
             const teamcolors = data._order || Object.keys(data).filter(k => k !== '_order');
             const effects = json.effects || {};
+            const hoverMap = json.hover_map || {};
 
             let html = '';
             teamcolors.forEach((tc, idx) => {
@@ -1049,6 +1147,11 @@
                         const faceUrl = `https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${card.spid}.png`;
                         const staticFaceUrl = `https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${pid}.png`;
                         const seasonUrl = getSeasonImgUrl(card.spid);
+                        const hover = hoverMap[card.spid];
+                        const salaryHtml = hover?.salary ? `<span class="card-salary">${hover.salary}</span>` : '';
+                        const newTraitHtml = hover?.new_trait && TRAIT_ICON_MAP[hover.new_trait]
+                            ? `<img class="card-new-trait" src="${TRAIT_ICON_BASE}${TRAIT_ICON_MAP[hover.new_trait]}.png" title="${hover.new_trait}">`
+                            : '';
                         return `
                             <div class="card-item">
                                 <div class="card-img-wrap">
@@ -1056,6 +1159,8 @@
                                     <img class="card-face" src="${faceUrl}" loading="lazy" onerror="this.onerror=null; this.src='${staticFaceUrl}'; this.onerror=function(){this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';};" onclick="window.open('/card/${card.spid}?buildup=${card.buildup}', '_blank')" style="cursor:pointer;">
                                     ${seasonUrl ? `<img class="card-season-badge" src="${seasonUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
                                     <span class="card-buildup ${card.buildup === 1 ? 'bu-1' : card.buildup <= 4 ? 'bu-bronze' : card.buildup <= 7 ? 'bu-silver' : card.buildup <= 10 ? 'bu-gold' : 'bu-purple'}">+${card.buildup}</span>
+                                    ${salaryHtml}
+                                    ${newTraitHtml}
                                 </div>
                                 <span class="card-name" title="${card.name}">${card.name}</span>
                                 <span class="card-count">${card.count}회</span>

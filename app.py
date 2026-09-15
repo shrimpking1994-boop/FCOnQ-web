@@ -2314,6 +2314,8 @@ def get_all_tierlist_data():
 @app.route('/api/get_card_tierlist_data')
 def get_card_tierlist_data():
     """카드 티어리스트 데이터 반환 (가장 최근 날짜)"""
+    include_hover = request.args.get('include_hover') == 'true'
+
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -2354,10 +2356,42 @@ def get_card_tierlist_data():
             'stats': stats
         }
 
+    hover_map = {}
+    if include_hover:
+        # 화면에 나온 모든 카드의 spid 수집
+        spid_set = set()
+        for tc in teamcolor_names:
+            positions = full_data.get(tc, {})
+            for pos_cards in positions.values():
+                for card in pos_cards:
+                    spid_set.add(int(card['spid']))
+
+        if spid_set:
+            cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
+            new_trait_names = set(row['trait_name'] for row in cur.fetchall())
+
+            cur.execute("""
+                SELECT spid, full_data->'game_info' as game_info
+                FROM player_cards
+                WHERE spid = ANY(%s)
+            """, (list(spid_set),))
+
+            for row in cur.fetchall():
+                game_info = row['game_info'] or {}
+                traits = game_info.get('traits', [])
+                new_trait = next((t for t in traits if t in new_trait_names), None)
+                hover_map[row['spid']] = {
+                    'salary': game_info.get('salary', ''),
+                    'new_trait': new_trait
+                }
+
     cur.close()
     conn.close()
 
-    return jsonify({'success': True, 'data': full_data, 'effects': effects})
+    response = {'success': True, 'data': full_data, 'effects': effects}
+    if include_hover:
+        response['hover_map'] = hover_map
+    return jsonify(response)
 
 @app.route('/api/squad_tierlist_teamcolors')
 def squad_tierlist_teamcolors():
