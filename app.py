@@ -3036,21 +3036,28 @@ def card_price(spid):
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT full_data
+            SELECT
+                full_data->'1'->'values'->-1 AS bp1,
+                full_data->'2'->'values'->-1 AS bp2,
+                full_data->'3'->'values'->-1 AS bp3,
+                full_data->'4'->'values'->-1 AS bp4,
+                full_data->'5'->'values'->-1 AS bp5,
+                full_data->'6'->'values'->-1 AS bp6,
+                full_data->'7'->'values'->-1 AS bp7,
+                full_data->'8'->'values'->-1 AS bp8,
+                full_data->'9'->'values'->-1 AS bp9,
+                full_data->'10'->'values'->-1 AS bp10,
+                full_data->'11'->'values'->-1 AS bp11,
+                full_data->'12'->'values'->-1 AS bp12,
+                full_data->'13'->'values'->-1 AS bp13
             FROM card_price_history
             WHERE spid = %s
         """, (spid,))
         row = cur.fetchone()
 
-        if row and row['full_data']:
-            result = {}
-            for boost_str, data in row['full_data'].items():
-                values = data.get('values', []) if isinstance(data, dict) else data
-                if values:
-                    result[f'bp{boost_str}'] = values[-1]
-            if result:
-                cur.close()
-                return jsonify(result)
+        if row and any(v is not None for v in row.values()):
+            cur.close()
+            return jsonify({k: v for k, v in row.items() if v is not None})
 
         cur.execute("""
             SELECT bp1, bp2, bp3, bp4, bp5, bp6, bp7,
