@@ -1544,10 +1544,14 @@
             loadCardTierlist().then(() => {
                 if (tcParam) {
                     const rows = document.querySelectorAll('.teamcolor-name');
-                    rows.forEach((el, i) => {
+                    rows.forEach((el) => {
                         if (el.textContent === decodeURIComponent(tcParam)) {
-                            toggleTeamcolor(i);
-                            el.closest('.teamcolor-row').scrollIntoView({ behavior: 'smooth' });
+                            const rowEl = el.closest('.teamcolor-row');
+                            if (rowEl && rowEl.id.startsWith('tcrow-')) {
+                                const idx = parseInt(rowEl.id.replace('tcrow-', ''));
+                                toggleTeamcolor(idx);
+                                rowEl.scrollIntoView({ behavior: 'smooth' });
+                            }
                         }
                     });
                 }
