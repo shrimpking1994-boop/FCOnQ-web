@@ -2357,8 +2357,9 @@ def get_card_tierlist_data():
         }
 
     hover_map = {}
+    price_map = {}
     if include_hover:
-        # 화면에 나온 모든 카드의 spid 수집
+        # 화면에 나온 모든 카드의 spid 수집 (문자열 → 숫자로 변환)
         spid_set = set()
         for tc in teamcolor_names:
             positions = full_data.get(tc, {})
@@ -2367,6 +2368,8 @@ def get_card_tierlist_data():
                     spid_set.add(int(card['spid']))
 
         if spid_set:
+            spid_list = list(spid_set)
+
             cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
             new_trait_names = set(row['trait_name'] for row in cur.fetchall())
 
@@ -2374,7 +2377,7 @@ def get_card_tierlist_data():
                 SELECT spid, full_data->'game_info' as game_info
                 FROM player_cards
                 WHERE spid = ANY(%s)
-            """, (list(spid_set),))
+            """, (spid_list,))
 
             for row in cur.fetchall():
                 game_info = row['game_info'] or {}
@@ -2385,12 +2388,56 @@ def get_card_tierlist_data():
                     'new_trait': new_trait
                 }
 
+            # 강화단계별 최신 가격 (card_price_history 우선, 없으면 card_prices로 대체)
+            cur.execute("""
+                SELECT spid, full_data
+                FROM card_price_history
+                WHERE spid = ANY(%s)
+            """, (spid_list,))
+            price_history_map = {row['spid']: row['full_data'] for row in cur.fetchall()}
+
+            missing_spids = [s for s in spid_list if s not in price_history_map]
+            price_fallback_map = {}
+            if missing_spids:
+                cur.execute("""
+                    SELECT spid, bp1, bp2, bp3, bp4, bp5, bp6, bp7, bp8, bp9, bp10, bp11, bp12, bp13
+                    FROM card_prices
+                    WHERE spid = ANY(%s)
+                """, (missing_spids,))
+                price_fallback_map = {row['spid']: row for row in cur.fetchall()}
+
+            for tc in teamcolor_names:
+                positions = full_data.get(tc, {})
+                for pos_cards in positions.values():
+                    for card in pos_cards:
+                        spid = int(card['spid'])
+                        buildup = card['buildup']
+                        key = f"{spid}_{buildup}"
+                        if key in price_map:
+                            continue
+
+                        price = None
+                        fd = price_history_map.get(spid)
+                        if fd:
+                            data = fd.get(str(buildup))
+                            if data:
+                                values = data.get('values', []) if isinstance(data, dict) else data
+                                if values:
+                                    price = values[-1]
+                        if price is None:
+                            fb = price_fallback_map.get(spid)
+                            if fb:
+                                price = fb.get(f'bp{buildup}')
+                        if price is not None:
+                            price_map[key] = price
+
     cur.close()
     conn.close()
 
     response = {'success': True, 'data': full_data, 'effects': effects}
     if include_hover:
         response['hover_map'] = hover_map
+        response['price_map'] = price_map
     return jsonify(response)
 
 @app.route('/api/squad_tierlist_teamcolors')

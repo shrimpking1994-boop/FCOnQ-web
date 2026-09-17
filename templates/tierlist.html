@@ -24,6 +24,22 @@
 
 {% block content %}
 <style>
+    .loading-pulse {
+        animation: loadingPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes loadingPulse {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+    }
+
     .tc-share-btn {
         background: none;
         border: none;
@@ -559,7 +575,14 @@
     .card-count {
         font-size: 0.65rem;
         color: #a78bfa;
-        margin-top: -5px;
+        margin-top: -6px;
+    }
+
+    .card-price {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: #d97706;
+        margin-top: -6px;
     }
 
     @media (max-width: 768px) {
@@ -721,7 +744,7 @@
 
         <div id="cardTierlistWrap" class="card-tierlist-wrap">
             <div class="empty-state">
-                <h3>🃏 카드 티어리스트를 불러오는 중...</h3>
+                <h3 class="loading-pulse">🃏 팀컬러 순위·포지션별 인기 카드 정보까지 함께 불러오는 중이에요.</h3>
             </div>
         </div>
 
@@ -1134,6 +1157,7 @@
             const teamcolors = data._order || Object.keys(data).filter(k => k !== '_order');
             const effects = json.effects || {};
             const hoverMap = json.hover_map || {};
+            const priceMap = json.price_map || {};
 
             let html = '';
             teamcolors.forEach((tc, idx) => {
@@ -1161,6 +1185,9 @@
                         const newTraitHtml = hover?.new_trait && TRAIT_ICON_MAP[hover.new_trait]
                             ? `<img class="card-new-trait" src="${TRAIT_ICON_BASE}${TRAIT_ICON_MAP[hover.new_trait]}.png" title="${hover.new_trait}">`
                             : '';
+                        const priceRaw = priceMap[`${card.spid}_${card.buildup}`];
+                        const priceFormatted = priceRaw != null ? formatPrice(priceRaw) : null;
+                        const priceHtml = priceFormatted ? `<span class="card-price">${priceFormatted} BP</span>` : '';
                         return `
                             <div class="card-item">
                                 <div class="card-img-wrap">
@@ -1172,6 +1199,7 @@
                                     ${newTraitHtml}
                                 </div>
                                 <span class="card-name" title="${card.name}">${card.name}</span>
+                                ${priceHtml}
                                 <span class="card-count">${card.count}회</span>
                             </div>`;
                     }).join('');
@@ -1274,6 +1302,26 @@
     function getSeasonImgUrl(spid) {
         const seasonId = String(spid).slice(0, 3);
         return seasonLogos[seasonId] || '';
+    }
+
+    function formatPrice(value) {
+        const num = parseFloat(value);
+        if (isNaN(num) || num === 0) return null;
+        if (num >= 10000000000000000) {
+            const r = num / 10000000000000000;
+            if (!isFinite(r) || isNaN(r)) return '999경+';
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '경';
+        }
+        if (num >= 1000000000000) {
+            const r = num / 1000000000000;
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '조';
+        }
+        if (num >= 100000000) {
+            const r = num / 100000000;
+            return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '억';
+        }
+        if (num >= 10000) return Math.floor(num / 10000) + '만';
+        return num.toLocaleString();
     }
 
 
