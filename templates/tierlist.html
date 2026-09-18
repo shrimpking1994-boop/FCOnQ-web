@@ -1317,7 +1317,7 @@
             return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '조';
         }
         if (num >= 100000000) {
-            const r = num / 100000000;
+            const r = Math.round(num / 100000000 * 10) / 10;
             return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + '억';
         }
         if (num >= 10000) return Math.floor(num / 10000) + '만';
