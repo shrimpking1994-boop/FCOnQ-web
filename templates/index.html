@@ -750,16 +750,18 @@
 
             const containerLeft = container.getBoundingClientRect().left;
 
+            const bannerTop = 210;
+
             if (containerLeft > 220) {
                 banner.style.display = 'block';
                 banner.style.position = 'absolute';
-                banner.style.top = '170px';
+                banner.style.top = bannerTop + 'px';
                 banner.style.left = (containerLeft / 2 - banner.offsetWidth / 2) + 'px';
 
                 if (banner2) {
                     banner2.style.display = 'block';
                     banner2.style.position = 'absolute';
-                    banner2.style.top = (170 + banner.offsetHeight + 20) + 'px';
+                    banner2.style.top = (bannerTop + banner.offsetHeight + 20) + 'px';
                     banner2.style.left = (containerLeft / 2 - banner2.offsetWidth / 2) + 'px';
                 }
             } else {
