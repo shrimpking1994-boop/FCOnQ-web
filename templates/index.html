@@ -104,13 +104,20 @@
             background: transparent;
             padding: 8px 0;
             box-shadow: none;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .top-bar-content {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             gap: 10px;
+        }
+
+        .logo-bar {
+            background: transparent;
+            padding: 8px 0;
+            text-align: center;
         }
 
         .top-title-link {
@@ -532,14 +539,10 @@
 </head>
 
 <body>
-    <!-- 상단 바 (로그인+다크모드) -->
+    <!-- 1층: 로그인/다크모드 -->
     <div class="top-bar">
         <div class="container">
             <div class="top-bar-content">
-                <a href="/search" class="top-title-link" onclick="sessionStorage.removeItem('searchState')">
-                    <img src="{{ url_for('static', filename='fconq_title_logo5.png') }}" alt="FCOnQ" class="site-logo"
-                        style="height: 45px; width: auto;">
-                </a>
                 <div class="top-bar-right">
                     <div class="login-section" id="loginSection">
                         <!-- JavaScript로 동적 렌더링 -->
@@ -551,6 +554,16 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 2층: 로고 -->
+    <div class="logo-bar">
+        <div class="container">
+            <a href="/search" class="top-title-link" onclick="sessionStorage.removeItem('searchState')">
+                <img src="{{ url_for('static', filename='fconq_title_logo5.png') }}" alt="FCOnQ" class="site-logo"
+                    style="height: 45px; width: auto;">
+            </a>
         </div>
     </div>
 
