@@ -86,6 +86,54 @@
         border: 1px solid var(--border-color);
         background: var(--bg-primary);
         color: var(--text-primary);
+        color-scheme: dark;
+    }
+
+    .tcs-field select option {
+        background: #1a202c;
+        color: #e2e8f0;
+    }
+
+    [data-theme="light"] .tcs-field select {
+        color-scheme: light;
+    }
+
+    [data-theme="light"] .tcs-field select option {
+        background: #ffffff;
+        color: #1a202c;
+    }
+
+    .tcs-field input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        box-sizing: border-box;
+    }
+
+    .tcs-autocomplete-list {
+        position: absolute;
+        z-index: 1000;
+        display: none;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        max-height: 250px;
+        overflow-y: auto;
+        width: 100%;
+        margin-top: 4px;
+    }
+
+    .tcs-autocomplete-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        color: var(--text-primary);
+    }
+
+    .tcs-autocomplete-item:hover {
+        background: var(--hover-bg);
     }
 
     .tcs-search-btn {
@@ -228,6 +276,27 @@
         }
     }
 
+    #tcs-hover-tooltip {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 12px 14px;
+        width: max-content;
+        max-width: 420px;
+        pointer-events: none;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+</style>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+    rel="stylesheet" />
+
+<style>
     /* Select2 다크모드 대응 */
     .select2-container--bootstrap-5 .select2-selection {
         background: var(--bg-main) !important;
@@ -289,26 +358,7 @@
         background: #e6f2ff !important;
         color: #667eea !important;
     }
-
-    #tcs-hover-tooltip {
-        display: none;
-        position: fixed;
-        z-index: 10000;
-        background: var(--bg-secondary);
-        border: 2px solid var(--border-color);
-        border-radius: 10px;
-        padding: 12px 14px;
-        width: max-content;
-        max-width: 420px;
-        pointer-events: none;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-    }
 </style>
-
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
-    rel="stylesheet" />
 
 <div class="tcs-container">
 
@@ -318,60 +368,56 @@
     </div>
 
     <!-- 이름으로 검색 -->
+    <!-- 이름으로 검색 -->
     <div class="tcs-panel active" id="tcs-panel-name">
         <div class="tcs-field">
             <label>국가 팀컬러</label>
-            <select id="tcs-nation" class="teamcolor-select" data-placeholder="국가를 선택하세요">
-                <option value=""></option>
-                {% for n in nation_teamcolors %}
-                <option value="{{ n }}">{{ n }}</option>
-                {% endfor %}
-            </select>
+            <div style="position: relative;">
+                <input type="text" id="tcs-nation-input" placeholder="원하는 국가 이름을 입력." autocomplete="off">
+                <div id="tcs-nation-list" class="tcs-autocomplete-list"></div>
+            </div>
         </div>
         <div class="tcs-field">
             <label>소속 팀컬러</label>
-            <select id="tcs-club" class="teamcolor-select" data-placeholder="클럽을 선택하세요">
-                <option value=""></option>
-                {% for c in club_teamcolors %}
-                <option value="{{ c }}">{{ c }}</option>
-                {% endfor %}
-            </select>
+            <div style="position: relative;">
+                <input type="text" id="tcs-club-input" placeholder="원하는 클럽 이름을 입력." autocomplete="off">
+                <div id="tcs-club-list" class="tcs-autocomplete-list"></div>
+            </div>
         </div>
         <div class="tcs-field">
             <label>특성 팀컬러</label>
-            <select id="tcs-trait" class="teamcolor-select" data-placeholder="특성 팀컬러를 선택하세요">
-                <option value=""></option>
-                {% for t in trait_teamcolors %}
-                <option value="{{ t }}">{{ t }}</option>
-                {% endfor %}
-            </select>
+            <div style="position: relative;">
+                <input type="text" id="tcs-trait-input" placeholder="원하는 특성 팀컬러 이름을 입력." autocomplete="off">
+                <div id="tcs-trait-list" class="tcs-autocomplete-list"></div>
+            </div>
         </div>
+        <button class="tcs-search-btn" onclick="runNameSearch()">검색</button>
     </div>
 
     <!-- 능력치로 검색 -->
     <div class="tcs-panel" id="tcs-panel-stat">
         <div class="tcs-field">
-            <label>능력치 1</label>
+            <label>버프 능력치 1</label>
             <select id="tcs-stat1" class="teamcolor-select" data-placeholder="버프 스탯을 선택하세요">
-                <option value=""></option>
+                <option value="">능력치를 선택하세요.</option>
                 {% for s in stat_names %}
                 <option value="{{ s }}">{{ s }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="tcs-field">
-            <label>능력치 2</label>
+            <label>버프 능력치 2</label>
             <select id="tcs-stat2" class="teamcolor-select" data-placeholder="버프 스탯을 선택하세요">
-                <option value=""></option>
+                <option value="">능력치를 선택하세요.</option>
                 {% for s in stat_names %}
                 <option value="{{ s }}">{{ s }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="tcs-field">
-            <label>능력치 3</label>
+            <label>버프 능력치 3</label>
             <select id="tcs-stat3" class="teamcolor-select" data-placeholder="버프 스탯을 선택하세요">
-                <option value=""></option>
+                <option value="">능력치를 선택하세요.</option>
                 {% for s in stat_names %}
                 <option value="{{ s }}">{{ s }}</option>
                 {% endfor %}
@@ -390,40 +436,101 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/ko.js"></script>
 
 <script>
-    $(document).ready(function () {
-        $('.teamcolor-select').select2({
-            theme: 'bootstrap-5',
-            language: 'ko',
-            allowClear: true,
-            width: '100%',
-            minimumInputLength: 0,
-            placeholder: function () {
-                return $(this).data('placeholder');
+    const tcsNationList = {{ nation_teamcolors | tojson }};
+    const tcsClubList = {{ club_teamcolors | tojson }};
+    const tcsTraitList = {{ trait_teamcolors | tojson }};
+
+    function setupTcsAutocomplete(inputId, listId, dataArray, groupIds) {
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+
+        input.addEventListener('input', function () {
+            const value = this.value.trim();
+
+            groupIds.filter(id => id !== inputId).forEach(function (otherId) {
+                document.getElementById(otherId).value = '';
+            });
+
+            if (value.length < 1) {
+                list.style.display = 'none';
+                return;
+            }
+
+            const filtered = dataArray.filter(name => name.includes(value)).slice(0, 10);
+
+            if (filtered.length === 0) {
+                list.style.display = 'none';
+                return;
+            }
+
+            list.innerHTML = filtered.map(name =>
+                `<div class="tcs-autocomplete-item" onclick="selectTcsOption('${inputId}', '${listId}', '${name.replace(/'/g, "\\'")}')">${name}</div>`
+            ).join('');
+            list.style.display = 'block';
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!input.contains(e.target) && !list.contains(e.target)) {
+                list.style.display = 'none';
             }
         });
+    }
 
-        $(document).on('select2:open', function () {
-            document.querySelector('.select2-search__field').focus();
-        });
+    window.selectTcsOption = function (inputId, listId, name) {
+        document.getElementById(inputId).value = name;
+        document.getElementById(listId).style.display = 'none';
+    };
 
-        const nameSelects = { '#tcs-nation': 'nation', '#tcs-club': 'club', '#tcs-trait': 'trait' };
-
-        Object.keys(nameSelects).forEach(function (sel) {
-            $(sel).on('change', function () {
-                const val = $(this).val();
-                if (!val) return;
-
-                Object.keys(nameSelects).forEach(function (other) {
-                    if (other !== sel) {
-                        $(other).val(null).trigger('change');
-                    }
-                });
-
-                searchByName(nameSelects[sel], val);
-            });
-        });
-
+    $(document).ready(function () {
+        const tcsGroupIds = ['tcs-nation-input', 'tcs-club-input', 'tcs-trait-input'];
+        setupTcsAutocomplete('tcs-nation-input', 'tcs-nation-list', tcsNationList, tcsGroupIds);
+        setupTcsAutocomplete('tcs-club-input', 'tcs-club-list', tcsClubList, tcsGroupIds);
+        setupTcsAutocomplete('tcs-trait-input', 'tcs-trait-list', tcsTraitList, tcsGroupIds);
     });
+
+    function runNameSearch() {
+        const nation = $('#tcs-nation-input').val().trim();
+        const club = $('#tcs-club-input').val().trim();
+        const trait = $('#tcs-trait-input').val().trim();
+
+        if (nation) { searchByKeyword('nation', nation); return; }
+        if (club) { searchByKeyword('club', club); return; }
+        if (trait) { searchByKeyword('trait', trait); return; }
+
+        document.getElementById('tcs-results').innerHTML = `<div class="tcs-result-empty">팀컬러를 입력해주세요.</div>`;
+    }
+
+    async function searchByKeyword(type, keyword) {
+        const results = document.getElementById('tcs-results');
+        results.innerHTML = `<div class="tcs-result-empty">검색 중...</div>`;
+
+        try {
+            const res = await fetch(`/api/teamcolor_search_by_keyword?type=${type}&keyword=${encodeURIComponent(keyword)}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                results.innerHTML = `<div class="tcs-result-empty">${data.message || '오류가 발생했습니다.'}</div>`;
+                return;
+            }
+
+            if (data.results.length === 0) {
+                results.innerHTML = `<div class="tcs-result-empty">일치하는 팀컬러가 없습니다.</div>`;
+                return;
+            }
+
+            const boxesHtml = data.results.map((r, uid) => {
+                if (r.type === 'trait') {
+                    return buildTraitHtml(r, uid, true);
+                } else {
+                    return buildStagesHtml(r.name, r.image_url, r.stages);
+                }
+            }).join('<div style="height:14px;"></div>');
+
+            results.innerHTML = boxesHtml;
+        } catch (e) {
+            results.innerHTML = `<div class="tcs-result-empty">오류가 발생했습니다.</div>`;
+        }
+    }
 
     function runStatSearch() {
         const stats = [

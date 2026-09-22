@@ -2062,6 +2062,56 @@ def api_teamcolor_search_by_name():
     finally:
         conn.close()
         
+@app.route('/api/teamcolor_search_by_keyword')
+def api_teamcolor_search_by_keyword():
+    tc_type = request.args.get('type')
+    keyword = request.args.get('keyword', '').strip()
+
+    if not tc_type or not keyword:
+        return jsonify({'success': False, 'message': '검색어를 입력해주세요'}), 400
+
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+
+        if tc_type == 'nation':
+            cur.execute("""
+                SELECT nation_name AS name FROM nation_teamcolors
+                WHERE nation_name ILIKE %s
+                ORDER BY nation_name COLLATE "C"
+            """, (f'%{keyword}%',))
+        elif tc_type == 'club':
+            cur.execute("""
+                SELECT club_name AS name FROM club_teamcolors
+                WHERE club_name ILIKE %s
+                ORDER BY club_name COLLATE "C"
+            """, (f'%{keyword}%',))
+        elif tc_type == 'trait':
+            cur.execute("""
+                SELECT name FROM special_teamcolors
+                WHERE name ILIKE %s
+                ORDER BY name COLLATE "C"
+            """, (f'%{keyword}%',))
+        else:
+            return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
+
+        matched = cur.fetchall()
+
+        results = []
+        for row in matched:
+            name = row['name']
+            if tc_type == 'trait':
+                detail = get_trait_teamcolor_detail(cur, name)
+                results.append({'type': 'trait', 'name': name, **detail})
+            else:
+                detail = get_nation_club_stages(cur, name)
+                results.append({'type': tc_type, 'name': name, **detail})
+
+        return jsonify({'success': True, 'keyword': keyword, 'results': results})
+
+    finally:
+        conn.close()        
+        
 @app.route('/api/teamcolor_search_by_stat')
 def api_teamcolor_search_by_stat():
     stat_list = [s.strip() for s in request.args.getlist('stat') if s.strip()]
