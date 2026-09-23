@@ -1,8 +1,15 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.fconq.twa",
-        "sha256_cert_fingerprints": ["5A:A7:C5:86:9A:86:68:DD:F0:B6:02:25:1D:D7:5D:2B:42:A2:10:53:F5:B2:B7:7E:D5:83:15:34:3A:F5:A7:B3"]
-      }
-    }]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.fconq.twa",
+      "sha256_cert_fingerprints": [
+        "E3:8E:E7:81:94:7C:5C:19:5C:A5:38:76:9B:8D:C1:87:9B:D2:F5:52:7D:46:05:6F:65:C2:AA:8D:D1:58:DF:CE",
+        "5A:A7:C5:86:9A:86:68:DD:F0:B6:02:25:1D:D7:5D:2B:42:A2:10:53:F5:B2:B7:7E:D5:83:15:34:3A:F5:A7:B3"
+      ]
+    }
+  }
+]
