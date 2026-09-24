@@ -116,21 +116,20 @@
 
         .logo-bar {
             background: transparent;
-            padding: 8px 0;
-            text-align: center;
+            padding: 10px 0 5px 10px;
         }
 
         .top-title-link {
             text-decoration: none;
             color: inherit;
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
+            display: inline-flex;
+            align-items: center;
         }
 
         .site-logo {
-            height: 45px;
+            height: 40px;
             width: auto;
+            display: block;
             transition: opacity 0.3s;
         }
 
@@ -432,7 +431,11 @@
             }
 
             .site-logo {
-                height: 35px !important;
+                height: 30px !important;
+            }
+
+            .logo-bar {
+                padding: 8px 12px 0;
             }
 
             .top-bar-content {
@@ -495,9 +498,8 @@
                 display: inline;
             }
 
-            /* 컨텐츠 */
             .main-content {
-                padding: 10px 0;
+                padding: 0 0 10px;
             }
 
             .content-wrapper {
@@ -531,6 +533,160 @@
                 padding: 10px 15px !important;
             }
         }
+
+        /* ===== PC: 로고 + 메뉴 한 줄 배치 ===== */
+        @media (min-width: 769px) {
+
+            .site-header {
+                border-bottom: 2px solid #5865b8;
+                background: #f1f2fa;
+            }
+
+            [data-theme="dark"] .site-header {
+                background: #1e2030;
+            }
+
+            .header-main {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                max-width: 980px;
+                margin: 0 auto;
+            }
+
+            .header-main .logo-bar {
+                padding: 0 0 0 2px;
+            }
+
+            .header-main .logo-bar .container {
+                width: auto;
+                max-width: none !important;
+                margin: 0;
+            }
+
+            .header-main .main-nav,
+            [data-theme="dark"] .header-main .main-nav {
+                background: transparent;
+            }
+
+            .header-main .nav-links {
+                max-width: none;
+                margin: 0;
+                gap: 4px;
+            }
+
+            .header-main .nav-links li {
+                flex: none;
+            }
+
+            .header-main .nav-link-item {
+                color: var(--text-primary);
+                padding: 22px 16px 19px;
+                font-size: 1.05rem;
+                border-bottom: 3px solid transparent;
+            }
+
+            .header-main .nav-link-item:hover {
+                background: transparent;
+                color: #7b86d6;
+            }
+
+            .header-main .nav-link-item.active {
+                background: transparent;
+                color: #7b86d6;
+                border-bottom-color: #7b86d6;
+            }
+        }
+
+        /* ===== 모바일: 하단 탭 바 ===== */
+        .bottom-nav,
+        .top-bar-logo {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-nav {
+                display: none;
+            }
+
+            .site-header {
+                display: none;
+            }
+
+            .top-bar {
+                padding: 8px 12px;
+                background: #f1f2fa;
+                border-bottom: 1px solid #5865b8;
+            }
+
+            [data-theme="dark"] .top-bar {
+                background: #1e2030;
+            }
+
+            .top-bar-content {
+                justify-content: space-between;
+            }
+
+            .top-bar-logo {
+                display: flex;
+                align-items: center;
+            }
+
+            .top-bar-logo img {
+                height: 22px;
+                width: auto;
+                display: block;
+            }
+
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 1000;
+                background: #f1f2fa;
+                border-top: 1px solid #5865b8;
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+
+            [data-theme="dark"] .bottom-nav {
+                background: #1e2030;
+            }
+
+            .bottom-nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                height: 58px;
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: -0.3px;
+                white-space: nowrap;
+            }
+
+            .bottom-nav-item svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .bottom-nav-item.active {
+                color: #5865b8;
+            }
+
+            [data-theme="dark"] .bottom-nav-item.active {
+                color: #8b95e0;
+            }
+
+            body {
+                padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+            }
+        }
     </style>
 </head>
 
@@ -539,6 +695,9 @@
     <div class="top-bar">
         <div class="container">
             <div class="top-bar-content">
+                <a href="/search" class="top-bar-logo" onclick="sessionStorage.removeItem('searchState')">
+                    <img src="{{ url_for('static', filename='fconq_title_logo5.png') }}" alt="FCOnQ">
+                </a>
                 <div class="top-bar-right">
                     <div class="login-section" id="loginSection">
                         <!-- JavaScript로 동적 렌더링 -->
@@ -553,48 +712,53 @@
         </div>
     </div>
 
-    <!-- 2층: 로고 -->
-    <div class="logo-bar">
-        <div class="container">
-            <a href="/search" class="top-title-link" onclick="sessionStorage.removeItem('searchState')">
-                <img src="{{ url_for('static', filename='fconq_title_logo5.png') }}" alt="FCOnQ" class="site-logo"
-                    style="height: 45px; width: auto;">
-            </a>
+
+    <div class="site-header">
+        <div class="header-main">
+            <!-- 2층: 로고 -->
+            <div class="logo-bar">
+                <div class="container">
+                    <a href="/search" class="top-title-link" onclick="sessionStorage.removeItem('searchState')">
+                        <img src="{{ url_for('static', filename='fconq_title_logo5.png') }}" alt="FCOnQ"
+                            class="site-logo">
+                    </a>
+                </div>
+            </div>
+
+            <!-- 헤더 -->
+            <header class="main-header" style="display: none;">
+                <div class="container position-relative">
+                    <!-- 사이트 제목 -->
+                    <a href="/" style="text-decoration: none; color: inherit; display: block;">
+                        <h1 class="site-title">FCOnQ</h1>
+                        <p class="site-subtitle">[엪씨온큐]</p>
+                    </a>
+                </div>
+            </header>
+
+            <!-- 네비게이션 -->
+            <nav class="main-nav">
+                <ul class="nav-links">
+                    <li>
+                        <a href="/search" class="nav-link-item active" id="nav-playerdb"
+                            onclick="sessionStorage.removeItem('searchState')">선수 DB</a>
+                    </li>
+                    <li>
+                        <a href="/tierlist" class="nav-link-item" id="nav-tierlist">티어리스트</a>
+                    </li>
+                    <li>
+                        <a href="/squad_maker" class="nav-link-item" id="nav-squadmaker">스쿼드 메이커</a>
+                    </li>
+                    <li>
+                        <a href="/community" class="nav-link-item" id="nav-community">커뮤니티</a>
+                    </li>
+                    <li>
+                        <a href="/utility" class="nav-link-item" id="nav-utility">유틸리티</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
-
-    <!-- 헤더 -->
-    <header class="main-header" style="display: none;">
-        <div class="container position-relative">
-            <!-- 사이트 제목 -->
-            <a href="/" style="text-decoration: none; color: inherit; display: block;">
-                <h1 class="site-title">FCOnQ</h1>
-                <p class="site-subtitle">[엪씨온큐]</p>
-            </a>
-        </div>
-    </header>
-
-    <!-- 네비게이션 -->
-    <nav class="main-nav">
-        <ul class="nav-links">
-            <li>
-                <a href="/search" class="nav-link-item active" id="nav-playerdb"
-                    onclick="sessionStorage.removeItem('searchState')">선수 DB</a>
-            </li>
-            <li>
-                <a href="/tierlist" class="nav-link-item" id="nav-tierlist">티어리스트</a>
-            </li>
-            <li>
-                <a href="/squad_maker" class="nav-link-item" id="nav-squadmaker">스쿼드 메이커</a>
-            </li>
-            <li>
-                <a href="/community" class="nav-link-item" id="nav-community">커뮤니티</a>
-            </li>
-            <li>
-                <a href="/utility" class="nav-link-item" id="nav-utility">유틸리티</a>
-            </li>
-        </ul>
-    </nav>
 
     <!-- 메인 컨텐츠 -->
     <main class="main-content">
@@ -628,6 +792,53 @@
         </div>
     </footer>
 
+    <!-- 모바일 하단 탭 바 -->
+    <nav class="bottom-nav">
+        <a href="/search" class="bottom-nav-item" id="bnav-playerdb" onclick="sessionStorage.removeItem('searchState')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+            </svg>
+            <span>선수 DB</span>
+        </a>
+        <a href="/tierlist" class="bottom-nav-item" id="bnav-tierlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M3 3v18h18" />
+                <path d="M18 17V9" />
+                <path d="M13 17V5" />
+                <path d="M8 17v-3" />
+            </svg>
+            <span>티어리스트</span>
+        </a>
+        <a href="/squad_maker" class="bottom-nav-item" id="bnav-squadmaker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span>스쿼드 메이커</span>
+        </a>
+        <a href="/community" class="bottom-nav-item" id="bnav-community">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+            </svg>
+            <span>커뮤니티</span>
+        </a>
+        <a href="/utility" class="bottom-nav-item" id="bnav-utility">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+            </svg>
+            <span>유틸리티</span>
+        </a>
+    </nav>
+
     <!-- 스크립트 -->
     <script src="{{ url_for('static', filename='js/darkmode.js') }}"></script>
 
@@ -654,6 +865,16 @@
                     document.getElementById('nav-squadmaker').classList.add('active');
                 }
             });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const activeTop = document.querySelector('.nav-link-item.active');
+            if (activeTop) {
+                const bottomItem = document.getElementById('b' + activeTop.id);
+                if (bottomItem) bottomItem.classList.add('active');
+            }
         });
     </script>
 
