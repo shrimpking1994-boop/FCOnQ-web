@@ -537,15 +537,50 @@
         /* ===== PC: 로고 + 메뉴 한 줄 배치 ===== */
         @media (min-width: 769px) {
 
+            /* 헤더 배경: 무채색 (라이트: 흰색 / 다크: 깊은 검정) */
+            .top-bar,
             .site-header {
-                border-bottom: 2px solid #5865b8;
-                background: #f1f2fa;
+                background: #f3f4fa;
+            }
+
+            [data-theme="dark"] .top-bar,
+            [data-theme="dark"] .site-header {
+                background: #111214;
+            }
+
+            .top-bar {
+                border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            }
+
+            [data-theme="dark"] .top-bar {
+                border-bottom-color: rgba(255, 255, 255, 0.06);
+            }
+
+            .site-header {
+                border-bottom: 1px solid #e3e5ec;
             }
 
             [data-theme="dark"] .site-header {
-                background: #1e2030;
+                border-bottom-color: rgba(255, 255, 255, 0.08);
             }
 
+            /* 로그인/다크모드 버튼 */
+            .top-bar .login-btn,
+            .top-bar .profile-btn,
+            .top-bar #darkModeToggle {
+                color: var(--text-primary) !important;
+                background: transparent !important;
+                border: 1px solid var(--border-color) !important;
+                border-radius: 6px;
+            }
+
+            .top-bar .login-btn:hover,
+            .top-bar .profile-btn:hover,
+            .top-bar #darkModeToggle:hover {
+                background: rgba(127, 127, 127, 0.12) !important;
+            }
+
+            /* 레이아웃 */
             .header-main {
                 display: flex;
                 align-items: center;
@@ -579,22 +614,24 @@
                 flex: none;
             }
 
+            /* 메뉴: 평소 흐린 글자, 선택/마우스 올림 시 진한 글자 + 네이비 밑줄 */
             .header-main .nav-link-item {
-                color: var(--text-primary);
+                color: var(--text-secondary);
                 padding: 22px 16px 19px;
                 font-size: 1.05rem;
                 border-bottom: 3px solid transparent;
+                transition: color 0.2s, border-color 0.2s;
             }
 
             .header-main .nav-link-item:hover {
                 background: transparent;
-                color: #7b86d6;
+                color: var(--text-primary);
             }
 
             .header-main .nav-link-item.active {
                 background: transparent;
-                color: #7b86d6;
-                border-bottom-color: #7b86d6;
+                color: var(--text-primary);
+                border-bottom-color: #5b66d6;
             }
         }
 
