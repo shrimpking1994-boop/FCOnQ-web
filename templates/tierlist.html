@@ -394,6 +394,44 @@
         flex: 1;
     }
 
+    .teamcolor-usage {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        margin-left: 10px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: rgba(127, 127, 127, 0.15);
+        vertical-align: middle;
+    }
+
+    @media (max-width: 480px) {
+        .teamcolor-usage {
+            display: block;
+            width: fit-content;
+            margin-left: 0;
+            margin-top: 4px;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+        }
+
+        .teamcolor-header {
+            gap: 10px;
+            padding: 12px 14px;
+        }
+
+        .teamcolor-rank {
+            min-width: 22px;
+            text-align: center;
+        }
+
+        .teamcolor-logo {
+            width: 32px;
+            height: 32px;
+        }
+    }
+
     .teamcolor-arrow {
         font-size: 0.9rem;
         color: var(--text-secondary);
@@ -1162,7 +1200,7 @@
 
             let html = '';
             teamcolors.forEach((tc, idx) => {
-                const logoUrl = teamLogos[tc] || '';
+                const logoUrl = teamLogos[tc] || (data._logos || {})[tc] || '';
                 const positions = data[tc];
 
                 let positionsHtml = '';
@@ -1215,6 +1253,10 @@
                         </div>`;
                 });
 
+                const usageCount = (data._usage || {})[tc];
+                const usageHtml = usageCount
+                    ? `<span class="teamcolor-usage">${(usageCount / 10000 * 100).toFixed(1)}% · ${usageCount.toLocaleString()}명</span>`
+                    : '';
                 const eff = effects[tc] || { stats: [] };
                 const effectHtml = `
     <div class="teamcolor-effect-info" style="padding:10px 15px; margin-bottom:10px; background:rgba(255,255,255,0.05); border-radius:8px; font-size:13px;">
@@ -1227,7 +1269,7 @@
                         <div class="teamcolor-header" onclick="toggleTeamcolor(${idx})">
                             <span class="teamcolor-rank">${idx + 1}</span>
                             ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
-                            <span class="teamcolor-name">${tc}</span>
+                            <span class="teamcolor-name">${tc}${usageHtml}</span>
                             <button class="tc-share-btn" onclick="copyTcLink(event, '${encodeURIComponent(tc)}')">🔗</button>
                             <span class="teamcolor-arrow">▼</span>
                         </div>

@@ -2361,6 +2361,8 @@ def get_all_tierlist_data():
     
     return jsonify({'success': True, 'data': results})
 
+# 티어리스트 / 스쿼드 메이커 공통: 이 인원 미만 팀컬러는 제외
+TIERLIST_MIN_USERS = 10
 @app.route('/api/get_card_tierlist_data')
 def get_card_tierlist_data():
     """카드 티어리스트 데이터 반환 (가장 최근 날짜)"""
@@ -2372,7 +2374,7 @@ def get_card_tierlist_data():
     cur.execute("""
         SELECT full_data 
         FROM card_tierlist_rankings 
-        ORDER BY crawl_date DESC 
+        ORDER BY crawl_date DESC, id DESC 
         LIMIT 1
     """)
 
@@ -2384,7 +2386,28 @@ def get_card_tierlist_data():
         return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
 
     full_data = result['full_data']
-    teamcolor_names = full_data.get('_order') or [k for k in full_data.keys() if k != '_order']
+
+    # ===== 티어리스트 노출 설정 =====
+    MIN_USERS = TIERLIST_MIN_USERS # 이 인원 미만 팀컬러는 제외
+    EXCLUDE_TEAMCOLORS = {'단일 팀'} # 티어리스트에서 숨길 팀컬러
+    CARDS_PER_POSITION = 20        # 포지션별로 보낼 최대 카드 수
+
+    usage = full_data.get('_usage') or {}
+    order = full_data.get('_order') or [k for k in full_data.keys() if not k.startswith('_')]
+    order = [tc for tc in order if tc not in EXCLUDE_TEAMCOLORS]
+    if usage:
+        order = [tc for tc in order if usage.get(tc, 0) >= MIN_USERS]
+
+    trimmed = {
+        '_order': order,
+        '_usage': {tc: usage[tc] for tc in order if tc in usage},
+        '_logos': {tc: url for tc, url in (full_data.get('_logos') or {}).items() if tc in order},
+    }
+    for tc in order:
+        trimmed[tc] = {pos: cards[:CARDS_PER_POSITION] for pos, cards in (full_data.get(tc) or {}).items()}
+
+    full_data = trimmed
+    teamcolor_names = order
 
     cur.execute("""
         SELECT name, min_count, stat1_name, stat1_value, stat2_name, stat2_value,
@@ -2487,19 +2510,26 @@ def squad_tierlist_teamcolors():
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT full_data->'_order' AS tc_order
+        SELECT full_data->'_order' AS tc_order, full_data->'_logos' AS tc_logos,
+               full_data->'_usage' AS tc_usage
         FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC
+        ORDER BY crawl_date DESC, id DESC
         LIMIT 1
     """)
     result = cur.fetchone()
     cur.execute("SELECT team_name, logo_url FROM team_logos")
-    logos = {row['team_name']: row['logo_url'] for row in cur.fetchall()}
+    table_logos = {row['team_name']: row['logo_url'] for row in cur.fetchall()}
+    crawled_logos = (result['tc_logos'] if result else None) or {}
+    logos = {**crawled_logos, **table_logos}
     cur.close()
     conn.close()
     if not result:
         return jsonify({'success': False}), 404
-    return jsonify({'success': True, 'order': result['tc_order'], 'logos': logos})
+    order = result['tc_order'] or []
+    usage = result['tc_usage'] or {}
+    if usage:
+        order = [tc for tc in order if usage.get(tc, 0) >= TIERLIST_MIN_USERS]
+    return jsonify({'success': True, 'order': order, 'logos': logos})
 
 @app.route('/api/squad_tierlist_cards')
 def squad_tierlist_cards():
@@ -2512,7 +2542,7 @@ def squad_tierlist_cards():
     cur.execute("""
         SELECT full_data->%s AS tc_data
         FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC
+        ORDER BY crawl_date DESC, id DESC
         LIMIT 1
     """, (teamcolor,))
     result = cur.fetchone()
@@ -2562,7 +2592,7 @@ def ranker_squad_list():
     cur.execute("""
         SELECT squad_full_data->%s AS tc_data
         FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC
+        ORDER BY crawl_date DESC, id DESC
         LIMIT 1
     """, (teamcolor,))
     result = cur.fetchone()
@@ -2599,7 +2629,7 @@ def ranker_squad_detail():
     cur.execute("""
         SELECT squad_full_data->%s AS tc_data
         FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC
+        ORDER BY crawl_date DESC, id DESC
         LIMIT 1
     """, (teamcolor,))
     result = cur.fetchone()
@@ -2628,7 +2658,7 @@ def ranker_squad_list_all():
     cur.execute("""
         SELECT squad_full_data
         FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC
+        ORDER BY crawl_date DESC, id DESC
         LIMIT 1
     """)
     result = cur.fetchone()
