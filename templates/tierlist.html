@@ -1298,7 +1298,7 @@
                         <div class="teamcolor-header" onclick="toggleTeamcolor(${idx})">
                             <span class="teamcolor-rank">${idx + 1}</span>
                             ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
-                            <span class="teamcolor-name">${tc}${usageHtml}</span>
+                            <span class="teamcolor-name" data-tc="${tc}">${tc}${usageHtml}</span>
                             <button class="tc-share-btn" onclick="copyTcLink(event, '${encodeURIComponent(tc)}')">🔗</button>
                             <span class="teamcolor-arrow">▼</span>
                         </div>
@@ -1661,7 +1661,7 @@
                 if (tcParam) {
                     const rows = document.querySelectorAll('.teamcolor-name');
                     rows.forEach((el) => {
-                        if (el.textContent === decodeURIComponent(tcParam)) {
+                        if (el.dataset.tc === decodeURIComponent(tcParam)) {
                             const rowEl = el.closest('.teamcolor-row');
                             if (rowEl && rowEl.id.startsWith('tcrow-')) {
                                 const idx = parseInt(rowEl.id.replace('tcrow-', ''));
