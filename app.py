@@ -2372,7 +2372,7 @@ def get_card_tierlist_data():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT full_data 
+        SELECT full_data, crawl_date
         FROM card_tierlist_rankings 
         ORDER BY crawl_date DESC, id DESC 
         LIMIT 1
@@ -2499,7 +2499,8 @@ def get_card_tierlist_data():
     cur.close()
     conn.close()
 
-    response = {'success': True, 'data': full_data, 'effects': effects}
+    response = {'success': True, 'data': full_data, 'effects': effects,
+                'crawl_date': str(result['crawl_date'])}
     if include_hover:
         response['hover_map'] = hover_map
         response['price_map'] = price_map
