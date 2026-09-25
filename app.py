@@ -2363,6 +2363,7 @@ def get_all_tierlist_data():
 
 # 티어리스트 / 스쿼드 메이커 공통: 이 인원 미만 팀컬러는 제외
 TIERLIST_MIN_USERS = 10
+TIERLIST_EXCLUDE_TEAMCOLORS = {'단일 팀'}
 @app.route('/api/get_card_tierlist_data')
 def get_card_tierlist_data():
     """카드 티어리스트 데이터 반환 (가장 최근 날짜)"""
@@ -2389,7 +2390,7 @@ def get_card_tierlist_data():
 
     # ===== 티어리스트 노출 설정 =====
     MIN_USERS = TIERLIST_MIN_USERS # 이 인원 미만 팀컬러는 제외
-    EXCLUDE_TEAMCOLORS = {'단일 팀'} # 티어리스트에서 숨길 팀컬러
+    EXCLUDE_TEAMCOLORS = TIERLIST_EXCLUDE_TEAMCOLORS
     CARDS_PER_POSITION = 20        # 포지션별로 보낼 최대 카드 수
 
     usage = full_data.get('_usage') or {}
@@ -2527,6 +2528,7 @@ def squad_tierlist_teamcolors():
     if not result:
         return jsonify({'success': False}), 404
     order = result['tc_order'] or []
+    order = [tc for tc in order if tc not in TIERLIST_EXCLUDE_TEAMCOLORS]
     usage = result['tc_usage'] or {}
     if usage:
         order = [tc for tc in order if usage.get(tc, 0) >= TIERLIST_MIN_USERS]
