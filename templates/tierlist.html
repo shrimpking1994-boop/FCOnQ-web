@@ -869,6 +869,11 @@
         // 현재 탭 저장
         localStorage.setItem('lastTab', tab);
 
+        // GA: 탭 클릭 기록
+        if (typeof gtag === 'function') {
+            gtag('event', 'tierlist_tab_view', { 'tab_name': tab, 'method': 'click' });
+        }
+
         // 각 탭별로 ranking 동기화 및 차트 로드
         if (tab === 'teamcolor') {
             const formationRanking = document.getElementById('formationRankingSelect').value;
@@ -1651,6 +1656,11 @@
 
         document.querySelectorAll('.tierlist-tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelector(`[onclick="switchTab('${lastTab}')"]`).classList.add('active');
+
+        // GA: 첫 진입 탭 기록
+        if (typeof gtag === 'function') {
+            gtag('event', 'tierlist_tab_view', { 'tab_name': lastTab, 'method': 'initial' });
+        }
 
         if (lastTab === 'teamcolor') {
             loadTierlist();
