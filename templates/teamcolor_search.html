@@ -113,6 +113,11 @@
         box-sizing: border-box;
     }
 
+    .tcs-field input[type="text"]::placeholder {
+        color: var(--text-primary);
+        opacity: 1;
+    }
+
     .tcs-autocomplete-list {
         position: absolute;
         z-index: 1000;
@@ -134,6 +139,12 @@
 
     .tcs-autocomplete-item:hover {
         background: var(--hover-bg);
+    }
+
+    .tcs-autocomplete-all {
+        font-weight: 700;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--border-color);
     }
 
     .tcs-search-btn {
@@ -485,14 +496,19 @@
                 return;
             }
 
-            const filtered = dataArray.filter(name => name.includes(value)).slice(0, 10);
+            const allMatched = dataArray.filter(name => name.includes(value));
+            const filtered = allMatched.slice(0, 10);
 
             if (filtered.length === 0) {
                 list.style.display = 'none';
                 return;
             }
 
-            list.innerHTML = filtered.map(name =>
+            const allItemHtml = (inputId === 'tcs-trait-input' && allMatched.length >= 2)
+                ? `<div class="tcs-autocomplete-item tcs-autocomplete-all" onclick="runTraitAllSearch()">🔍 '${value.replace(/</g, '&lt;')}' 전체 검색 (${allMatched.length}개)</div>`
+                : '';
+
+            list.innerHTML = allItemHtml + filtered.map(name =>
                 `<div class="tcs-autocomplete-item" onclick="selectTcsOption('${inputId}', '${listId}', '${name.replace(/'/g, "\\'")}')">${name}</div>`
             ).join('');
             list.style.display = 'block';
@@ -509,6 +525,17 @@
         document.getElementById(inputId).value = name;
         document.getElementById(listId).style.display = 'none';
     };
+
+    window.runTraitAllSearch = function () {
+        document.getElementById('tcs-trait-list').style.display = 'none';
+        runNameSearch();
+    };
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && e.target.id === 'tcs-trait-input') {
+            runTraitAllSearch();
+        }
+    });
 
     $(document).ready(function () {
         const tcsGroupIds = ['tcs-nation-input', 'tcs-club-input', 'tcs-trait-input'];
