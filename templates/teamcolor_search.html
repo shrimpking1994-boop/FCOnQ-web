@@ -254,6 +254,35 @@
         height: 18px;
     }
 
+    .tcs-card-salary {
+        position: absolute;
+        bottom: 18px;
+        left: 0px;
+        width: 19px;
+        height: 21px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+        background: var(--text-secondary);
+        color: var(--bg-main);
+        font-size: 0.65rem;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    .tcs-card-new-trait {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 2px;
+        object-fit: contain;
+    }
+
     .tcs-card-name {
         font-size: 0.7rem;
         color: var(--text-secondary);
@@ -610,6 +639,8 @@
                                      onerror="this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${p.pid}.png'; this.onerror=function(){this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';};"
                                      onclick="event.stopPropagation(); window.open('/card/${c.spid}', '_blank')" style="cursor:pointer;">
                                 <img class="tcs-card-season-badge" src="${getSeasonImgUrl(c.spid)}" loading="lazy" onerror="this.style.display='none'">
+                                ${c.salary ? `<span class="tcs-card-salary">${c.salary}</span>` : ''}
+                                ${c.new_trait && TCS_TRAIT_MAP[c.new_trait] ? `<img class="tcs-card-new-trait" src="${TCS_TRAIT_BASE}${TCS_TRAIT_MAP[c.new_trait]}.png" title="${c.new_trait}">` : ''}
                             </div>
                         </div>
                     `).join('')}

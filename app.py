@@ -2014,7 +2014,8 @@ def get_trait_teamcolor_detail(cur, tc_name):
                 stats.append({'name': sname, 'value': sval})
 
     cur.execute("""
-        SELECT pc.spid, pc.player_name
+        SELECT pc.spid, pc.player_name,
+               pc.full_data->'game_info' AS game_info
         FROM player_cards pc
         WHERE RIGHT(pc.spid::text, 6) IN (
             SELECT player_id FROM special_teamcolor_players WHERE teamcolor_id = %s
@@ -2023,12 +2024,22 @@ def get_trait_teamcolor_detail(cur, tc_name):
     """, (teamcolor_id, SEASON_ORDER))
     cards = cur.fetchall()
 
+    cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
+    new_trait_names = set(row['trait_name'] for row in cur.fetchall())
+
     players = {}
     for c in cards:
         pid = str(c['spid'])[-6:]
         if pid not in players:
             players[pid] = {'pid': pid, 'name': c['player_name'], 'cards': []}
-        players[pid]['cards'].append({'spid': c['spid']})
+        game_info = c['game_info'] or {}
+        traits = game_info.get('traits', [])
+        new_trait = next((t for t in traits if t in new_trait_names), None)
+        players[pid]['cards'].append({
+            'spid': c['spid'],
+            'salary': game_info.get('salary', ''),
+            'new_trait': new_trait
+        })
 
     return {
         'image_url': image_url,
