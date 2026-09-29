@@ -2014,7 +2014,7 @@ def get_trait_teamcolor_detail(cur, tc_name):
                 stats.append({'name': sname, 'value': sval})
 
     cur.execute("""
-        SELECT pc.spid, pc.player_name,
+        SELECT pc.spid, pc.player_name, pc.position,
                pc.full_data->'game_info' AS game_info
         FROM player_cards pc
         WHERE RIGHT(pc.spid::text, 6) IN (
@@ -2038,7 +2038,8 @@ def get_trait_teamcolor_detail(cur, tc_name):
         players[pid]['cards'].append({
             'spid': c['spid'],
             'salary': game_info.get('salary', ''),
-            'new_trait': new_trait
+            'new_trait': new_trait,
+            'position': c['position']
         })
 
     return {

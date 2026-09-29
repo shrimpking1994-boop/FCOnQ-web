@@ -18,7 +18,7 @@
 {% block content %}
 <style>
     .tcs-container {
-        max-width: 900px;
+        max-width: 1400px;
         margin: 20px auto;
         padding: 0 10px;
     }
@@ -220,6 +220,52 @@
         border-top: none;
     }
 
+    .tcs-pos-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 18px;
+        padding: 4px 0;
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .tcs-pos-header::before {
+        content: '';
+        width: 4px;
+        height: 1.1em;
+        border-radius: 2px;
+        background: currentColor;
+    }
+
+    .tcs-pos-0 {
+        color: #ff6b6b;
+    }
+
+    .tcs-pos-1 {
+        color: #51cf66;
+    }
+
+    .tcs-pos-2 {
+        color: #4dabf7;
+    }
+
+    .tcs-pos-3 {
+        color: #fcc419;
+    }
+
+    .tcs-pos-4 {
+        color: var(--text-secondary);
+    }
+
+    .tcs-pos-header:first-child {
+        margin-top: 0;
+    }
+
+    .tcs-pos-header+.tcs-player-row {
+        border-top: none;
+    }
+
     .tcs-player-row-head {
         display: flex;
         justify-content: space-between;
@@ -313,6 +359,54 @@
         .tcs-card-img-wrap img.tcs-card-face {
             width: 62px;
             height: 62px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .tcs-cards-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+
+        .tcs-card-item {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .tcs-card-img-wrap {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+        }
+
+        .tcs-card-img-wrap img.tcs-card-face {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tcs-card-season-badge {
+            height: 16px;
+        }
+
+        .tcs-card-salary {
+            bottom: 16px;
+            width: 17px;
+            height: 19px;
+            font-size: 0.55rem;
+        }
+
+        .tcs-card-new-trait {
+            width: 18px;
+            height: 18px;
+            padding: 1px;
+        }
+    }
+
+    @media (min-width: 769px) {
+        .tcs-cards-row {
+            display: grid;
+            grid-template-columns: repeat(10, 80px);
+            justify-content: space-between;
         }
     }
 
@@ -537,6 +631,23 @@
         }
     });
 
+    const TCS_POS_GROUPS = [
+        { label: '공격수', positions: ['ST', 'CF', 'LW', 'RW', 'LF', 'RF'] },
+        { label: '미드필더', positions: ['CAM', 'CM', 'CDM', 'LM', 'RM', 'LAM', 'RAM', 'LCM', 'RCM', 'LDM', 'RDM'] },
+        { label: '수비수', positions: ['CB', 'LB', 'RB', 'LWB', 'RWB', 'SW', 'LCB', 'RCB'] },
+        { label: '골키퍼', positions: ['GK'] }
+    ];
+
+    function getTcsPlayerGroup(player) {
+        const counts = TCS_POS_GROUPS.map(() => 0);
+        player.cards.forEach(c => {
+            const gi = TCS_POS_GROUPS.findIndex(g => g.positions.includes(c.position));
+            if (gi >= 0) counts[gi]++;
+        });
+        const max = Math.max(...counts);
+        return max > 0 ? counts.indexOf(max) : TCS_POS_GROUPS.length;
+    }
+
     $(document).ready(function () {
         const tcsGroupIds = ['tcs-nation-input', 'tcs-club-input', 'tcs-trait-input'];
         setupTcsAutocomplete('tcs-nation-input', 'tcs-nation-list', tcsNationList, tcsGroupIds);
@@ -649,9 +760,12 @@
             ? data.stats.map(s => `${s.name} +${s.value}`).join(', ')
             : '없음';
 
-        data.players.sort((a, b) => b.cards.length - a.cards.length);
+        data.players.forEach(p => { p.group = getTcsPlayerGroup(p); });
+        data.players.sort((a, b) => (a.group - b.group) || (b.cards.length - a.cards.length));
 
         const playersHtml = data.players.map((p, idx) => `
+            ${(idx === 0 || data.players[idx - 1].group !== p.group)
+                ? `<div class="tcs-pos-header tcs-pos-${p.group}">${TCS_POS_GROUPS[p.group] ? TCS_POS_GROUPS[p.group].label : '기타'}</div>` : ''}
             <div class="tcs-player-row" onclick="toggleTcsPlayer('${uid}', ${idx})">
                 <div class="tcs-player-row-head">
                     <span>${p.name} (${p.cards.length}종)</span>
@@ -722,7 +836,7 @@
 
     function toggleTcsPlayer(uid, idx) {
         const el = document.getElementById(`tcs-cards-${uid}-${idx}`);
-        el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+        el.style.display = el.style.display === 'none' ? '' : 'none';
         const arrow = document.getElementById(`tcs-arrow-${uid}-${idx}`);
         arrow.textContent = arrow.textContent === '▼' ? '▲' : '▼';
     }
