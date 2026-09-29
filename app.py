@@ -2519,6 +2519,53 @@ def get_card_tierlist_data():
         response['price_map'] = price_map
     return jsonify(response)
 
+@app.route('/api/get_price_movers')
+def get_price_movers():
+    """시세 티어리스트: 기간별 급등/급락 탑30 (price_movers.py가 계산한 결과)"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
+    new_trait_names = set(row['trait_name'] for row in cur.fetchall())
+
+    cur.execute("""
+        SELECT pm.period, pm.direction, pm.rank, pm.spid, pm.grade,
+               pm.prev_price, pm.cur_price, pm.change_rate, pm.updated_at,
+               pc.player_name, pc.full_data->'game_info' AS game_info
+        FROM price_movers pm
+        LEFT JOIN player_cards pc ON pc.spid = pm.spid
+        ORDER BY pm.period, pm.direction, pm.rank
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    if not rows:
+        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
+
+    result = {}
+    for row in rows:
+        game_info = row['game_info'] or {}
+        traits = game_info.get('traits', [])
+        period_data = result.setdefault(str(row['period']), {'up': [], 'down': []})
+        period_data[row['direction']].append({
+            'rank': row['rank'],
+            'spid': row['spid'],
+            'grade': row['grade'],
+            'prev_price': row['prev_price'],
+            'cur_price': row['cur_price'],
+            'change_rate': row['change_rate'],
+            'name': row['player_name'] or '',
+            'salary': game_info.get('salary', ''),
+            'new_trait': next((t for t in traits if t in new_trait_names), None)
+        })
+
+    return jsonify({
+        'success': True,
+        'data': result,
+        'updated_at': f"{rows[0]['updated_at'].month}월 {rows[0]['updated_at'].day}일"
+    })
+
 @app.route('/api/squad_tierlist_teamcolors')
 def squad_tierlist_teamcolors():
     conn = get_db_connection()
