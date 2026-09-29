@@ -1287,10 +1287,7 @@
                         </div>`;
                 });
 
-                const usageCount = (data._usage || {})[tc];
-                const usageHtml = usageCount
-                    ? `<span class="teamcolor-usage">${(usageCount / 10000 * 100).toFixed(1)}% · ${usageCount.toLocaleString()}명</span>`
-                    : '';
+                const usageHtml = '';
                 const eff = effects[tc] || { stats: [] };
                 const effectHtml = `
     <div class="teamcolor-effect-info" style="padding:10px 15px; margin-bottom:10px; background:rgba(255,255,255,0.05); border-radius:8px; font-size:13px;">
