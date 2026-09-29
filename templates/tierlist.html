@@ -877,7 +877,7 @@
     .pm-cur {
         color: var(--text-primary);
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
 
     .pm-rate {
@@ -891,6 +891,14 @@
     }
 
     .pm-rate.down {
+        color: #4d9bff;
+    }
+
+    .pm-diff.up {
+        color: #ff5b5b;
+    }
+
+    .pm-diff.down {
         color: #4d9bff;
     }
 
@@ -1626,6 +1634,8 @@
             : '';
         const rankClass = item.rank <= 3 ? `r${item.rank}` : '';
         const rateText = Math.abs(item.change_rate).toLocaleString(undefined, { maximumFractionDigits: 1 });
+        const diff = item.cur_price - item.prev_price;
+        const diffText = (diff > 0 ? '+' : '-') + formatPrice(Math.abs(diff));
 
         return `
             <div class="pm-row">
@@ -1642,7 +1652,7 @@
                     <div class="pm-change">${formatPrice(item.prev_price)} → ${formatPrice(item.cur_price)} BP</div>
                 </div>
                 <div class="pm-right">
-                    <div class="pm-cur">${formatPrice(item.cur_price)} BP</div>
+                    <div class="pm-cur">${diffText} BP</div>
                     <div class="pm-rate ${dir}">${dir === 'up' ? '▲' : '▼'} ${rateText}%</div>
                 </div>
             </div>`;
