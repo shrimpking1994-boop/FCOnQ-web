@@ -1368,6 +1368,13 @@
                 return new Promise((resolve) => {
                     const img = new Image();
                     img.onload = () => {
+                        // 모바일에서는 로고를 작게 (비율 유지)
+                        if (window.innerWidth <= 768) {
+                            const max = 21;  // 모바일 로고 최대 크기(px)
+                            const ratio = img.naturalWidth / img.naturalHeight || 1;
+                            img.width = ratio >= 1 ? max : Math.round(max * ratio);
+                            img.height = ratio >= 1 ? Math.round(max / ratio) : max;
+                        }
                         loadedLogos[teamName] = img;
                         resolve();
                     };
@@ -1568,7 +1575,8 @@
                     x: {
                         offset: true,
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            labelOffset: window.innerWidth <= 768 ? 10 : 0  // 모바일에서 날짜를 오른쪽으로
                         },
                         grid: {
                             color: 'rgba(128, 128, 128, 0.1)'
