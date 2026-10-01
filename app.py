@@ -2565,6 +2565,48 @@ def get_price_movers():
         'data': result,
         'updated_at': f"{rows[0]['updated_at'].month}월 {rows[0]['updated_at'].day}일"
     })
+    
+@app.route('/api/get_new_trait_stats')
+def get_new_trait_stats():
+    """신규 특성 티어리스트: 포지션별 카드 고유(ranker) / 8강 선택(nexon) TOP 5"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT source, position, rank, trait_name, count, ratio, data_date
+        FROM new_trait_stats
+        ORDER BY source, position, rank
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    if not rows:
+        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
+
+    def to_korean_date(text):
+        try:
+            d = datetime.strptime(text[:10], '%Y-%m-%d')
+            return f"{d.month}월 {d.day}일"
+        except Exception:
+            return ''
+
+    result = {'ranker': {}, 'nexon': {}}
+    dates = {}
+    for row in rows:
+        result[row['source']].setdefault(row['position'], []).append({
+            'rank': row['rank'],
+            'name': row['trait_name'],
+            'count': row['count'],
+            'ratio': row['ratio']
+        })
+        dates[row['source']] = to_korean_date(row['data_date'] or '')
+
+    return jsonify({
+        'success': True,
+        'data': result,
+        'ranker_date': dates.get('ranker', ''),
+        'nexon_date': dates.get('nexon', '')
+    })    
 
 @app.route('/api/squad_tierlist_teamcolors')
 def squad_tierlist_teamcolors():

@@ -916,6 +916,161 @@
             display: none;
         }
     }
+
+    /* ===== 신규 특성 탭 ===== */
+    .nt-pos-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        margin: 10px 0 15px;
+    }
+
+    .nt-pos-btn {
+        padding: 6px 14px;
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .nt-pos-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .nt-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .nt-col {
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 12px;
+    }
+
+    .nt-col-title {
+        color: var(--text-primary);
+        font-size: 1.05rem;
+        font-weight: 800;
+        padding: 4px 4px 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .nt-col-sub {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        padding: 0 4px 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .nt-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 4px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .nt-row:last-child {
+        border-bottom: none;
+    }
+
+    .nt-rank {
+        width: 22px;
+        text-align: center;
+        font-weight: 800;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+    }
+
+    .nt-rank.r1 {
+        color: #f5b301;
+    }
+
+    .nt-rank.r2 {
+        color: #b8c2cc;
+    }
+
+    .nt-rank.r3 {
+        color: #cd7f32;
+    }
+
+    .nt-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 3px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .nt-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .nt-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .nt-name {
+        color: var(--text-primary);
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nt-ratio {
+        color: var(--text-primary);
+        font-weight: 800;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .nt-bar {
+        height: 6px;
+        margin-top: 6px;
+        border-radius: 3px;
+        background: var(--border-color);
+        overflow: hidden;
+    }
+
+    .nt-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+    }
+
+    .nt-col-ranker .nt-bar-fill {
+        background: #20c997
+    }
+
+    .nt-col-nexon .nt-bar-fill {
+        background: #f5a623;
+    }
+
+    @media (max-width: 768px) {
+        .nt-wrap {
+            grid-template-columns: 1fr;
+        }
+
+        .nt-pos-btn {
+            padding: 5px 11px;
+            font-size: 0.8rem;
+        }
+    }
 </style>
 
 <!-- 탭 버튼 -->
@@ -923,6 +1078,7 @@
     <div class="tierlist-tabs">
         <button class="tierlist-tab-btn active" onclick="switchTab('teamcolor')">팀컬러</button>
         <button class="tierlist-tab-btn" onclick="switchTab('card')">선수</button>
+        <button class="tierlist-tab-btn" onclick="switchTab('trait')">신규 특성</button>
         <button class="tierlist-tab-btn" onclick="switchTab('price')">시세</button>
         <!-- <button class="tierlist-tab-btn" onclick="switchTab('formation')">포메이션</button> -->
     </div>
@@ -974,7 +1130,7 @@
                 <li>🏆 <b>팀컬러 순위</b>: 1만 명 중 해당 팀컬러를 사용하는 인원 순이며, 사용 인원이 10명 미만인 팀컬러는 제외됩니다.</li>
                 <li>🃏 <b>카드 순위</b>: 각 팀컬러 사용자들의 스쿼드에서 포지션별 카드 사용 횟수를 집계했습니다. 사용 횟수가 매우 적은 카드는 제외되며, 10위 카드가 10회 이상이면
                     20위까지 보여줍니다. 드물게 해당 팀컬러 소속이 아닌 카드가 포함될 수 있습니다.</li>
-                <li>🔄 <b>업데이트</b>: 매일 갱신됩니다.</li>
+                <li>🔄 <b>업데이트</b>: 당일 오전 10시 이후 기준으로 매일 갱신됩니다.</li>
             </ul>
         </div>
 
@@ -1017,6 +1173,31 @@
         </div>
     </div>
 
+    <!-- 신규 특성 탭 콘텐츠 -->
+    <div class="tab-content" id="tab-trait">
+        <div class="card-info-line">
+            <span id="traitInfoDate">📅 기준일 확인 중</span>
+            <button class="card-info-btn" onclick="toggleCardInfo('traitInfoDetail')" aria-label="설명 보기">i</button>
+        </div>
+        <div class="card-info-detail" id="traitInfoDetail">
+            <ul>
+                <li>🃏 <b>카드 고유픽</b>: 상위 랭커 1만 명의 선발 선수 카드에 기본으로 붙어 있는 신규 특성 비율입니다.</li>
+                <li>🎯 <b>8강 선택픽</b>: 넥슨 공식 통계(1:1 공식경기 슈퍼챔피언스~월드클래스3) 기준, 8강 달성 시 가장 많이 선택한 신규 특성 비율입니다.</li>
+                <li>📊 <b>비율 기준</b>: 포지션 묶음은 선수 티어리스트와 같으며, 여러 세부 포지션(예: ST·LS·RS·CF)은 실제 사용
+                    인원 기준으로 합산해, 많이 쓰이는 포지션의 비중이 더 크게 반영됩니다.</li>
+                <li>🔄 <b>업데이트</b>: 당일 오전 10시 이후 기준으로 매일 갱신됩니다.</li>
+            </ul>
+        </div>
+
+        <div class="nt-pos-tabs" id="ntPosTabs"></div>
+
+        <div id="newTraitWrap" class="nt-wrap">
+            <div class="empty-state">
+                <h3 class="loading-pulse">✨ 신규 특성 정보를 불러오는 중이에요.</h3>
+            </div>
+        </div>
+    </div>
+
     <!-- 시세 탭 콘텐츠 -->
     <div class="tab-content" id="tab-price">
         <div class="card-info-line">
@@ -1026,7 +1207,8 @@
         <div class="card-info-detail" id="priceInfoDetail">
             <ul>
                 <li>📊 <b>분석 대상</b>: 모든 선수 카드의 8~11강 시세를 분석했습니다.</li>
-                <li>📈 <b>순위 기준</b>: 선택한 기간 전 가격과 현재 가격을 비교한 상승률·하락률 순입니다. 강화 단계별로 따로 집계하기 때문에 같은 카드가 여러 번 나올 수 있습니다.
+                <li>📈 <b>순위 기준</b>: 선택한 기간 전 가격과 현재 가격을 비교한 상승률·하락률 순입니다. 강화 단계별로 따로 집계하기 때문에 같은 카드가 여러 번 나올 수 있습니다. 변동
+                    금액이 100만 BP 이상인 카드만 집계합니다.
                 </li>
                 <li>⚠️ <b>참고</b>: 거래가 적은 카드는 가격 변동이 크게 나타날 수 있습니다.</li>
                 <li>🔄 <b>업데이트</b>: 매일 갱신됩니다.</li>
@@ -1090,6 +1272,10 @@
             if (!teamChartCanvas) {
                 loadTierlist();
             }
+        }
+
+        if (tab === 'trait') {
+            loadNewTraitStats();
         }
 
         if (tab === 'price') {
@@ -1585,6 +1771,79 @@
         return seasonLogos[seasonId] || '';
     }
 
+    // ===== 신규 특성 탭 =====
+    let newTraitData = null;
+    let newTraitPos = 'ST';
+    const NT_POS_LABEL = { LWING: 'L-Wing', RWING: 'R-Wing', LRDM: 'L/RDM' };
+
+    async function loadNewTraitStats() {
+        if (newTraitData) {
+            renderNewTraitStats();
+            return;
+        }
+        const wrap = document.getElementById('newTraitWrap');
+        try {
+            const res = await fetch('/api/get_new_trait_stats');
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            newTraitData = json;
+            document.getElementById('traitInfoDate').textContent = `📅 ${json.ranker_date || json.nexon_date} 기준`;
+            renderNtPosTabs();
+            renderNewTraitStats();
+        } catch (e) {
+            wrap.innerHTML = `<div class="empty-state"><h3>신규 특성 정보를 불러오지 못했어요.</h3></div>`;
+        }
+    }
+
+    function renderNtPosTabs() {
+        document.getElementById('ntPosTabs').innerHTML = POSITION_ORDER.map(pos =>
+            `<button class="nt-pos-btn ${pos === newTraitPos ? 'active' : ''}" onclick="switchNtPos('${pos}', this)">${NT_POS_LABEL[pos] || pos}</button>`
+        ).join('');
+    }
+
+    function switchNtPos(pos, btn) {
+        newTraitPos = pos;
+        document.querySelectorAll('.nt-pos-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderNewTraitStats();
+    }
+
+    function buildNtRow(item) {
+        const pct = (item.ratio * 100).toFixed(1);
+        const iconId = TRAIT_ICON_MAP[item.name];
+        const iconHtml = iconId
+            ? `<img class="nt-icon" src="${TRAIT_ICON_BASE}${iconId}.png" alt="${item.name}" loading="lazy" onerror="this.style.visibility='hidden'">`
+            : `<span class="nt-icon"></span>`;
+        return `
+            <div class="nt-row">
+                <span class="nt-rank ${item.rank <= 3 ? 'r' + item.rank : ''}">${item.rank}</span>
+                ${iconHtml}
+                <div class="nt-body">
+                    <div class="nt-top">
+                        <span class="nt-name" title="${item.name}">${item.name}</span>
+                        <span class="nt-ratio">${pct}%</span>
+                    </div>
+                    <div class="nt-bar"><div class="nt-bar-fill" style="width:${pct}%"></div></div>
+                </div>
+            </div>`;
+    }
+
+    function renderNewTraitStats() {
+        const wrap = document.getElementById('newTraitWrap');
+        const d = newTraitData.data;
+        const col = (key, title) => {
+            const list = (d[key] || {})[newTraitPos] || [];
+            return `
+                <div class="nt-col nt-col-${key}">
+                    <div class="nt-col-title">${title}</div>
+                    ${list.length ? list.map(buildNtRow).join('') : '<div class="empty-state"><p>데이터가 없어요.</p></div>'}
+                </div>`;
+        };
+        wrap.innerHTML =
+            col('ranker', '🃏 카드 고유픽') +
+            col('nexon', '🎯 8강 선택픽');
+    }
+
     // ===== 시세 탭 =====
     let priceMoversData = null;
     let pricePeriod = '1';
@@ -1957,6 +2216,8 @@
 
         if (lastTab === 'teamcolor') {
             loadTierlist();
+        } else if (lastTab === 'trait') {
+            loadNewTraitStats();
         } else if (lastTab === 'price') {
             loadPriceMovers();
         } else if (lastTab === 'formation') {
