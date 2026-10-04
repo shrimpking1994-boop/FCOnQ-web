@@ -1175,11 +1175,13 @@
         border-radius:50%; width:20px; height:20px; font-size:0.75rem; cursor:pointer;
         color:var(--text-muted); line-height:1; padding:0;">?</button>
             </div>
-            <button class="sm-btn sm-btn-tier" onclick="autoFillByTier()">
+            <button class="sm-btn sm-btn-tier"
+                onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'autofill' }); autoFillByTier()">
                 <span class="btn-full">1. 사용률 기반 자동 완성</span>
                 <span class="btn-short">1. 사용률<br>자동 완성</span>
             </button>
-            <button class="sm-btn sm-btn-ranker" onclick="loadRankerSquad()">
+            <button class="sm-btn sm-btn-ranker"
+                onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'ranker' }); loadRankerSquad()">
                 <span class="btn-full">2. 랭커 스쿼드 불러오기</span>
                 <span class="btn-short">2. 랭커 스쿼드</span>
             </button>
