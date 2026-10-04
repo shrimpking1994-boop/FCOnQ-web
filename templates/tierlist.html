@@ -404,10 +404,36 @@
     }
 
     .teamcolor-rank {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1;
         font-size: 1.1rem;
         font-weight: 700;
         color: var(--text-secondary);
         min-width: 28px;
+    }
+
+    .tc-change {
+        margin-top: 4px;
+        font-size: 0.62rem;
+        font-weight: 800;
+    }
+
+    .tc-change.up {
+        color: #ff5b5b;
+    }
+
+    .tc-change.down {
+        color: #4d9bff;
+    }
+
+    .tc-change.same {
+        color: var(--text-secondary);
+    }
+
+    .tc-change.new {
+        color: #20c997;
     }
 
     .teamcolor-logo {
@@ -1633,9 +1659,20 @@
             const hoverMap = json.hover_map || {};
             const priceMap = json.price_map || {};
             if (json.crawl_date) {
-                const [, m, d] = json.crawl_date.split('-');
-                document.getElementById('cardInfoDate').textContent = `📅 ${Number(m)}월 ${Number(d)}일 기준`;
+                const toKor = s => { const [, m, d] = s.split('-'); return `${Number(m)}월 ${Number(d)}일`; };
+                const cur = toKor(json.crawl_date);
+                document.getElementById('cardInfoDate').textContent =
+                    json.prev_date ? `📅 ${toKor(json.prev_date)} → ${cur} 기준` : `📅 ${cur} 기준`;
             }
+            const rankChange = json.rank_change || {};
+            const changeHtml = tc => {
+                const c = rankChange[tc];
+                if (c === undefined) return '';
+                if (c === 'new') return '<span class="tc-change new">NEW</span>';
+                if (c > 0) return `<span class="tc-change up">▲${c}</span>`;
+                if (c < 0) return `<span class="tc-change down">▼${Math.abs(c)}</span>`;
+                return '<span class="tc-change same">-</span>';
+            };
 
             let html = '';
             teamcolors.forEach((tc, idx) => {
@@ -1703,7 +1740,7 @@
                 html += `
                     <div class="teamcolor-row" id="tcrow-${idx}">
                         <div class="teamcolor-header" onclick="toggleTeamcolor(${idx})">
-                            <span class="teamcolor-rank">${idx + 1}</span>
+                            <span class="teamcolor-rank">${idx + 1}${changeHtml(tc)}</span>
                             ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
                             <span class="teamcolor-name" data-tc="${tc}">${tc}${usageHtml}</span>
                             <button class="tc-share-btn" onclick="copyTcLink(event, '${encodeURIComponent(tc)}')">🔗</button>

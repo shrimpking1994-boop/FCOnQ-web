@@ -392,21 +392,45 @@ def home_summary():
         LIMIT 1
     """)
     row = cur.fetchone()
-    teamcolors, tc_date = [], ''
+    teamcolors, tc_date, tc_prev_date = [], '', ''
     if row:
         usage = row['tc_usage'] or {}
         logos = row['tc_logos'] or {}
+                # 7일 전 순위 (그날 데이터가 없으면 그 이전 중 가장 가까운 날)
+        cur.execute("""
+            SELECT crawl_date, full_data->'_order' AS tc_order
+            FROM card_tierlist_rankings
+            WHERE crawl_date <= %s
+            ORDER BY crawl_date DESC, id DESC
+            LIMIT 1
+        """, (row['crawl_date'] - timedelta(days=7),))
+        prev = cur.fetchone()
+        if prev:
+            tc_prev_date = f"{prev['crawl_date'].month}월 {prev['crawl_date'].day}일"
+        prev_rank = {n: i for i, n in enumerate((prev['tc_order'] or []) if prev else [], 1)}
+
         for i, name in enumerate((row['tc_order'] or [])[:10], 1):
             cnt = usage.get(name, 0)
+            if not prev_rank:
+                change = None              # 비교할 과거 데이터 없음
+            elif name in prev_rank:
+                change = prev_rank[name] - i   # +면 상승, -면 하락, 0이면 유지
+            else:
+                change = 'new'
             teamcolors.append({'rank': i, 'name': name, 'count': cnt,
-                               'ratio': round(cnt / 10000, 4), 'logo': logos.get(name, '')})
+                               'ratio': round(cnt / 10000, 4), 'logo': logos.get(name, ''),
+                               'change': change})
         tc_date = f"{row['crawl_date'].month}월 {row['crawl_date'].day}일"
 
     # 포지션별 신규 특성 1위
-    cur.execute("SELECT source, position, trait_name, ratio FROM new_trait_stats WHERE rank = 1")
+    cur.execute("SELECT source, position, trait_name, ratio, data_date FROM new_trait_stats WHERE rank = 1")
     traits = {'ranker': {}, 'nexon': {}}
+    trait_dates = {}
     for r in cur.fetchall():
         traits.setdefault(r['source'], {})[r['position']] = {'name': r['trait_name'], 'ratio': r['ratio']}
+        if r['data_date'] and r['source'] not in trait_dates:
+            _, m, d = r['data_date'][:10].split('-')
+            trait_dates[r['source']] = f"{int(m)}월 {int(d)}일"
 
     # 커뮤니티 최신글 (공지·업데이트 제외)
     cur.execute("""
@@ -450,7 +474,8 @@ def home_summary():
     cur.close()
     conn.close()
 
-    data = {'success': True, 'teamcolor_date': tc_date, 'teamcolors': teamcolors, 'traits': traits,
+    data = {'success': True, 'teamcolor_date': tc_date, 'teamcolor_prev_date': tc_prev_date,
+            'teamcolors': teamcolors, 'traits': traits, 'trait_dates': trait_dates,
             'community': community, 'reviews': reviews, 'updates': updates}
     _home_cache['data'], _home_cache['time'] = data, now
     return jsonify(data)
@@ -2520,6 +2545,26 @@ def get_card_tierlist_data():
 
     full_data = trimmed
     teamcolor_names = order
+    
+        # 7일 전 순위 (같은 기준으로 걸러서 비교, 그날 데이터가 없으면 그 이전 중 가장 가까운 날)
+    cur.execute("""
+        SELECT crawl_date, full_data->'_order' AS tc_order, full_data->'_usage' AS tc_usage
+        FROM card_tierlist_rankings
+        WHERE crawl_date <= %s
+        ORDER BY crawl_date DESC, id DESC
+        LIMIT 1
+    """, (result['crawl_date'] - timedelta(days=7),))
+    prev = cur.fetchone()
+    rank_change, prev_date = {}, ''
+    if prev:
+        p_usage = prev['tc_usage'] or {}
+        p_order = [tc for tc in (prev['tc_order'] or []) if tc not in EXCLUDE_TEAMCOLORS]
+        if p_usage:
+            p_order = [tc for tc in p_order if p_usage.get(tc, 0) >= MIN_USERS]
+        p_rank = {tc: i for i, tc in enumerate(p_order, 1)}
+        for i, tc in enumerate(order, 1):
+            rank_change[tc] = (p_rank[tc] - i) if tc in p_rank else 'new'
+        prev_date = str(prev['crawl_date'])
 
     cur.execute("""
         SELECT name, min_count, stat1_name, stat1_value, stat2_name, stat2_value,
@@ -2612,7 +2657,8 @@ def get_card_tierlist_data():
     conn.close()
 
     response = {'success': True, 'data': full_data, 'effects': effects,
-                'crawl_date': str(result['crawl_date'])}
+                'crawl_date': str(result['crawl_date']),
+                'prev_date': prev_date, 'rank_change': rank_change}
     if include_hover:
         response['hover_map'] = hover_map
         response['price_map'] = price_map

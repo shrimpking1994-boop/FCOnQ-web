@@ -114,6 +114,10 @@
         .home-search-btn {
             padding: 0 20px;
         }
+
+        .home-card-date {
+            display: none;
+        }
     }
 
     /* ===== 요약 블록 (위아래 배치) ===== */
@@ -236,6 +240,30 @@
 
     .home-tile-rank.r3 {
         color: #cd7f32;
+    }
+
+    .home-tile-change {
+        position: absolute;
+        top: 2px;
+        right: 3px;
+        font-size: 0.72rem;
+        font-weight: 800;
+    }
+
+    .home-tile-change.up {
+        color: #ff5b5b;
+    }
+
+    .home-tile-change.down {
+        color: #4d9bff;
+    }
+
+    .home-tile-change.same {
+        color: var(--text-secondary);
+    }
+
+    .home-tile-change.new {
+        color: #20c997;
     }
 
     .home-tile-logo {
@@ -490,6 +518,12 @@
             font-size: 0.7rem;
         }
 
+        .home-tile-change {
+            top: 3px;
+            right: 5px;
+            font-size: 0.62rem;
+        }
+
         .home-tc-grid .home-tile {
             padding-top: 14px;
         }
@@ -531,7 +565,7 @@
     <!-- 포지션별 신규 특성 1위 -->
     <section class="home-card">
         <div class="home-card-head">
-            <div class="home-card-title">✨ 포지션별 신규 특성 1위</div>
+            <div class="home-card-title">✨ 포지션별 신규 특성 1위<span class="home-card-date" id="homeTraitDate"></span></div>
             <a class="home-card-more" href="/tierlist?tab=trait">더보기 →</a>
         </div>
         <div class="home-tabs">
@@ -690,6 +724,14 @@
 
         const EMPTY = msg => `<div class="home-empty" style="grid-column: 1 / -1;">${msg}</div>`;
 
+        function rankChangeHtml(change) {
+            if (change === null || change === undefined) return '';
+            if (change === 'new') return '<span class="home-tile-change new">NEW</span>';
+            if (change > 0) return `<span class="home-tile-change up">▲${change}</span>`;
+            if (change < 0) return `<span class="home-tile-change down">▼${Math.abs(change)}</span>`;
+            return '<span class="home-tile-change same">-</span>';
+        }
+
         function renderTeamcolors() {
             const box = document.getElementById('homeTeamcolorList');
             const list = summary.teamcolors || [];
@@ -697,10 +739,13 @@
                 box.innerHTML = EMPTY('데이터가 없어요.');
                 return;
             }
-            document.getElementById('homeTcDate').textContent = summary.teamcolor_date || '';
+            const tcDate = summary.teamcolor_date || '';
+            const prevDate = summary.teamcolor_prev_date || '';
+            document.getElementById('homeTcDate').textContent = prevDate ? `${prevDate} → ${tcDate}` : tcDate;
             box.innerHTML = list.map(t => `
                 <a class="home-tile" href="/tierlist?tab=card&tc=${encodeURIComponent(t.name)}">
                     <span class="home-tile-rank ${t.rank <= 3 ? 'r' + t.rank : ''}">${t.rank}</span>
+                    ${rankChangeHtml(t.change)}
                     ${t.logo ? `<img class="home-tile-logo" src="${t.logo}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="home-tile-logo"></span>'}
                     <span class="home-tile-name">${t.name}</span>
                     <span class="home-tile-value"><b>${(t.ratio * 100).toFixed(1)}%</b><span class="home-tile-sep"> · </span><span class="home-tile-count">${t.count.toLocaleString()}명</span></span>
@@ -710,6 +755,7 @@
         function renderTraits() {
             const box = document.getElementById('homeTraitList');
             const data = (summary.traits || {})[traitSource] || {};
+            document.getElementById('homeTraitDate').textContent = (summary.trait_dates || {})[traitSource] || '';
             const rows = POS_ORDER.filter(pos => data[pos]);
             if (!rows.length) {
                 box.innerHTML = EMPTY('데이터가 없어요.');
