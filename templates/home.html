@@ -1,0 +1,829 @@
+{% extends "index.html" %}
+
+{% block title %}엪씨온큐 | FC온라인 선수 DB · 티어리스트{% endblock %}
+
+{% block content %}
+<style>
+    .home-container {
+        max-width: 1400px;
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    /* ===== 검색 영역 ===== */
+    .home-search {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 16px 20px;
+        text-align: center;
+    }
+
+    .home-search-form {
+        display: flex;
+        gap: 10px;
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .home-search-input-wrap {
+        position: relative;
+        flex: 1;
+    }
+
+    .home-search-input {
+        width: 100%;
+        padding: 14px 18px;
+        background: var(--bg-main);
+        color: var(--text-primary);
+        border: 2px solid var(--border-color);
+        border-radius: 25px;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .home-search-input:focus {
+        border-color: #5865B8;
+    }
+
+    .home-search-input::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.7;
+    }
+
+    .home-search-btn {
+        background: #5865B8;
+        border: none;
+        padding: 0 32px;
+        color: white;
+        font-weight: bold;
+        border-radius: 25px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .home-search-btn:hover {
+        opacity: 0.9;
+    }
+
+    .home-autocomplete {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        display: none;
+        margin-top: 6px;
+        max-height: 300px;
+        overflow-y: auto;
+        text-align: left;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        box-shadow: 0 4px 12px var(--shadow-main);
+    }
+
+    .home-autocomplete-item {
+        padding: 10px 18px;
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+
+    .home-autocomplete-item.active,
+    .home-autocomplete-item:hover {
+        background: var(--hover-bg);
+    }
+
+    @media (max-width: 768px) {
+        .home-container {
+            margin-top: 10px;
+            padding: 0 6px;
+        }
+
+        .home-search {
+            padding: 12px 10px;
+        }
+
+        .home-search-input {
+            padding: 12px 16px;
+            font-size: 0.95rem;
+        }
+
+        .home-search-btn {
+            padding: 0 20px;
+        }
+    }
+
+    /* ===== 요약 블록 (위아래 배치) ===== */
+    .home-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 16px;
+        margin-top: 16px;
+    }
+
+    .home-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .home-card-title {
+        color: var(--text-primary);
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .home-card-date {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-left: 6px;
+    }
+
+    .home-card-more {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .home-card-more:hover {
+        color: var(--primary-color);
+    }
+
+    .home-tabs {
+        display: flex;
+        gap: 6px;
+        margin-top: 12px;
+    }
+
+    .home-tab-btn {
+        padding: 6px 18px;
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .home-tab-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    /* 가로 카드 공통 */
+    .home-tile-grid {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .home-tc-grid {
+        grid-template-columns: repeat(10, 1fr);
+    }
+
+    .home-trait-grid {
+        grid-template-columns: repeat(11, 1fr);
+    }
+
+    .home-tile {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        padding: 12px 6px 10px;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .home-tile:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .home-tile-rank {
+        position: absolute;
+        top: 6px;
+        left: 8px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--text-secondary);
+    }
+
+    .home-tile-rank.r1 {
+        color: #f5b301;
+    }
+
+    .home-tile-rank.r2 {
+        color: #b8c2cc;
+    }
+
+    .home-tile-rank.r3 {
+        color: #cd7f32;
+    }
+
+    .home-tile-logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+    }
+
+    .home-tile-pos {
+        min-width: 56px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: var(--primary-color);
+        color: white;
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .home-tile-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 3px;
+        object-fit: contain;
+    }
+
+    .home-tile-name {
+        width: 100%;
+        color: var(--text-primary);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: center;
+        line-height: 1.25;
+        word-break: keep-all;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        min-height: 2.5em;
+    }
+
+    .home-tile-value {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    .home-tile-value b {
+        color: var(--text-primary);
+    }
+
+    .home-empty {
+        padding: 30px 0;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    /* ===== 하단 3칸 (커뮤니티 / 선수 후기 / 업데이트) ===== */
+    .home-bottom {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .home-bottom .home-card {
+        min-width: 0;
+    }
+
+    .home-list-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 4px;
+        border-bottom: 1px solid var(--border-color);
+        color: inherit;
+        text-decoration: none;
+        border-radius: 6px;
+    }
+
+    .home-list-row:last-child {
+        border-bottom: none;
+    }
+
+    .home-list-row:hover {
+        background: var(--hover-bg);
+    }
+
+    .home-list-cat {
+        flex-shrink: 0;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+
+    .home-list-title {
+        flex: 1;
+        min-width: 0;
+        color: var(--text-primary);
+        font-size: 0.88rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .home-list-cmt {
+        color: var(--primary-color);
+        font-size: 0.78rem;
+        font-weight: 700;
+        margin-left: 4px;
+    }
+
+    .home-list-date {
+        flex-shrink: 0;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+
+    .home-review-face {
+        width: 34px;
+        height: 34px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: var(--bg-main);
+        flex-shrink: 0;
+    }
+
+    .home-review-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .home-review-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .home-review-season {
+        height: 15px;
+        flex-shrink: 0;
+    }
+
+    .home-review-name {
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .home-review-rating {
+        flex-shrink: 0;
+        color: #fbbf24;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .home-review-text {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+    }
+
+    @media (max-width: 1100px) {
+        .home-bottom {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+
+    @media (max-width: 1100px) {
+        .home-tc-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .home-trait-grid {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .home-card {
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .home-tc-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .home-trait-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .home-tile-grid {
+            gap: 6px;
+        }
+
+        .home-tile {
+            padding: 10px 4px 8px;
+            gap: 4px;
+        }
+
+        .home-tile-logo,
+        .home-tile-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .home-tile-name {
+            font-size: 0.74rem;
+        }
+
+        .home-tile-value {
+            font-size: 0.7rem;
+        }
+
+        .home-tile-pos {
+            min-width: 0;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+        }
+
+        .home-tabs .home-tab-btn {
+            flex: 1;
+            padding: 6px 0;
+        }
+
+        .home-tile-sep {
+            display: none;
+        }
+
+        .home-tile-count {
+            display: block;
+            text-align: center;
+        }
+
+        .home-tile-value {
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .home-tile-rank {
+            top: 3px;
+            left: 5px;
+            font-size: 0.7rem;
+        }
+
+        .home-tc-grid .home-tile {
+            padding-top: 14px;
+        }
+
+        .home-tc-grid .home-tile-name {
+            font-size: 0.68rem;
+            letter-spacing: -0.03em;
+            overflow-wrap: anywhere;
+        }
+    }
+</style>
+
+<div class="home-container">
+
+    <!-- 선수 검색 -->
+    <section class="home-search">
+
+        <form class="home-search-form" id="homeSearchForm" action="/search" method="GET">
+            <div class="home-search-input-wrap">
+                <input type="text" class="home-search-input" name="player_name" id="homeSearchInput"
+                    placeholder="선수 이름을 입력하세요." autocomplete="off">
+                <div class="home-autocomplete" id="homeAutocomplete"></div>
+            </div>
+            <button type="submit" class="home-search-btn">검색</button>
+        </form>
+    </section>
+
+    <!-- 인기 팀컬러 -->
+    <section class="home-card">
+        <div class="home-card-head">
+            <div class="home-card-title">🏆 인기 팀컬러 TOP 10<span class="home-card-date" id="homeTcDate"></span></div>
+            <a class="home-card-more" href="/tierlist?tab=card">더보기 →</a>
+        </div>
+        <div class="home-tile-grid home-tc-grid" id="homeTeamcolorList">
+            <div class="home-empty" style="grid-column: 1 / -1;">불러오는 중이에요.</div>
+        </div>
+    </section>
+
+    <!-- 포지션별 신규 특성 1위 -->
+    <section class="home-card">
+        <div class="home-card-head">
+            <div class="home-card-title">✨ 포지션별 신규 특성 1위</div>
+            <a class="home-card-more" href="/tierlist?tab=trait">더보기 →</a>
+        </div>
+        <div class="home-tabs">
+            <button type="button" class="home-tab-btn active" data-source="ranker">🃏 카드 고유픽</button>
+            <button type="button" class="home-tab-btn" data-source="nexon">🎯 8강 선택픽</button>
+        </div>
+        <div class="home-tile-grid home-trait-grid" id="homeTraitList">
+            <div class="home-empty" style="grid-column: 1 / -1;">불러오는 중이에요.</div>
+        </div>
+    </section>
+
+    <!-- 하단: 커뮤니티 최신글 / 선수 후기 / 업데이트 -->
+    <div class="home-bottom">
+        <section class="home-card">
+            <div class="home-card-head">
+                <div class="home-card-title">💬 커뮤니티 최신글</div>
+                <a class="home-card-more" href="/community">더보기 →</a>
+            </div>
+            <div id="homeCommunityList">
+                <div class="home-empty">불러오는 중이에요.</div>
+            </div>
+        </section>
+
+        <section class="home-card">
+            <div class="home-card-head">
+                <div class="home-card-title">⭐ 최근 선수 후기</div>
+            </div>
+            <div id="homeReviewList">
+                <div class="home-empty">불러오는 중이에요.</div>
+            </div>
+        </section>
+
+        <section class="home-card">
+            <div class="home-card-head">
+                <div class="home-card-title">🛠️ 업데이트</div>
+                <a class="home-card-more" href="/community?category=업데이트">더보기 →</a>
+            </div>
+            <div id="homeUpdateList">
+                <div class="home-empty">불러오는 중이에요.</div>
+            </div>
+        </section>
+    </div>
+
+</div>
+
+<script>
+    (function () {
+        const form = document.getElementById('homeSearchForm');
+        const input = document.getElementById('homeSearchInput');
+        const list = document.getElementById('homeAutocomplete');
+        let playerNames = [];
+        let focusIdx = -1;
+
+        // 자동완성용 선수 이름 (선수 DB와 같은 데이터)
+        fetch('/api/player_names')
+            .then(res => res.json())
+            .then(data => { playerNames = data; })
+            .catch(() => { });
+
+        function goSearch(name) {
+            const value = (name || '').trim();
+            if (typeof gtag === 'function') {
+                gtag('event', 'home_search', { query: value || '(빈 검색)', transport_type: 'beacon' });
+            }
+            sessionStorage.removeItem('searchState');
+            sessionStorage.removeItem('searchResultsData');
+            window.location.href = value
+                ? '/search?player_name=' + encodeURIComponent(value)
+                : '/search';
+        }
+
+        function closeList() {
+            list.style.display = 'none';
+            focusIdx = -1;
+        }
+
+        function highlight() {
+            const items = list.querySelectorAll('.home-autocomplete-item');
+            items.forEach((el, i) => el.classList.toggle('active', i === focusIdx));
+        }
+
+        input.addEventListener('input', function () {
+            const value = this.value.trim();
+            if (playerNames.length === 0 || value.length < 2) {
+                closeList();
+                return;
+            }
+            const filtered = playerNames.filter(p => p.name.includes(value)).slice(0, 10);
+            if (filtered.length === 0) {
+                closeList();
+                return;
+            }
+            list.innerHTML = filtered.map(p =>
+                `<div class="home-autocomplete-item" data-name="${p.name.replace(/"/g, '&quot;')}">${p.name}</div>`
+            ).join('');
+            list.style.display = 'block';
+            focusIdx = -1;
+        });
+
+        // 자동완성 항목 클릭 → 바로 검색
+        list.addEventListener('click', function (e) {
+            const item = e.target.closest('.home-autocomplete-item');
+            if (item) goSearch(item.dataset.name);
+        });
+
+        // 방향키로 항목 이동
+        input.addEventListener('keydown', function (e) {
+            const items = list.querySelectorAll('.home-autocomplete-item');
+            if (list.style.display !== 'block' || items.length === 0) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                focusIdx = (focusIdx + 1) % items.length;
+                highlight();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                focusIdx = (focusIdx - 1 + items.length) % items.length;
+                highlight();
+            } else if (e.key === 'Escape') {
+                closeList();
+            }
+        });
+
+        // 검색 버튼 / 엔터: 방향키로 고른 항목이 있으면 그 이름, 없으면 입력한 글자로 검색
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const items = list.querySelectorAll('.home-autocomplete-item');
+            if (list.style.display === 'block' && focusIdx >= 0 && items[focusIdx]) {
+                goSearch(items[focusIdx].dataset.name);
+            } else {
+                goSearch(input.value);
+            }
+        });
+
+        // 바깥 클릭 시 닫기
+        document.addEventListener('click', function (e) {
+            if (!input.contains(e.target) && !list.contains(e.target)) closeList();
+        });
+    })();
+</script>
+<script>
+    // ===== 홈 요약 블록 (인기 팀컬러 / 포지션별 신규 특성) =====
+    (function () {
+        const POS_ORDER = ['ST', 'CAM', 'LWING', 'RWING', 'CM', 'LRDM', 'CDM', 'CB', 'LB', 'RB', 'GK'];
+        const POS_LABEL = { LWING: 'L-Wing', RWING: 'R-Wing', LRDM: 'L/RDM' };
+        const TRAIT_ICON_BASE = 'https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/';
+        const TRAIT_ICON_MAP = {
+            "아크로바틱 피니셔": "trait_icon_50", "크로스 포쳐": "trait_icon_51", "라인 브레이커": "trait_icon_52",
+            "와일드 태클러": "trait_icon_53", "체이서": "trait_icon_54", "2개의 심장": "trait_icon_55",
+            "파이터": "trait_icon_56", "GK 빠른 반응": "trait_icon_57", "커맨더": "trait_icon_59",
+            "GK 공중볼 장악": "trait_icon_60", "블로커": "trait_icon_62", "스피드스터": "trait_icon_63",
+            "타이탄": "trait_icon_64", "트릭스터": "trait_icon_65", "레이저 슈터": "trait_icon_66",
+            "프레데터": "trait_icon_67", "GK 데드아이": "trait_icon_68"
+        };
+        let summary = null;
+        let traitSource = 'ranker';
+
+        const EMPTY = msg => `<div class="home-empty" style="grid-column: 1 / -1;">${msg}</div>`;
+
+        function renderTeamcolors() {
+            const box = document.getElementById('homeTeamcolorList');
+            const list = summary.teamcolors || [];
+            if (!list.length) {
+                box.innerHTML = EMPTY('데이터가 없어요.');
+                return;
+            }
+            document.getElementById('homeTcDate').textContent = summary.teamcolor_date || '';
+            box.innerHTML = list.map(t => `
+                <a class="home-tile" href="/tierlist?tab=card&tc=${encodeURIComponent(t.name)}">
+                    <span class="home-tile-rank ${t.rank <= 3 ? 'r' + t.rank : ''}">${t.rank}</span>
+                    ${t.logo ? `<img class="home-tile-logo" src="${t.logo}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="home-tile-logo"></span>'}
+                    <span class="home-tile-name">${t.name}</span>
+                    <span class="home-tile-value"><b>${(t.ratio * 100).toFixed(1)}%</b><span class="home-tile-sep"> · </span><span class="home-tile-count">${t.count.toLocaleString()}명</span></span>
+                </a>`).join('');
+        }
+
+        function renderTraits() {
+            const box = document.getElementById('homeTraitList');
+            const data = (summary.traits || {})[traitSource] || {};
+            const rows = POS_ORDER.filter(pos => data[pos]);
+            if (!rows.length) {
+                box.innerHTML = EMPTY('데이터가 없어요.');
+                return;
+            }
+            box.innerHTML = rows.map(pos => {
+                const t = data[pos];
+                const icon = TRAIT_ICON_MAP[t.name];
+                return `
+                <a class="home-tile" href="/tierlist?tab=trait&pos=${pos}">
+                    <span class="home-tile-pos">${POS_LABEL[pos] || pos}</span>
+                    ${icon ? `<img class="home-tile-icon" src="${TRAIT_ICON_BASE}${icon}.png" alt="" loading="lazy">` : '<span class="home-tile-icon"></span>'}
+                    <span class="home-tile-name">${t.name}</span>
+                    <span class="home-tile-value"><b>${(t.ratio * 100).toFixed(1)}%</b></span>
+                </a>`;
+            }).join('');
+        }
+
+        function esc(text) {
+            const d = document.createElement('div');
+            d.textContent = text == null ? '' : String(text);
+            return d.innerHTML;
+        }
+
+        function renderBottom() {
+            const posts = summary.community || [];
+            document.getElementById('homeCommunityList').innerHTML = posts.length
+                ? posts.map(p => `
+                    <a class="home-list-row" href="/community/post/${p.id}">
+                        <span class="home-list-cat">${esc(p.category === '미니 페이스온' ? '미페' : p.category)}</span>
+                        <span class="home-list-title">${esc(p.title)}${p.comment_count ? `<span class="home-list-cmt">[${p.comment_count}]</span>` : ''}</span>
+                        <span class="home-list-date">${p.date}</span>
+                    </a>`).join('')
+                : '<div class="home-empty">아직 글이 없어요.</div>';
+
+            const reviews = summary.reviews || [];
+            document.getElementById('homeReviewList').innerHTML = reviews.length
+                ? reviews.map(r => {
+                    const pid = parseInt(String(r.spid).slice(-6));
+                    return `
+                    <a class="home-list-row" href="/player_review/${r.spid}">
+                        <img class="home-review-face" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${r.spid}.png" alt="" loading="lazy"
+                            onerror="this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${pid}.png';">
+                        <div class="home-review-body">
+                            <div class="home-review-top">
+                                ${r.season_img ? `<img class="home-review-season" src="${r.season_img}" alt="" loading="lazy">` : ''}
+                                <span class="home-review-name">${esc(r.player_name)}</span>
+                            </div>
+                            <div class="home-review-text">${esc(r.content)}</div>
+                        </div>
+                        <span class="home-list-date">${r.date}</span>
+                    </a>`;
+                }).join('')
+                : '<div class="home-empty">아직 후기가 없어요.</div>';
+
+            const updates = summary.updates || [];
+            document.getElementById('homeUpdateList').innerHTML = updates.length
+                ? updates.map(u => `
+                    <a class="home-list-row" href="/community/post/${u.id}">
+                        <span class="home-list-title">${esc(u.title)}</span>
+                        <span class="home-list-date">${u.date}</span>
+                    </a>`).join('')
+                : '<div class="home-empty">아직 업데이트 소식이 없어요.</div>';
+        }
+
+        document.querySelectorAll('.home-tab-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.home-tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                traitSource = this.dataset.source;
+                if (typeof gtag === 'function') {
+                    gtag('event', 'home_trait_tab', { tab: traitSource });
+                }
+                if (summary) renderTraits();
+            });
+        });
+
+        fetch('/api/home_summary')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) throw new Error();
+                summary = data;
+                renderTeamcolors();
+                renderTraits();
+                renderBottom();
+            })
+            .catch(() => {
+                document.getElementById('homeTeamcolorList').innerHTML = EMPTY('불러오지 못했어요.');
+                document.getElementById('homeTraitList').innerHTML = EMPTY('불러오지 못했어요.');
+                ['homeCommunityList', 'homeReviewList', 'homeUpdateList'].forEach(id => {
+                    document.getElementById(id).innerHTML = '<div class="home-empty">불러오지 못했어요.</div>';
+                });
+            });
+    })();
+</script>
+<script>
+    // ===== 홈 클릭 기록 (GA): 어떤 블록의 무엇을 눌렀는지 =====
+    (function () {
+        const BLOCKS = {
+            homeTeamcolorList: 'teamcolor', homeTraitList: 'new_trait',
+            homeCommunityList: 'community', homeReviewList: 'review', homeUpdateList: 'update'
+        };
+        document.querySelector('.home-container').addEventListener('click', function (e) {
+            const link = e.target.closest('a');
+            if (!link || typeof gtag !== 'function') return;
+            const section = link.closest('section');
+            const listEl = section ? section.querySelector('[id^="home"][id$="List"]') : null;
+            const block = listEl ? (BLOCKS[listEl.id] || listEl.id) : 'etc';
+            const nameEl = link.querySelector('.home-tile-name, .home-list-title, .home-review-name, .home-tile-pos');
+            const item = link.classList.contains('home-card-more')
+                ? '더보기'
+                : (nameEl ? nameEl.textContent.trim() : link.textContent.trim()).slice(0, 50);
+            gtag('event', 'home_click', { block: block, item: item, transport_type: 'beacon' });
+        });
+    })();
+</script>
+{% endblock %}

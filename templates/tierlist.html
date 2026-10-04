@@ -1781,7 +1781,8 @@
 
     // ===== 신규 특성 탭 =====
     let newTraitData = null;
-    let newTraitPos = 'ST';
+    const _posParam = new URLSearchParams(location.search).get('pos');
+    let newTraitPos = POSITION_ORDER.includes(_posParam) ? _posParam : 'ST';
     const NT_POS_LABEL = { LWING: 'L-Wing', RWING: 'R-Wing', LRDM: 'L/RDM' };
 
     async function loadNewTraitStats() {

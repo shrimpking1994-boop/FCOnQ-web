@@ -732,7 +732,7 @@
     <div class="top-bar">
         <div class="container">
             <div class="top-bar-content">
-                <a href="/search" class="top-bar-logo" onclick="sessionStorage.removeItem('searchState')">
+                <a href="/" class="top-bar-logo" onclick="sessionStorage.removeItem('searchState')">
                     <img src="{{ url_for('static', filename='fconq_title_logo5.png') }}" alt="FCOnQ">
                 </a>
                 <div class="top-bar-right">
@@ -755,7 +755,7 @@
             <!-- 2층: 로고 -->
             <div class="logo-bar">
                 <div class="container">
-                    <a href="/search" class="top-title-link" onclick="sessionStorage.removeItem('searchState')">
+                    <a href="/" class="top-title-link" onclick="sessionStorage.removeItem('searchState')">
                         <img src="{{ url_for('static', filename='fconq_title_logo5.png') }}" alt="FCOnQ"
                             class="site-logo">
                     </a>
@@ -888,7 +888,7 @@
             navLinks.forEach(link => {
                 link.classList.remove('active');
 
-                if (currentPath === '/' || currentPath === '/search' ||
+                if (currentPath === '/search' ||
                     currentPath.startsWith('/results') || currentPath.startsWith('/card') ||
                     currentPath.startsWith('/compare') || currentPath.startsWith('/player_review')) {
                     document.getElementById('nav-playerdb').classList.add('active');

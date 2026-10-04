@@ -19,10 +19,13 @@
                padding: 10px; 
                border-radius: 8px;">
                 <option value="">글 카테고리를 선택하세요</option>
+                {% if session.get('user_role') == 'admin' %}
+                <option value="업데이트">🛠️ 업데이트</option>
+                {% endif %}
                 <option value="잡담">잡담</option>
                 <option value="꿀팁">꿀팁</option>
                 <option value="스쿼드">스쿼드</option>
-                <option value="선수 후기">선수 후기</option>ㄴ
+                <option value="선수 후기">선수 후기</option>
                 <option value="전술">전술</option>
                 <option value="강화/득템">강화/득템</option>
                 <option value="감독모드">감독모드</option>

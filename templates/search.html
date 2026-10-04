@@ -1796,6 +1796,13 @@
         setTimeout(restoreSearchState, 0);
 
         const urlParams = new URLSearchParams(location.search);
+        // 홈 화면 검색에서 넘어온 경우: 이름을 채우고 바로 검색
+        const homeQuery = urlParams.get('player_name');
+        if (homeQuery) {
+            document.getElementById('playerNameInput').value = homeQuery;
+            history.replaceState(null, '', '/search');
+            setTimeout(() => document.getElementById('searchForm').requestSubmit(), 50);
+        }
         if (urlParams.get('tab') === 'results') {
             const savedResults = sessionStorage.getItem('searchResultsData');
             if (savedResults) {

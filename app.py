@@ -356,9 +356,105 @@ def build_search_conditions(player_names, selected_seasons, selected_positions, 
 
 @app.route('/')
 def index():
-    """메인 페이지 = 검색 페이지"""
-    # search() 함수 그대로 실행
-    return search()
+    """메인 페이지 = 홈 화면"""
+    return render_template('home.html')
+
+
+_home_cache = {'data': None, 'time': None}
+
+
+def _home_date(dt):
+    """홈 표시용 날짜: 오늘이면 시:분, 아니면 월-일"""
+    kst = pytz.timezone('Asia/Seoul')
+    t = dt.replace(tzinfo=pytz.UTC) if dt.tzinfo is None else dt
+    t = t.astimezone(kst)
+    return t.strftime('%H:%M') if t.date() == datetime.now(kst).date() else t.strftime('%m-%d')
+
+
+@app.route('/api/home_summary')
+def home_summary():
+    """홈 화면 요약 (5분간 재사용)"""
+    now = datetime.now()
+    if _home_cache['data'] and (now - _home_cache['time']).total_seconds() < 300:
+        return jsonify(_home_cache['data'])
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # 인기 팀컬러 TOP 10
+    cur.execute("""
+        SELECT crawl_date,
+               full_data->'_order' AS tc_order,
+               full_data->'_usage' AS tc_usage,
+               full_data->'_logos' AS tc_logos
+        FROM card_tierlist_rankings
+        ORDER BY crawl_date DESC, id DESC
+        LIMIT 1
+    """)
+    row = cur.fetchone()
+    teamcolors, tc_date = [], ''
+    if row:
+        usage = row['tc_usage'] or {}
+        logos = row['tc_logos'] or {}
+        for i, name in enumerate((row['tc_order'] or [])[:10], 1):
+            cnt = usage.get(name, 0)
+            teamcolors.append({'rank': i, 'name': name, 'count': cnt,
+                               'ratio': round(cnt / 10000, 4), 'logo': logos.get(name, '')})
+        tc_date = f"{row['crawl_date'].month}월 {row['crawl_date'].day}일"
+
+    # 포지션별 신규 특성 1위
+    cur.execute("SELECT source, position, trait_name, ratio FROM new_trait_stats WHERE rank = 1")
+    traits = {'ranker': {}, 'nexon': {}}
+    for r in cur.fetchall():
+        traits.setdefault(r['source'], {})[r['position']] = {'name': r['trait_name'], 'ratio': r['ratio']}
+
+    # 커뮤니티 최신글 (공지·업데이트 제외)
+    cur.execute("""
+        SELECT p.id, p.category, p.title, p.created_at,
+               (SELECT COUNT(*) FROM community.comments c
+                WHERE c.post_id = p.id AND c.is_deleted = false) AS comment_count
+        FROM community.posts p
+        WHERE p.is_deleted = false AND p.is_notice = false AND p.category <> '업데이트'
+        ORDER BY p.created_at DESC
+        LIMIT 7
+    """)
+    community = [{'id': r['id'], 'category': r['category'], 'title': r['title'],
+                  'comment_count': r['comment_count'], 'date': _home_date(r['created_at'])}
+                 for r in cur.fetchall()]
+
+    # 최근 선수 후기 (답글 제외)
+    cur.execute("""
+        SELECT r.spid, r.rating, r.content, r.created_at, pc.player_name, s.season_img_url
+        FROM player_reviews r
+        LEFT JOIN player_cards pc ON pc.spid = r.spid
+        LEFT JOIN seasons s ON s.season_id = CAST(LEFT(r.spid::text, 3) AS INTEGER)
+        WHERE r.is_deleted = false AND r.parent_comment_id IS NULL
+        ORDER BY r.created_at DESC
+        LIMIT 6
+    """)
+    reviews = [{'spid': r['spid'], 'rating': r['rating'], 'player_name': r['player_name'] or '',
+                'season_img': r['season_img_url'] or '',
+                'content': (r['content'] or '')[:80], 'date': _home_date(r['created_at'])}
+               for r in cur.fetchall()]
+
+    # 업데이트
+    cur.execute("""
+        SELECT id, title, created_at FROM community.posts
+        WHERE is_deleted = false AND category = '업데이트'
+        ORDER BY created_at DESC
+        LIMIT 5
+    """)
+    updates = [{'id': r['id'], 'title': r['title'], 'date': _home_date(r['created_at'])}
+               for r in cur.fetchall()]
+
+    cur.close()
+    conn.close()
+
+    data = {'success': True, 'teamcolor_date': tc_date, 'teamcolors': teamcolors, 'traits': traits,
+            'community': community, 'reviews': reviews, 'updates': updates}
+    _home_cache['data'], _home_cache['time'] = data, now
+    return jsonify(data)
+
 
 @app.route('/community')
 def community_list():
@@ -537,7 +633,8 @@ def community_write():
              conn.close()
         category = request.form.get('category')
         VALID_CATEGORIES = ['잡담', '꿀팁', '스쿼드', '선수 후기', '전술', '강화/득템', '감독모드', '미니 페이스온', '명장면']
-        if category not in VALID_CATEGORIES:
+        is_admin = session.get('user_role') == 'admin'
+        if category not in VALID_CATEGORIES and not (category == '업데이트' and is_admin):
             return redirect('/community')
         title = request.form.get('title')
         content = request.form.get('content')
@@ -1021,6 +1118,8 @@ def edit_post_submit(post_id):
     category = request.form.get('category')
     title = request.form.get('title')
     content = request.form.get('content')
+    if category == '업데이트' and session.get('user_role') != 'admin':
+        return redirect(f'/community/post/{post_id}')
     
     conn = get_db_connection()
     cur = conn.cursor()
