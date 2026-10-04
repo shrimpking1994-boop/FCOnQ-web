@@ -416,7 +416,7 @@ def home_summary():
         FROM community.posts p
         WHERE p.is_deleted = false AND p.is_notice = false AND p.category <> '업데이트'
         ORDER BY p.created_at DESC
-        LIMIT 7
+        LIMIT 9
     """)
     community = [{'id': r['id'], 'category': r['category'], 'title': r['title'],
                   'comment_count': r['comment_count'], 'date': _home_date(r['created_at'])}
