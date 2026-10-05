@@ -180,7 +180,9 @@
 
     /* 필드 */
     .sm-field-wrap {
-        background: #2d6a3f;
+        background: repeating-linear-gradient(to bottom,
+                #2f6b3a 0, #2f6b3a 12.5%,
+                #2a6134 12.5%, #2a6134 25%);
         border-radius: 10px;
         padding: 0;
         height: 720px;
@@ -189,6 +191,53 @@
         position: relative;
         overflow: hidden;
         touch-action: pan-y;
+    }
+
+    /* 경기장 선: 하프라인 + 센터 서클 */
+    .sm-field-wrap::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 2px;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.18);
+        pointer-events: none;
+    }
+
+    .sm-field-wrap::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 26%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border: 2px solid rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* 페널티 박스 */
+    .sm-field-lines .box {
+        position: absolute;
+        left: 50%;
+        width: 44%;
+        height: 13%;
+        transform: translateX(-50%);
+        border: 2px solid rgba(255, 255, 255, 0.18);
+        pointer-events: none;
+    }
+
+    .sm-field-lines .box.top {
+        top: 0;
+        border-top: none;
+    }
+
+    .sm-field-lines .box.bottom {
+        bottom: 0;
+        border-bottom: none;
     }
 
     .sm-field-label {
@@ -1271,6 +1320,9 @@
 
     <!-- 필드 -->
     <div class="sm-field-wrap" id="squad-field">
+        <div class="sm-field-lines"><span class="box top"></span><span class="box bottom"></span></div>
+
+        <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
 
         <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
         <div id="field-rows" style="position:relative; width:100%; height:100%;"></div>
