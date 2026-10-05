@@ -633,6 +633,28 @@
                 color: var(--text-primary);
                 border-bottom-color: #5b66d6;
             }
+
+            /* 홈일 때 로고 밑줄 (메뉴 밑줄과 같은 선) */
+            .header-main .logo-bar {
+                align-self: stretch;
+                display: flex;
+            }
+
+            .header-main .logo-bar .container {
+                display: flex;
+            }
+
+            .header-main .top-title-link {
+                height: 100%;
+                padding: 0 6px;
+                border-top: 3px solid transparent;
+                border-bottom: 3px solid transparent;
+                transition: border-color 0.2s;
+            }
+
+            .header-main .top-title-link.active {
+                border-bottom-color: #5b66d6;
+            }
         }
 
         /* ===== 모바일: 하단 탭 바 ===== */
@@ -883,6 +905,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const currentPath = window.location.pathname;
+            const logoLink = document.querySelector('.header-main .top-title-link');
+            if (logoLink && currentPath === '/') logoLink.classList.add('active');
             const navLinks = document.querySelectorAll('.nav-link-item');
 
             navLinks.forEach(link => {
