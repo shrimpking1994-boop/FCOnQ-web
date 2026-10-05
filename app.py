@@ -543,7 +543,7 @@ def home_squads():
                     'squad': [{'p': s.get('position'), 'spid': s.get('spid'), 'b': s.get('buildup') or 0}
                               for s in r.get('squad', [])]
                 })
-                if len(picked) >= 10:
+                if len(picked) >= 20:
                     break
         buckets.append({'label': label, 'min': lo, 'max': hi, 'squads': picked})
 
