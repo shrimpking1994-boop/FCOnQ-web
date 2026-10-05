@@ -197,8 +197,8 @@
     .sm-field-wrap::before {
         content: '';
         position: absolute;
-        left: 0;
-        right: 0;
+        left: 6px;
+        right: 6px;
         top: 50%;
         height: 2px;
         transform: translateY(-50%);
@@ -219,6 +219,16 @@
         pointer-events: none;
     }
 
+    /* 터치라인 (경기장 테두리) */
+    .sm-field-lines::before {
+        content: '';
+        position: absolute;
+        inset: 6px;
+        border: 2px solid rgba(255, 255, 255, 0.18);
+        border-radius: 4px;
+        pointer-events: none;
+    }
+
     /* 페널티 박스 */
     .sm-field-lines .box {
         position: absolute;
@@ -231,12 +241,12 @@
     }
 
     .sm-field-lines .box.top {
-        top: 0;
+        top: 6px;
         border-top: none;
     }
 
     .sm-field-lines .box.bottom {
-        bottom: 0;
+        bottom: 6px;
         border-bottom: none;
     }
 
