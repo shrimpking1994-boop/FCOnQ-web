@@ -534,6 +534,346 @@
             overflow-wrap: anywhere;
         }
     }
+
+    /* ===== 구단가치별 랭커 스쿼드 ===== */
+    .home-squad-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        position: relative;
+    }
+
+    .home-squad-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .home-squad-tabs .home-tab-btn {
+        flex: 0 0 auto;
+    }
+
+    .home-squad-filter {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .home-squad-filter .home-tabs {
+        margin-top: 0;
+        min-width: 0;
+    }
+
+    .home-squad-range {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    .home-squad-wrap {
+        position: relative;
+        margin-top: 10px;
+    }
+
+    .home-squad-track {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+    }
+
+    .home-squad-track::-webkit-scrollbar {
+        display: none;
+    }
+
+    .home-squad-card {
+        flex: 0 0 calc((100% - 36px) / 4);
+        scroll-snap-align: start;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        display: block;
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .home-squad-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    /* 미니 경기장 */
+    .home-pitch {
+        position: relative;
+        aspect-ratio: 3 / 4;
+        background:
+            linear-gradient(to bottom, transparent calc(50% - 1px), rgba(255, 255, 255, 0.18) calc(50% - 1px), rgba(255, 255, 255, 0.18) calc(50% + 1px), transparent calc(50% + 1px)),
+            repeating-linear-gradient(to bottom, #2f6b3a 0, #2f6b3a 12.5%, #2a6134 12.5%, #2a6134 25%);
+    }
+
+    .home-pitch::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 26%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border: 2px solid rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+    }
+
+    .home-pitch-player {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 14%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hp-top {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        height: 12px;
+        margin-bottom: 1px;
+    }
+
+    .hp-trait {
+        height: 12px;
+        width: 12px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.75);
+        object-fit: contain;
+    }
+
+    .hp-name {
+        color: #fff;
+        font-size: 0.55rem;
+        font-weight: 700;
+        white-space: nowrap;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+    }
+
+    .hp-face {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .hp-sub {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        margin-top: 1px;
+        height: 11px;
+        width: max-content;
+        white-space: nowrap;
+    }
+
+    .hp-season {
+        height: 100%;
+    }
+
+    .hp-bu {
+        padding: 0 2px;
+        border-radius: 2px;
+        font-size: 0.5rem;
+        font-weight: 800;
+        line-height: 11px;
+        color: #fff;
+    }
+
+    .hp-bu.bu-1 {
+        background: #808080;
+        color: #333;
+    }
+
+    .hp-bu.bu-bronze {
+        background: #CD7F32;
+        color: #333;
+    }
+
+    .hp-bu.bu-silver {
+        background: #C0C0C0;
+        color: #333;
+    }
+
+    .hp-bu.bu-gold {
+        background: #FFD700;
+        color: #333;
+    }
+
+    .hp-bu.bu-purple {
+        background: linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%);
+        color: #333;
+    }
+
+    .home-squad-info {
+        padding: 10px 12px;
+    }
+
+    .home-squad-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .home-squad-logo {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .home-squad-rank {
+        flex-shrink: 0;
+        color: var(--primary-color);
+        font-size: 0.85rem;
+        font-weight: 800;
+    }
+
+    .home-squad-nick {
+        flex: 1;
+        min-width: 0;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .home-squad-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 6px;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+    }
+
+    .home-squad-tcwrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .home-squad-tc {
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .home-squad-meta b {
+        color: #f5a623;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .home-squad-arrow {
+        position: absolute;
+        top: 40%;
+        transform: translateY(-50%);
+        z-index: 2;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-size: 1rem;
+        cursor: pointer;
+        box-shadow: 0 2px 8px var(--shadow-main);
+    }
+
+    .home-squad-arrow.prev {
+        left: -12px;
+    }
+
+    .home-squad-arrow.next {
+        right: -12px;
+    }
+
+    .home-squad-counter {
+        display: none;
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.55);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        pointer-events: none;
+    }
+
+    @media (max-width: 1100px) {
+        .home-squad-card {
+            flex-basis: calc((100% - 24px) / 3);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .home-squad-card {
+            flex-basis: 100%;
+        }
+
+        .home-squad-arrow {
+            width: 30px;
+            height: 30px;
+            opacity: 0.85;
+        }
+
+        .home-squad-arrow.prev {
+            left: 6px;
+        }
+
+        .home-squad-arrow.next {
+            right: 6px;
+        }
+
+        .home-squad-counter {
+            display: block;
+        }
+
+        .home-squad-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            overflow: visible;
+        }
+
+        .home-squad-tabs .home-tab-btn {
+            padding: 6px 0;
+        }
+
+        .home-squad-filter {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+
+        .home-squad-range {
+            white-space: normal;
+        }
+    }
 </style>
 
 <div class="home-container">
@@ -559,6 +899,27 @@
         </div>
         <div class="home-tile-grid home-tc-grid" id="homeTeamcolorList">
             <div class="home-empty" style="grid-column: 1 / -1;">불러오는 중이에요.</div>
+        </div>
+    </section>
+
+
+    <!-- 구단가치별 랭커 스쿼드 -->
+    <section class="home-card">
+        <div class="home-card-head">
+            <div class="home-card-title">⚽ 구단가치별 랭커 스쿼드<span class="home-card-date" id="homeSquadDate"></span></div>
+            <a class="home-card-more" href="/squad_maker">스쿼드 메이커 →</a>
+        </div>
+        <div class="home-squad-filter">
+            <div class="home-tabs home-squad-tabs" id="homeSquadTabs"></div>
+            <div class="home-squad-range" id="homeSquadRange"></div>
+        </div>
+        <div class="home-squad-wrap">
+            <button type="button" class="home-squad-arrow prev" aria-label="이전">‹</button>
+            <div class="home-squad-counter" id="homeSquadCounter"></div>
+            <div class="home-squad-track" id="homeSquadList">
+                <div class="home-empty" style="width:100%;">불러오는 중이에요.</div>
+            </div>
+            <button type="button" class="home-squad-arrow next" aria-label="다음">›</button>
         </div>
     </section>
 
@@ -852,11 +1213,166 @@
     })();
 </script>
 <script>
+    // ===== 구단가치별 랭커 스쿼드 =====
+    (function () {
+        const POS_COORDS = {
+            LW: [13, 12], LF: [23, 32], LS: [11, 35], ST: [10, 50], CF: [23, 50], RF: [23, 68], RS: [11, 65], RW: [13, 88],
+            LAM: [30, 24], CAM: [30, 50], RAM: [30, 76],
+            LM: [38, 12], LCM: [40, 36], CM: [40, 50], RCM: [40, 64], RM: [38, 88],
+            LDM: [55, 35], CDM: [57, 50], RDM: [55, 65],
+            LWB: [68, 12], LB: [74, 12], LCB: [74, 38], CB: [73, 50], SW: [77, 50], RCB: [74, 62], RB: [74, 88], RWB: [68, 88],
+            GK: [91, 50]
+        };
+
+        const SQ_TRAIT_ICON = {
+            "아크로바틱 피니셔": "trait_icon_50", "크로스 포쳐": "trait_icon_51", "라인 브레이커": "trait_icon_52",
+            "와일드 태클러": "trait_icon_53", "체이서": "trait_icon_54", "2개의 심장": "trait_icon_55",
+            "파이터": "trait_icon_56", "GK 빠른 반응": "trait_icon_57", "커맨더": "trait_icon_59",
+            "GK 공중볼 장악": "trait_icon_60", "블로커": "trait_icon_62", "스피드스터": "trait_icon_63",
+            "타이탄": "trait_icon_64", "트릭스터": "trait_icon_65", "레이저 슈터": "trait_icon_66",
+            "프레데터": "trait_icon_67", "GK 데드아이": "trait_icon_68"
+        };
+        const track = document.getElementById('homeSquadList');
+        let buckets = [];
+        let current = 0;
+
+        function formatValue(v) {
+            if (!v) return '-';
+            if (v >= 1e12) return (v / 1e12).toFixed(1).replace(/\.0$/, '') + '조 BP';
+            if (v >= 1e8) return (v / 1e8).toFixed(1).replace(/\.0$/, '') + '억 BP';
+            return Math.floor(v / 1e4).toLocaleString() + '만 BP';
+        }
+
+        function rangeText(b) {
+            const lo = formatValue(b.min).replace(' BP', '');
+            if (b.max === null) return `${lo} 이상 · 상위 랭커 순`;
+            return `${lo} 이상 ${formatValue(b.max).replace(' BP', '')} 미만 · 상위 랭커 순`;
+        }
+
+        function cardHtml(s) {
+            const players = s.squad.map(p => {
+                const c = POS_COORDS[p.p];
+                if (!c) return '';
+                const pid = parseInt(String(p.spid).slice(-6));
+                const b = p.b || 0;
+                const buClass = b <= 1 ? 'bu-1' : b <= 4 ? 'bu-bronze' : b <= 7 ? 'bu-silver' : b <= 10 ? 'bu-gold' : 'bu-purple';
+                return `<div class="home-pitch-player" style="top:${c[0]}%; left:${c[1]}%;">
+                    <div class="hp-top">
+                        ${b ? `<span class="hp-bu ${buClass}">+${b}</span>` : ''}
+                        ${p.trait && SQ_TRAIT_ICON[p.trait] ? `<img class="hp-trait" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/${SQ_TRAIT_ICON[p.trait]}.png" alt="" title="${p.trait}">` : ''}
+                    </div>
+                    <img class="hp-face" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${p.spid}.png" alt="" loading="lazy"
+                        onerror="this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${pid}.png'; this.onerror=function(){this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';};">
+                    <div class="hp-sub">
+                        ${p.season ? `<img class="hp-season" src="${p.season}" alt="" loading="lazy">` : ''}
+                        <span class="hp-name">${p.name || ''}</span>
+                    </div>
+                </div>`;
+            }).join('');
+            return `
+                <a class="home-squad-card" href="/squad_maker?ranker_tc=${encodeURIComponent(s.teamcolor)}&ranker_rank=${s.rank}"
+                    ${window.innerWidth > 768 ? 'target="_blank" rel="noopener"' : ''}>
+                    <div class="home-pitch">${players}</div>
+                    <div class="home-squad-info">
+                        <div class="home-squad-top">
+                            <span class="home-squad-rank">${s.rank.toLocaleString()}위</span>
+                            <span class="home-squad-nick">${(s.nickname || '').replace(/</g, '&lt;')}</span>
+                        </div>
+                        <div class="home-squad-meta">
+                            <span class="home-squad-tcwrap">
+                                ${s.logo ? `<img class="home-squad-logo" src="${s.logo}" alt="" loading="lazy">` : ''}
+                                <span class="home-squad-tc">${s.teamcolor}</span>
+                            </span>
+                            <b>${formatValue(s.value)}</b>
+                        </div>
+                    </div>  
+                </a>`;
+
+        }
+
+        const counter = document.getElementById('homeSquadCounter');
+        function updateCounter() {
+            const cards = track.querySelectorAll('.home-squad-card');
+            const prevBtn = document.querySelector('.home-squad-arrow.prev');
+            const nextBtn = document.querySelector('.home-squad-arrow.next');
+            if (!cards.length) {
+                counter.textContent = '';
+                prevBtn.style.visibility = nextBtn.style.visibility = 'hidden';
+                return;
+            }
+            const idx = Math.round(track.scrollLeft / (cards[0].offsetWidth + 12)) + 1;
+            counter.textContent = `${Math.min(idx, cards.length)} / ${cards.length}`;
+
+            // 처음이면 왼쪽, 끝이면 오른쪽 화살표 숨기기
+            prevBtn.style.visibility = track.scrollLeft <= 2 ? 'hidden' : '';
+            nextBtn.style.visibility = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2 ? 'hidden' : '';
+        }
+        track.addEventListener('scroll', () => requestAnimationFrame(updateCounter));
+
+        function render() {
+            const b = buckets[current];
+            document.getElementById('homeSquadRange').textContent = rangeText(b);
+            track.innerHTML = b.squads.length
+                ? b.squads.map(cardHtml).join('')
+                : '<div class="home-empty" style="width:100%;">이 구간에 해당하는 랭커 스쿼드가 없어요.</div>';
+            track.scrollLeft = 0;
+            updateCounter();
+        }
+
+        function renderTabs() {
+            const tabs = document.getElementById('homeSquadTabs');
+            tabs.innerHTML = buckets.map((b, i) =>
+                `<button type="button" class="home-tab-btn ${i === current ? 'active' : ''}" data-idx="${i}">${b.label}</button>`
+            ).join('');
+            tabs.querySelectorAll('.home-tab-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    current = Number(this.dataset.idx);
+                    tabs.querySelectorAll('.home-tab-btn').forEach(x => x.classList.remove('active'));
+                    this.classList.add('active');
+                    render();
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'home_squad_tab', { bucket: buckets[current].label });
+                    }
+                });
+            });
+        }
+
+        // PC 화살표: 카드 한 장씩 이동
+        document.querySelectorAll('.home-squad-arrow').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const card = track.querySelector('.home-squad-card');
+                const step = card ? card.offsetWidth + 12 : track.clientWidth;
+                track.scrollBy({ left: this.classList.contains('next') ? step : -step });
+                setTimeout(updateCounter, 400);
+            });
+        });
+
+        fetch('/api/home_squads')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success || !data.buckets.length) throw new Error();
+                buckets = data.buckets;
+                current = Math.min(2, buckets.length - 1);  // 처음엔 3번째(~30억) 탭
+                document.getElementById('homeSquadDate').textContent = data.date || '';
+                renderTabs();
+                render();
+                // 모바일에서 선택된 탭이 화면 밖이면 보이도록 가로 스크롤 이동
+                const tabs = document.getElementById('homeSquadTabs');
+                const act = tabs.querySelector('.active');
+                if (act) tabs.scrollLeft = act.offsetLeft - (tabs.clientWidth - act.offsetWidth) / 2;
+            })
+            .catch(() => {
+                track.innerHTML = '<div class="home-empty" style="width:100%;">불러오지 못했어요.</div>';
+            });
+    })();
+</script>
+<script>
     // ===== 홈 클릭 기록 (GA): 어떤 블록의 무엇을 눌렀는지 =====
     (function () {
         const BLOCKS = {
             homeTeamcolorList: 'teamcolor', homeTraitList: 'new_trait',
-            homeCommunityList: 'community', homeReviewList: 'review', homeUpdateList: 'update'
+            homeCommunityList: 'community', homeReviewList: 'review', homeUpdateList: 'update',
+            homeSquadList: 'squad'
         };
         document.querySelector('.home-container').addEventListener('click', function (e) {
             const link = e.target.closest('a');
@@ -864,7 +1380,7 @@
             const section = link.closest('section');
             const listEl = section ? section.querySelector('[id^="home"][id$="List"]') : null;
             const block = listEl ? (BLOCKS[listEl.id] || listEl.id) : 'etc';
-            const nameEl = link.querySelector('.home-tile-name, .home-list-title, .home-review-name, .home-tile-pos');
+            const nameEl = link.querySelector('.home-tile-name, .home-list-title, .home-review-name, .home-tile-pos, .home-squad-tc');
             const item = link.classList.contains('home-card-more')
                 ? '더보기'
                 : (nameEl ? nameEl.textContent.trim() : link.textContent.trim()).slice(0, 50);

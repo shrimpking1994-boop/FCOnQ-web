@@ -481,6 +481,110 @@ def home_summary():
     return jsonify(data)
 
 
+# 홈: 구단가치별 랭커 스쿼드 구간 (단위: BP / 1억 = 1e8, 1조 = 1e12)
+HOME_SQUAD_BUCKETS = [
+    (1e8, 5e8, '~5억'),
+    (5e8, 10e8, '~10억'),
+    (10e8, 30e8, '~30억'),
+    (30e8, 50e8, '~50억'),
+    (50e8, 100e8, '~100억'),
+    (100e8, None, '100억+'),
+]
+HOME_SQUAD_MIN_BUILDUP = 8   # 이 강화 단계 미만 카드가 하나라도 있으면 홈에 표시하지 않음
+_home_squad_cache = {'data': None, 'time': None}
+
+
+@app.route('/api/home_squads')
+def home_squads():
+    """홈 화면: 구단가치 구간별 상위 랭커 스쿼드 10개 (10분간 재사용)"""
+    now = datetime.now()
+    if _home_squad_cache['data'] and (now - _home_squad_cache['time']).total_seconds() < 600:
+        return jsonify(_home_squad_cache['data'])
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT crawl_date, squad_full_data, full_data->'_logos' AS logos
+        FROM card_tierlist_rankings
+        ORDER BY crawl_date DESC, id DESC
+        LIMIT 1
+    """)
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
+
+    squad_data = row['squad_full_data'] or {}
+    if isinstance(squad_data, str):
+        squad_data = json.loads(squad_data)
+    logos = row['logos'] or {}
+
+    # 팀컬러 구분 없이 전체 랭커를 순위순으로
+    rankers = []
+    for tc, lst in squad_data.items():
+        for r in lst or []:
+            rankers.append((r.get('rank') or 999999, tc, r))
+    rankers.sort(key=lambda x: x[0])
+
+    buckets = []
+    for lo, hi, label in HOME_SQUAD_BUCKETS:
+        picked = []
+        for rank, tc, r in rankers:
+            v = r.get('squad_value') or 0
+            if v >= lo and (hi is None or v < hi):
+                squad = r.get('squad', [])
+                # 미완성 스쿼드 제외: 선수가 11명 미만이거나, 강화 단계가 기준 미만인 카드가 있으면 건너뜀
+                if len(squad) < 11 or any((s.get('buildup') or 0) < HOME_SQUAD_MIN_BUILDUP for s in squad):
+                    continue
+                picked.append({
+                    'rank': rank, 'nickname': r.get('nickname', ''),
+                    'teamcolor': tc, 'logo': logos.get(tc, ''), 'value': v,
+                    'squad': [{'p': s.get('position'), 'spid': s.get('spid'), 'b': s.get('buildup') or 0}
+                              for s in r.get('squad', [])]
+                })
+                if len(picked) >= 10:
+                    break
+        buckets.append({'label': label, 'min': lo, 'max': hi, 'squads': picked})
+
+    # 화면에 나오는 카드들의 시즌 이미지와 신규 특성
+    spids = list({int(p['spid']) for b in buckets for s in b['squads'] for p in s['squad'] if p.get('spid')})
+    season_imgs, card_traits, card_names = {}, {}, {}
+    if spids:
+        cur.execute("SELECT season_id, season_img_url FROM seasons")
+        season_imgs = {str(r['season_id']): r['season_img_url'] for r in cur.fetchall()}
+
+        cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
+        new_trait_names = set(r['trait_name'] for r in cur.fetchall())
+
+        cur.execute(
+            "SELECT spid, player_name, full_data->'game_info'->'traits' AS traits FROM player_cards WHERE spid = ANY(%s)",
+            (spids,)
+        )
+        for r in cur.fetchall():
+            card_names[str(r['spid'])] = (r['player_name'] or '').strip().split(' ')[-1]
+            traits = r['traits'] or []
+            found = next((t for t in traits if t in new_trait_names), None)
+            if found:
+                card_traits[str(r['spid'])] = found
+    cur.close()
+    conn.close()
+
+    for b in buckets:
+        for s in b['squads']:
+            for p in s['squad']:
+                sp = str(p.get('spid') or '')
+                p['season'] = season_imgs.get(sp[:3], '')
+                p['trait'] = card_traits.get(sp)
+                p['name'] = card_names.get(sp, '')
+
+    data = {'success': True,
+            'date': f"{row['crawl_date'].month}월 {row['crawl_date'].day}일",
+            'buckets': buckets}
+    _home_squad_cache['data'], _home_squad_cache['time'] = data, now
+    return jsonify(data)
+
+
 @app.route('/community')
 def community_list():
     """커뮤니티 메인 - 게시글 목록"""

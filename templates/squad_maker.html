@@ -3320,6 +3320,12 @@
     renderFormation('42211');
     initDragAndDrop();
 
+    // 홈 화면에서 랭커 스쿼드를 눌러 들어온 경우: 해당 스쿼드 바로 불러오기
+    const homeRankerParams = new URLSearchParams(location.search);
+    if (homeRankerParams.get('ranker_tc') && homeRankerParams.get('ranker_rank')) {
+        executeRankerFill(homeRankerParams.get('ranker_tc'), Number(homeRankerParams.get('ranker_rank')));
+    }
+
     const shareParam = new URLSearchParams(location.search).get('share');
     if (shareParam) {
         try {
