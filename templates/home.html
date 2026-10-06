@@ -361,7 +361,7 @@
     }
 
     .home-list-title {
-        flex: 1;
+        flex: 0 1 auto;
         min-width: 0;
         color: var(--text-primary);
         font-size: 0.88rem;
@@ -374,13 +374,15 @@
         color: var(--primary-color);
         font-size: 0.78rem;
         font-weight: 700;
-        margin-left: 4px;
+        margin-left: 2px;
+        flex-shrink: 0;
     }
 
     .home-list-date {
         flex-shrink: 0;
         color: var(--text-secondary);
         font-size: 0.75rem;
+        margin-left: auto;
     }
 
     .home-review-face {
@@ -1147,7 +1149,8 @@
                 ? posts.map(p => `
                     <a class="home-list-row" href="/community/post/${p.id}">
                         <span class="home-list-cat">${esc(p.category === '미니 페이스온' ? '미페' : p.category)}</span>
-                        <span class="home-list-title">${esc(p.title)}${p.comment_count ? `<span class="home-list-cmt">[${p.comment_count}]</span>` : ''}</span>
+                        <span class="home-list-title">${esc(p.title)}</span>
+                        ${p.comment_count ? `<span class="home-list-cmt">[${p.comment_count}]</span>` : ''}
                         <span class="home-list-date">${p.date}</span>
                     </a>`).join('')
                 : '<div class="home-empty">아직 글이 없어요.</div>';
