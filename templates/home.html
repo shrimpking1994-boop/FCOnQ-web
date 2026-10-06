@@ -926,7 +926,7 @@
     </section>
 
     <!-- 포지션별 신규 특성 1위 -->
-    <section class="home-card">
+    <!--<section class="home-card">
         <div class="home-card-head">
             <div class="home-card-title">✨ 포지션별 신규 특성 1위<span class="home-card-date" id="homeTraitDate"></span></div>
             <a class="home-card-more" href="/tierlist?tab=trait">더보기 →</a>
@@ -938,7 +938,7 @@
         <div class="home-tile-grid home-trait-grid" id="homeTraitList">
             <div class="home-empty" style="grid-column: 1 / -1;">불러오는 중이에요.</div>
         </div>
-    </section>
+    </section>-->
 
     <!-- 하단: 커뮤니티 최신글 / 선수 후기 / 업데이트 -->
     <div class="home-bottom">
@@ -1117,6 +1117,7 @@
 
         function renderTraits() {
             const box = document.getElementById('homeTraitList');
+            if (!box) return;  // 홈에서 신규 특성 블록을 숨긴 경우
             const data = (summary.traits || {})[traitSource] || {};
             document.getElementById('homeTraitDate').textContent = (summary.trait_dates || {})[traitSource] || '';
             const rows = POS_ORDER.filter(pos => data[pos]);
@@ -1208,7 +1209,8 @@
             })
             .catch(() => {
                 document.getElementById('homeTeamcolorList').innerHTML = EMPTY('불러오지 못했어요.');
-                document.getElementById('homeTraitList').innerHTML = EMPTY('불러오지 못했어요.');
+                const traitBox = document.getElementById('homeTraitList');
+                if (traitBox) traitBox.innerHTML = EMPTY('불러오지 못했어요.');
                 ['homeCommunityList', 'homeReviewList', 'homeUpdateList'].forEach(id => {
                     document.getElementById(id).innerHTML = '<div class="home-empty">불러오지 못했어요.</div>';
                 });
