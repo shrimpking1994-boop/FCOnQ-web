@@ -1066,6 +1066,28 @@
         flex-shrink: 0;
     }
 
+    .nt-diff {
+        margin-left: 6px;
+        font-size: 0.72rem;
+        font-weight: 800;
+    }
+
+    .nt-diff.up {
+        color: #ff5b5b;
+    }
+
+    .nt-diff.down {
+        color: #4d9bff;
+    }
+
+    .nt-diff.same {
+        color: var(--text-secondary);
+    }
+
+    .nt-diff.new {
+        color: #20c997;
+    }
+
     .nt-bar {
         height: 6px;
         margin-top: 6px;
@@ -1833,7 +1855,10 @@
             const json = await res.json();
             if (!json.success) throw new Error(json.message);
             newTraitData = json;
-            document.getElementById('traitInfoDate').textContent = `📅 ${json.ranker_date || json.nexon_date} 기준`;
+            const curDate = json.ranker_date || json.nexon_date;
+            const prevDate = json.ranker_prev_date || json.nexon_prev_date;
+            document.getElementById('traitInfoDate').textContent =
+                prevDate ? `📅 ${prevDate} → ${curDate} 기준` : `📅 ${curDate} 기준`;
             renderNtPosTabs();
             renderNewTraitStats();
         } catch (e) {
@@ -1854,6 +1879,14 @@
         renderNewTraitStats();
     }
 
+    function ntDiffHtml(item) {
+        if (item.is_new) return '<span class="nt-diff new">NEW</span>';
+        if (item.diff === null || item.diff === undefined) return '';
+        if (item.diff > 0) return `<span class="nt-diff up">▲${item.diff.toFixed(1)}%p</span>`;
+        if (item.diff < 0) return `<span class="nt-diff down">▼${Math.abs(item.diff).toFixed(1)}%p</span>`;
+        return '<span class="nt-diff same">-</span>';
+    }
+
     function buildNtRow(item) {
         const pct = (item.ratio * 100).toFixed(1);
         const iconId = TRAIT_ICON_MAP[item.name];
@@ -1867,7 +1900,7 @@
                 <div class="nt-body">
                     <div class="nt-top">
                         <span class="nt-name" title="${item.name}">${item.name}</span>
-                        <span class="nt-ratio">${pct}%</span>
+                        <span class="nt-ratio">${pct}%${ntDiffHtml(item)}</span>
                     </div>
                     <div class="nt-bar"><div class="nt-bar-fill" style="width:${pct}%"></div></div>
                 </div>

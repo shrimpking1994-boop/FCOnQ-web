@@ -2821,7 +2821,7 @@ def get_new_trait_stats():
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT source, position, rank, trait_name, count, ratio, data_date
+        SELECT source, position, rank, trait_name, count, ratio, data_date, diff, prev_date
         FROM new_trait_stats
         ORDER BY source, position, rank
     """)
@@ -2840,21 +2840,27 @@ def get_new_trait_stats():
             return ''
 
     result = {'ranker': {}, 'nexon': {}}
-    dates = {}
+    dates, prev_dates = {}, {}
     for row in rows:
         result[row['source']].setdefault(row['position'], []).append({
             'rank': row['rank'],
             'name': row['trait_name'],
             'count': row['count'],
-            'ratio': row['ratio']
+            'ratio': row['ratio'],
+            'diff': row['diff'],
+            'is_new': row['diff'] is None and bool(row['prev_date'])
         })
         dates[row['source']] = to_korean_date(row['data_date'] or '')
+        if row['prev_date']:
+            prev_dates[row['source']] = to_korean_date(row['prev_date'])
 
     return jsonify({
         'success': True,
         'data': result,
         'ranker_date': dates.get('ranker', ''),
-        'nexon_date': dates.get('nexon', '')
+        'nexon_date': dates.get('nexon', ''),
+        'ranker_prev_date': prev_dates.get('ranker', ''),
+        'nexon_prev_date': prev_dates.get('nexon', '')
     })    
 
 @app.route('/api/squad_tierlist_teamcolors')
