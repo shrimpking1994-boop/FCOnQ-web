@@ -3027,6 +3027,12 @@
     function updateTcCorner(tcList) {
         let top = null;
         (tcList || []).forEach(tc => {
+            // 시즌 팀컬러는 로고가 없으므로 해당 선수 카드의 시즌 아이콘으로 대체
+            if (!tc.image_url && tc.type === 'season') {
+                const spidSet = new Set((tc.spids || []).map(String));
+                const p = Object.values(squadData).find(c => c && spidSet.has(String(c.spid)));
+                if (p && p.season_img) tc.image_url = p.season_img;
+            }
             if (!tc.image_url) return;
             if (!top || tc.cnt > top.cnt) top = tc;
         });
