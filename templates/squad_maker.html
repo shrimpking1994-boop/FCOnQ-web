@@ -383,6 +383,71 @@
         border-bottom: none;
     }
 
+    /* 좌하단 대표 팀컬러 로고 */
+    /* 좌하단 팀컬러 로고 묶음 (한 줄 3개, 넘치면 위로 쌓임) */
+    .sm-tc-logos {
+        position: absolute;
+        left: 14px;
+        bottom: 14px;
+        display: grid;
+        grid-template-columns: repeat(3, 40px);
+        gap: 6px;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .sm-tc-corner {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        cursor: pointer;
+        pointer-events: auto;
+        filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+        transition: filter 0.2s;
+    }
+
+    .sm-tc-corner.active {
+        filter: drop-shadow(0 0 6px rgba(80, 255, 140, 0.95));
+    }
+
+    /* 팀컬러 로고 클릭 시 해당 선수 강조 */
+    #field-rows [data-pos] {
+        transition: opacity 0.2s, filter 0.2s;
+    }
+
+    #field-rows [data-pos].tc-hl {
+        filter: drop-shadow(0 0 4px rgba(80, 255, 140, 0.69));
+    }
+
+    #field-rows [data-pos].tc-dim {
+        opacity: 0.3;
+    }
+
+    /* 우하단 선택 팀컬러 이름 */
+    .sm-tc-name {
+        position: absolute;
+        right: 14px;
+        bottom: 19px;
+        max-width: 45%;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.55);
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .sm-tc-name.show {
+        opacity: 1;
+    }
+
     .sm-field-label {
         font-size: 0.7rem;
         color: rgba(255, 255, 255, 0.35);
@@ -1377,6 +1442,25 @@
             height: 500px;
         }
 
+        .sm-tc-logos {
+            left: 10px;
+            bottom: 10px;
+            grid-template-columns: repeat(3, 30px);
+            gap: 5px;
+        }
+
+        .sm-tc-corner {
+            width: 30px;
+            height: 30px;
+        }
+
+        .sm-tc-name {
+            right: 10px;
+            bottom: 14px;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+        }
+
         .price-ratio-label {
             font-size: 0.65rem;
         }
@@ -1460,6 +1544,9 @@
 
         <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
         <div id="field-rows" style="position:relative; width:100%; height:100%;"></div>
+
+        <div id="tc-corner-logos" class="sm-tc-logos"></div>
+        <div id="tc-corner-name" class="sm-tc-name"></div>
     </div>
 
     <!-- 강화단계 선택 팝업 -->
@@ -2754,6 +2841,72 @@
         document.getElementById('formation-label').textContent = parts.length ? parts.join('-') : '—';
     }
 
+    let tcCornerClub = null;     // 대표 소속 팀컬러
+    let tcCornerTraits = [];     // 특성 팀컬러들
+    let tcCornerItems = [];      // 화면에 표시 중인 로고 목록
+    let tcActiveIdx = null;      // 현재 강조 중인 로고 번호
+
+    function renderTcCorner() {
+        const box = document.getElementById('tc-corner-logos');
+        if (!box) return;
+        clearTcHighlight();
+        tcCornerItems = [];
+        if (tcCornerClub) tcCornerItems.push(tcCornerClub);
+        tcCornerTraits.forEach(tc => { if (tc.image_url) tcCornerItems.push(tc); });
+        box.innerHTML = tcCornerItems.map((tc, i) =>
+            `<img class="sm-tc-corner" src="${tc.image_url}" alt="${tc.name}" data-tc-idx="${i}"
+                  onclick="toggleTcHighlight(${i})" onerror="this.style.display='none'">`
+        ).join('');
+    }
+
+    function toggleTcHighlight(i) {
+        const wasActive = tcActiveIdx === i;
+        clearTcHighlight();
+        if (wasActive) return;
+        const tc = tcCornerItems[i];
+        if (!tc) return;
+        const set = new Set((tc.spids || []).map(String));
+        document.querySelectorAll('#field-rows [data-pos]').forEach(w => {
+            const card = squadData[w.dataset.pos];
+            if (card && set.has(String(card.spid))) w.classList.add('tc-hl');
+            else w.classList.add('tc-dim');
+        });
+        document.querySelector(`#tc-corner-logos [data-tc-idx="${i}"]`)?.classList.add('active');
+        const nameEl = document.getElementById('tc-corner-name');
+        nameEl.textContent = tc.name;
+        nameEl.classList.add('show');
+        tcActiveIdx = i;
+    }
+
+    function clearTcHighlight() {
+        document.querySelectorAll('#field-rows .tc-hl, #field-rows .tc-dim')
+            .forEach(w => w.classList.remove('tc-hl', 'tc-dim'));
+        document.querySelectorAll('#tc-corner-logos .active')
+            .forEach(el => el.classList.remove('active'));
+        document.getElementById('tc-corner-name')?.classList.remove('show');
+        tcActiveIdx = null;
+    }
+
+    // 로고 외 화면 아무 곳이나 누르면 해제
+    document.addEventListener('pointerdown', e => {
+        if (tcActiveIdx !== null && !e.target.closest('#tc-corner-logos')) clearTcHighlight();
+    });
+
+    function updateTcCorner(tcList) {
+        let top = null;
+        (tcList || []).forEach(tc => {
+            if (!tc.image_url) return;
+            if (!top || tc.cnt > top.cnt) top = tc;
+        });
+        tcCornerClub = top;
+        renderTcCorner();
+    }
+
+    function updateTcTraitCorner(traitList) {
+        tcCornerTraits = traitList || [];
+        renderTcCorner();
+    }
+
     async function updateTeamColor() {
         const players = Object.values(squadData).filter(p => p);
 
@@ -2817,6 +2970,8 @@
 
         if (players.length === 0) {
             clubBody.innerHTML = '<div class="sm-tc-empty">소속 팀컬러가 표시됩니다.</div>';
+            tcCornerTraits = [];
+            updateTcCorner([]);
             refreshAllOvr();
             return;
         }
@@ -2830,6 +2985,7 @@
             });
             const tcList = await res.json();
             window.clubTcData = tcList;
+            updateTcCorner(tcList);
 
             if (tcList.length === 0) {
                 clubBody.innerHTML = '<div class="sm-tc-empty">소속 팀컬러가 표시됩니다.</div>';
@@ -2883,6 +3039,7 @@
                 body: JSON.stringify({ spids })
             });
             const traitList = await res.json();
+            updateTcTraitCorner(traitList);
 
             if (traitList.length === 0) {
                 traitBody.innerHTML = '<div class="sm-tc-empty">특성 팀컬러가 표시됩니다.</div>';
