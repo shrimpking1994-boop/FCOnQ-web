@@ -95,6 +95,38 @@
         margin-left: auto;
     }
 
+    /* 스쿼드 관리 2x2 */
+    .sm-manage {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .sm-manage-btn {
+        padding: 7px 6px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid rgba(128, 128, 128, 0.4);
+        white-space: nowrap;
+        transition: opacity 0.2s;
+    }
+
+    .sm-manage-btn:hover {
+        opacity: 0.85;
+    }
+
+    .sm-manage-share {
+        border-color: var(--primary-color);
+        background: rgba(138, 43, 226, 0.15);
+    }
+
     /* 요약바 */
     .sm-summary {
         display: grid;
@@ -125,6 +157,107 @@
     .sm-stat-sub {
         font-size: 0.75rem;
         color: var(--text-muted);
+    }
+
+    .sm-stat-formation {
+        position: relative;
+        cursor: pointer;
+        border: 1px solid var(--border-color);
+        transition: background 0.15s;
+    }
+
+    .sm-stat-formation:hover {
+        background: var(--hover-bg);
+    }
+
+    /* 포메이션 선택 모달 */
+    .sm-fm-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 3000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sm-fm-overlay.active {
+        display: flex;
+    }
+
+    .sm-fm-box {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px;
+        width: 92%;
+        max-width: 520px;
+        max-height: 85vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sm-fm-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .sm-fm-item {
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 8px;
+        cursor: pointer;
+        text-align: center;
+        transition: border-color 0.15s;
+    }
+
+    .sm-fm-item:hover {
+        border-color: var(--primary-color);
+    }
+
+    .sm-fm-pitch {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 8 / 9;
+        background: repeating-linear-gradient(to bottom,
+                #2f6b3a 0, #2f6b3a 12.5%,
+                #2a6134 12.5%, #2a6134 25%);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .sm-fm-pitch::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .sm-fm-dot {
+        position: absolute;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #5ef0ff;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+    }
+
+    .sm-fm-dot.gk {
+        background: #ff6a3d;
+    }
+
+    .sm-fm-name {
+        margin-top: 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-primary);
     }
 
     .sm-ovr-row {
@@ -1177,6 +1310,19 @@
             grid-template-columns: repeat(3, 1fr);
         }
 
+        .sm-stat-formation .sm-stat-val {
+            font-size: 1.05rem;
+        }
+
+        .sm-fm-dot {
+            width: 7px;
+            height: 7px;
+        }
+
+        .sm-fm-name {
+            font-size: 0.75rem;
+        }
+
         .sm-slot-card {
             width: 52px;
             height: 65px;
@@ -1188,6 +1334,20 @@
 
         .sm-quick {
             gap: 8px;
+        }
+
+        .sm-manage {
+            padding: 10px;
+            gap: 6px;
+        }
+
+        .sm-manage-btn {
+            font-size: 0.8rem;
+            padding: 7px 2px;
+        }
+
+        .sm-manage-ico {
+            display: none;
         }
 
         .sm-btn-reset {
@@ -1236,8 +1396,8 @@
             </div>
             <button class="sm-btn sm-btn-tier"
                 onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'autofill' }); autoFillByTier()">
-                <span class="btn-full">1. 사용률 기반 자동 완성</span>
-                <span class="btn-short">1. 사용률<br>자동 완성</span>
+                <span class="btn-full">1. 픽률 자동 완성</span>
+                <span class="btn-short">1. 픽률 자동 완성</span>
             </button>
             <button class="sm-btn sm-btn-ranker"
                 onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'ranker' }); loadRankerSquad()">
@@ -1246,18 +1406,12 @@
             </button>
         </div>
         <!-- 스쿼드 관리 -->
-        <div class="sm-quick-vertical">
-            <button class="sm-btn" onclick="saveSquad()"
-                style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4);">💾
-                스쿼드 저장</button>
-            <button class="sm-btn" onclick="loadSquadList()"
-                style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4);">📂
-                <span class="btn-full">스쿼드 불러오기</span>
-                <span class="btn-short">불러오기</span>
-            </button>
-            <button class="sm-btn" onclick="resetSquad()"
-                style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4); border-radius:0;">🔄
-                초기화</button>
+        <div class="sm-manage">
+            <button class="sm-manage-btn" onclick="saveSquad()"><span class="sm-manage-ico">💾 </span>저장하기</button>
+            <button class="sm-manage-btn" onclick="loadSquadList()"><span class="sm-manage-ico">📂 </span>불러오기</button>
+            <button class="sm-manage-btn sm-manage-share" onclick="shareSquad()"><span class="sm-manage-ico">🔗
+                </span>공유하기</button>
+            <button class="sm-manage-btn" onclick="resetSquad()"><span class="sm-manage-ico">🔄 </span>초기화</button>
         </div>
     </div>
 
@@ -1275,41 +1429,6 @@
         <div class="sm-ranker-queue-dropdown" id="ranker-queue-dropdown"></div>
     </div>
 
-    <!-- 스쿼드 공유 -->
-    <div style="display:flex; justify-content:center; margin-bottom:8px;">
-        <button class="sm-btn" onclick="shareSquad()"
-            style="background:var(--bg-secondary); color:var(--text-primary); border:1px solid rgba(128,128,128,0.4); padding: 7px 60px;">
-            🔗 현재 스쿼드 공유하기
-        </button>
-    </div>
-
-    <!-- 포메이션 + 적응도 -->
-    <div class="sm-ctrl">
-        <select class="sm-select" id="formation-select" onchange="changeFormation(this.value)">
-            <option value="42211">4-2-2-1-1</option>
-            <option value="4231">4-2-3-1</option>
-            <option value="42221">4-2-2-2 (1)</option>
-            <option value="42222">4-2-2-2 (2)</option>
-            <option value="4123">4-1-2-3</option>
-            <option value="4141">4-1-4-1</option>
-            <option value="41212">4-1-2-1-2</option>
-        </select>
-        <select class="sm-select" id="adapt-select" onchange="refreshAllOvr()">
-            <option value="5">적응도 Lv.5</option>
-            <option value="1">적응도 Lv.1</option>
-        </select>
-    </div>
-
-    <div style="display:flex; justify-content:center; align-items:center; margin-bottom:8px; position:relative;">
-        <span style="font-size:0.8rem; color:var(--text-muted);">현재 포메이션: </span>
-        <span id="formation-label" style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">—</span>
-        <label class="price-ratio-label"
-            style="position:absolute; right:0; display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--text-muted);">
-            <input type="checkbox" id="show-price-ratio" checked onchange="updateSummary()">
-            가격 비중 표시
-        </label>
-    </div>
-
     <div class="sm-summary">
         <div class="sm-stat">
             <div class="sm-stat-label">총 급여</div>
@@ -1321,10 +1440,9 @@
             <div class="sm-stat-val"><span id="total-price">—</span><span
                     style="font-size:0.85rem;color:var(--text-muted)"> BP</span></div>
         </div>
-        <div class="sm-stat">
-            <div class="sm-stat-label">선수 인원</div>
-            <div class="sm-stat-val"><span id="player-count">0</span><span
-                    style="font-size:0.85rem;color:var(--text-muted)">/11</span></div>
+        <div class="sm-stat sm-stat-formation" onclick="openFormationPicker()">
+            <div class="sm-stat-label">포메이션 ▾</div>
+            <div class="sm-stat-val"><span id="formation-label">—</span></div>
         </div>
     </div>
 
@@ -1428,6 +1546,18 @@
     </div>
 </div>
 
+<!-- 포메이션 선택 모달 -->
+<div class="sm-fm-overlay" id="formation-overlay">
+    <div class="sm-fm-box">
+        <div class="sm-tier-header">
+            <span class="sm-tier-title">포메이션 선택</span>
+            <button style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);"
+                onclick="closeFormationPicker()">✕</button>
+        </div>
+        <div class="sm-fm-grid" id="formation-grid"></div>
+    </div>
+</div>
+
 <!-- 사용률 기반 자동완성 모달 -->
 <div class="sm-tier-overlay" id="tier-overlay">
     <div class="sm-tier-box">
@@ -1503,14 +1633,14 @@
     // 포지션별 절대좌표 (top%, left%)
     const POS_COORDS = {
         // FW
-        'LW': { top: 13, left: 12 },
+        'LW': { top: 23, left: 12 },
         'LF': { top: 23, left: 32 },
         'LS': { top: 11, left: 35 },
         'ST': { top: 10, left: 50 },
         'CF': { top: 23, left: 50 },
         'RF': { top: 23, left: 68 },
         'RS': { top: 11, left: 65 },
-        'RW': { top: 13, left: 88 },
+        'RW': { top: 23, left: 88 },
         // AM
         'LAM': { top: 30, left: 24 },
         'CAM': { top: 30, left: 50 },
@@ -1547,6 +1677,22 @@
         '4123': { label: '4-1-2-3', positions: ['ST', 'LW', 'RW', 'LCM', 'RCM', 'CDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
         '4141': { label: '4-1-4-1', positions: ['ST', 'LM', 'RM', 'LCM', 'RCM', 'CDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
         '41212': { label: '4-1-2-1-2', positions: ['LS', 'RS', 'CAM', 'LCM', 'RCM', 'CDM', 'LB', 'LCB', 'RCB', 'RB', 'GK'] },
+        'f523': {
+            label: '5-2-3', positions: ['ST', 'LW', 'RW', 'LCM', 'RCM', 'LWB', 'LCB', 'CB', 'RCB', 'RWB', 'GK'],
+            coords: {
+                'LWB': { top: 70, left: 10 }, 'LCB': { top: 75, left: 30 }, 'CB': { top: 75, left: 50 },
+                'RCB': { top: 75, left: 70 }, 'RWB': { top: 70, left: 90 },
+                'LCM': { top: 45, left: 35 }, 'RCM': { top: 45, left: 65 }
+            }
+        },
+        'f322221': {
+            label: '3-2-2-2-1', positions: ['ST', 'LAM', 'RAM', 'LM', 'LDM', 'RDM', 'RM', 'LCB', 'CB', 'RCB', 'GK'],
+            coords: {
+                'LAM': { top: 26, left: 30 }, 'RAM': { top: 26, left: 70 },
+                'LM': { top: 42, left: 10 }, 'RM': { top: 42, left: 90 },
+                'LCB': { top: 75, left: 30 }, 'CB': { top: 75, left: 50 }, 'RCB': { top: 75, left: 70 }
+            }
+        },
     };
 
     const NEW_TRAITS = {{ new_traits | tojson }};
@@ -1613,7 +1759,8 @@
         slotPositions = {};
         f.positions.forEach(pos => {
             squadData[pos] = null;
-            slotPositions[pos] = { top: POS_COORDS[pos].top, left: POS_COORDS[pos].left };
+            const c = (f.coords && f.coords[pos]) || POS_COORDS[pos];
+            slotPositions[pos] = { top: c.top, left: c.left };
         });
         document.getElementById('field-rows').innerHTML = '';
         f.positions.forEach(pos => createSlotElement(pos));
@@ -1949,6 +2096,30 @@
         });
 
         updateSummary();
+    }
+
+    function openFormationPicker() {
+        const grid = document.getElementById('formation-grid');
+        grid.innerHTML = Object.entries(FORMATIONS).map(([key, f]) => {
+            const dots = f.positions.map(pos => {
+                const c = (f.coords && f.coords[pos]) || POS_COORDS[pos];
+                return `<span class="sm-fm-dot${pos === 'GK' ? ' gk' : ''}" style="top:${c.top}%; left:${c.left}%;"></span>`;
+            }).join('');
+            return `<div class="sm-fm-item" onclick="pickFormation('${key}')">
+                        <div class="sm-fm-pitch">${dots}</div>
+                        <div class="sm-fm-name">${f.label}</div>
+                    </div>`;
+        }).join('');
+        document.getElementById('formation-overlay').classList.add('active');
+    }
+
+    function closeFormationPicker() {
+        document.getElementById('formation-overlay').classList.remove('active');
+    }
+
+    function pickFormation(key) {
+        closeFormationPicker();
+        changeFormation(key);
     }
 
     let currentSearchPos = null;
@@ -2350,9 +2521,8 @@
 
     function calcOvr(card, pos) {
         const boost = card.boost || 1;
-        const adapt = parseInt(document.getElementById('adapt-select').value) || 1;
         const enhBonus = ENHANCE_BONUS[boost] || 0;
-        const adaptBonus = adapt > 0 ? adapt - 1 : 0;
+        const adaptBonus = 4; // 적응도 Lv.5 고정 (그린필드에 올리면 자동 만렙)
 
         // 포지션별 OVR 적용 (없으면 기본 overall 사용)
         let baseOvr = card.overall;
@@ -2463,7 +2633,7 @@
                     const k = 'bp' + (p.boost || 8);
                     return sum + (parseInt(p[k]) || 0);
                 }, 0);
-                const showRatio2 = document.getElementById('show-price-ratio')?.checked;
+                const showRatio2 = true;
                 const ratioText = (showRatio2 && cardPrice2 > 0 && totalPrice2 > 0)
                     ? `(${(cardPrice2 / totalPrice2 * 100).toFixed(1)}%)` : '';
 
@@ -2485,12 +2655,13 @@
     }
 
     function resetSquad() {
+        const hasPlayer = Object.values(squadData).some(p => p);
+        if (hasPlayer && !confirm('그린필드의 선수를 모두 비울까요?')) return;
         renderFormation(currentFormation);
         document.getElementById('tc-trait-body').innerHTML =
             '<div class="sm-tc-empty">현역 케미, 특정 조합과 같은 팀컬러가 자동 표시됩니다.</div>';
         updateSummary();
     }
-
     function shareSquad() {
         const players = Object.entries(squadData).filter(([, v]) => v !== null);
         if (players.length === 0) {
@@ -2528,7 +2699,6 @@
 
     function updateSummary() {
         const players = Object.values(squadData).filter(p => p !== null);
-        document.getElementById('player-count').textContent = players.length;
 
         const totalSalary = players.reduce((sum, p) => sum + (parseInt(p.salary) || 0), 0);
         const salaryEl = document.getElementById('total-salary');
@@ -2543,7 +2713,7 @@
         priceEl.textContent = totalPrice > 0 ? formatPrice(totalPrice) : '—';
 
         // 각 슬롯 가격 비중 업데이트
-        const showRatio = document.getElementById('show-price-ratio')?.checked;
+        const showRatio = true;
         Object.entries(squadData).forEach(([pos, card]) => {
             const el = document.querySelector(`[data-price-ratio="${pos}"]`);
             if (!el) return;
@@ -2828,8 +2998,6 @@
         const tcData = data.data;
 
         // 포메이션 변경 및 squadData 초기화
-        const formSel = document.getElementById('formation-select');
-        formSel.value = tierSelectedFormation;
         renderFormation(tierSelectedFormation);
         updateSummary();
 
@@ -3380,6 +3548,7 @@
     }
 
     renderFormation('42211');
+    updateFormationLabel();
     initDragAndDrop();
 
     // 홈 화면에서 랭커 스쿼드를 눌러 들어온 경우: 해당 스쿼드 바로 불러오기
@@ -3436,6 +3605,7 @@
 
     // 모달 바깥 클릭 시 닫기
     [
+        { id: 'formation-overlay', fn: () => closeFormationPicker() },
         { id: 'player-modal', fn: () => closePlayerModal() },
         { id: 'edit-overlay', fn: () => closeEditModal() },
         { id: 'tier-overlay', fn: () => closeTierModal() },
