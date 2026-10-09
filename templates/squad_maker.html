@@ -428,7 +428,7 @@
         position: absolute;
         right: 14px;
         bottom: 19px;
-        max-width: 45%;
+        max-width: calc(100% - 28px);
         padding: 6px 12px;
         border-radius: 8px;
         background: rgba(0, 0, 0, 0.55);
@@ -446,6 +446,29 @@
 
     .sm-tc-name.show {
         opacity: 1;
+    }
+
+    .sm-tc-name {
+        text-align: right;
+    }
+
+    .sm-tc-name .nm,
+    .sm-tc-name .eff {
+        display: block;
+    }
+
+    .sm-tc-name .eff {
+        margin-top: 2px;
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+    .sm-tc-name .eff .ovr {
+        color: #4caf50;
+    }
+
+    .sm-tc-name .eff .stat {
+        color: #64b5f6;
     }
 
     .sm-field-label {
@@ -545,6 +568,81 @@
         border-radius: 8px;
         margin-bottom: 8px;
         overflow: hidden;
+    }
+
+    /* 팀컬러 현황 항목 */
+    .sm-tc-item {
+        padding: 10px 12px;
+    }
+
+    .sm-tc-item+.sm-tc-item {
+        border-top: 1px solid var(--border-color);
+    }
+
+    .sm-tc-head {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+
+    .sm-tc-name-txt {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+    }
+
+    .sm-tc-cnt {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        background: var(--bg-secondary);
+        padding: 2px 8px;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    .sm-tc-badges {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .sm-tc-badge {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    .sm-tc-badge.ovr {
+        color: #4caf50;
+        background: rgba(76, 175, 80, 0.12);
+    }
+
+    .sm-tc-badge.stat {
+        color: #64b5f6;
+        background: rgba(100, 181, 246, 0.12);
+    }
+
+    .sm-tc-faces {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .sm-tc-faces img {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+        border-radius: 4px;
     }
 
     /* 정보 수정창 */
@@ -1459,6 +1557,37 @@
             bottom: 14px;
             padding: 4px 8px;
             font-size: 0.7rem;
+        }
+
+        .sm-tc-name .eff {
+            font-size: 0.6rem;
+        }
+
+        .sm-tc {
+            padding: 12px 10px;
+        }
+
+        .sm-tc-item {
+            padding: 8px 6px;
+        }
+
+        .sm-tc-name-txt {
+            font-size: 0.85rem;
+        }
+
+        .sm-tc-badge {
+            font-size: 0.72rem;
+            padding: 3px 8px;
+        }
+
+        .sm-tc-faces {
+            max-width: 264px;
+            margin: 0 auto;
+        }
+
+        .sm-tc-faces img {
+            width: 40px;
+            height: 40px;
         }
 
         .price-ratio-label {
@@ -2873,7 +3002,10 @@
         });
         document.querySelector(`#tc-corner-logos [data-tc-idx="${i}"]`)?.classList.add('active');
         const nameEl = document.getElementById('tc-corner-name');
-        nameEl.textContent = tc.name;
+        const effects = [];
+        tcStatGroups(tc, 4).forEach(g => effects.push(`<span class="stat">${g.names.join(' & ')} +${g.val}</span>`));
+        nameEl.innerHTML = `<span class="nm">${tc.name}</span>` +
+            (effects.length ? `<span class="eff">${effects.join(' · ')}</span>` : '');
         nameEl.classList.add('show');
         tcActiveIdx = i;
     }
@@ -2905,6 +3037,42 @@
     function updateTcTraitCorner(traitList) {
         tcCornerTraits = traitList || [];
         renderTcCorner();
+    }
+
+    const TC_FACE_FALLBACK = 'https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png';
+
+    function tcFaceHtml(p) {
+        return `<img src="${p.image}" loading="lazy"
+            onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='${TC_FACE_FALLBACK}'">`;
+    }
+
+    function tcStatGroups(tc, count) {
+        const groups = [];
+        for (let i = 1; i <= count; i++) {
+            const name = tc[`stat${i}_name`];
+            if (!name) continue;
+            const val = tc[`stat${i}_value`];
+            const g = groups.find(g => g.val === val);
+            if (g) g.names.push(name);
+            else groups.push({ val, names: [name] });
+        }
+        return groups;
+    }
+
+    function tcStatBadges(tc, count) {
+        return tcStatGroups(tc, count)
+            .map(g => `<span class="sm-tc-badge stat">${g.names.join(' & ')} +${g.val}</span>`);
+    }
+
+    function tcItemHtml(title, cntText, badges, faces) {
+        return `<div class="sm-tc-item">
+            <div class="sm-tc-head">
+                <span class="sm-tc-name-txt">${title}</span>
+                <span class="sm-tc-cnt">👤 ${cntText}</span>
+            </div>
+            ${badges.length ? `<div class="sm-tc-badges">${badges.join('')}</div>` : ''}
+            <div class="sm-tc-faces">${faces}</div>
+        </div>`;
     }
 
     async function updateTeamColor() {
@@ -2948,18 +3116,9 @@
                             const higherCnt = players.filter(p => (p.boost || 1) >= t.min).length;
                             return higherCnt >= t.stages[0].count;
                         });
-                    })).map(p => `
-                    <img src="${p.image}" loading="lazy" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
-                         onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
-                `).join('');
-                    return `
-                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px;">
-                        <span style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">${a.name} ${a.idx}단계</span>
-                        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); background:var(--bg-secondary); padding:3px 10px; border-radius:20px;">👤 ${a.cnt}명</span>
-                        <span style="font-size:0.85rem; font-weight:700; color:#4caf50; background:rgba(76,175,80,0.12); padding:3px 10px; border-radius:20px;">전체 능력치 +${a.bonus}</span>
-                    </div>
-                    <div style="display:flex; justify-content:center; gap:6px; padding:0 12px 10px; flex-wrap:wrap;">${faces}</div>
-                `;
+                    })).map(tcFaceHtml).join('');
+                    return tcItemHtml(`${a.name} ${a.idx}단계`, `${a.cnt}명`,
+                        [`<span class="sm-tc-badge ovr">전체 능력치 +${a.bonus}</span>`], faces);
                 }).join('');
             }
         }
@@ -2990,31 +3149,13 @@
             if (tcList.length === 0) {
                 clubBody.innerHTML = '<div class="sm-tc-empty">소속 팀컬러가 표시됩니다.</div>';
             } else {
-                clubBody.innerHTML = clubBody.innerHTML = tcList.filter(tc => tc.display_spids.length > 0).map(tc => {
-                    const sortedSpids = sortByPos(tc.display_spids.map(spid => players.find(p => p.spid == spid)).filter(Boolean)).map(p => p.spid);
-                    const faces = sortedSpids.map(spid => {
-                        const p = players.find(p => p.spid == spid);
-                        if (!p) return '';
-                        return `<img src="${p.image}" loading="lazy" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
-                 onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">`;
-                    }).join('');
-
-                    const statBadges = [
-                        tc.stat1_name ? `${tc.stat1_name} +${tc.stat1_value}` : null,
-                        tc.stat2_name ? `${tc.stat2_name} +${tc.stat2_value}` : null,
-                    ].filter(Boolean).map(s => `
-                        <span style="font-size:0.85rem; font-weight:700; color:#64b5f6; background:rgba(100,181,246,0.12); padding:3px 10px; border-radius:20px;">${s}</span>
-                    `).join('');
-
-                    return `
-                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; flex-wrap:wrap;">
-                        <span style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">${tc.name} ${tc.stage}단계</span>
-                        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); background:var(--bg-secondary); padding:3px 10px; border-radius:20px;">👤 ${tc.display_spids.length}명</span>
-                        ${tc.ovr_bonus > 0 ? `<span style="font-size:0.85rem; font-weight:700; color:#4caf50; background:rgba(76,175,80,0.12); padding:3px 10px; border-radius:20px;">전체 능력치 +${tc.ovr_bonus}</span>` : ''}
-                        ${statBadges}
-                    </div>
-                    <div style="display:flex; justify-content:center; gap:6px; padding:0 12px 10px; flex-wrap:wrap;">${faces}</div>
-                `;
+                clubBody.innerHTML = tcList.filter(tc => tc.display_spids.length > 0).map(tc => {
+                    const faces = sortByPos(tc.display_spids.map(spid => players.find(p => p.spid == spid)).filter(Boolean))
+                        .map(tcFaceHtml).join('');
+                    const badges = [];
+                    if (tc.ovr_bonus > 0) badges.push(`<span class="sm-tc-badge ovr">전체 능력치 +${tc.ovr_bonus}</span>`);
+                    badges.push(...tcStatBadges(tc, 2));
+                    return tcItemHtml(`${tc.name} ${tc.stage}단계`, `${tc.display_spids.length}명`, badges, faces);
                 }).join('');
             }
         } catch (e) {
@@ -3045,31 +3186,10 @@
                 traitBody.innerHTML = '<div class="sm-tc-empty">특성 팀컬러가 표시됩니다.</div>';
             } else {
                 traitBody.innerHTML = traitList.map(tc => {
-                    const sortedSpids = sortByPos(tc.display_spids.map(spid => players.find(p => p.spid == spid)).filter(Boolean)).map(p => p.spid);
-                    const faces = sortedSpids.map(spid => {
-                        const p = players.find(p => p.spid == spid);
-                        if (!p) return '';
-                        return `<img src="${p.image}" loading="lazy" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"
-                 onerror="this.src='${p.image_high || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">`;
-                    }).join('');
-
-                    const statBadges = [
-                        tc.stat1_name ? `${tc.stat1_name} +${tc.stat1_value}` : null,
-                        tc.stat2_name ? `${tc.stat2_name} +${tc.stat2_value}` : null,
-                        tc.stat3_name ? `${tc.stat3_name} +${tc.stat3_value}` : null,
-                        tc.stat4_name ? `${tc.stat4_name} +${tc.stat4_value}` : null,
-                    ].filter(Boolean).map(s => `
-                        <span style="font-size:0.85rem; font-weight:700; color:#64b5f6; background:rgba(100,181,246,0.12); padding:3px 10px; border-radius:20px;">${s}</span>
-                    `).join('');
-
-                    return `
-                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; flex-wrap:wrap;">
-                        <span style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">${tc.name}</span>
-                        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); background:var(--bg-secondary); padding:3px 10px; border-radius:20px;">👤 ${tc.cnt}명 (${tc.min_count}명)</span>
-                        ${statBadges}
-                    </div>
-                    <div style="display:flex; justify-content:center; gap:6px; padding:0 12px 10px; flex-wrap:wrap;">${faces}</div>
-                `;
+                    const faces = sortByPos(tc.display_spids.map(spid => players.find(p => p.spid == spid)).filter(Boolean))
+                        .map(tcFaceHtml).join('');
+                    const badges = tcStatBadges(tc, 4);
+                    return tcItemHtml(tc.name, `${tc.cnt}명 (최소 ${tc.min_count}명)`, badges, faces);
                 }).join('');
             }
         } catch (e) {
