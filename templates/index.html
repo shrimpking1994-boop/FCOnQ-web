@@ -746,6 +746,81 @@
                 padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
             }
         }
+
+        /* ===== 상단 로그인 / 테마 버튼 (아이콘형) ===== */
+        .theme-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .theme-btn:hover {
+            background: rgba(127, 127, 127, 0.12);
+        }
+
+        .theme-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* 다크모드일 땐 해(라이트로 전환), 라이트모드일 땐 달(다크로 전환) */
+        .theme-btn .icon-moon {
+            display: none;
+        }
+
+        [data-theme="light"] .theme-btn .icon-sun {
+            display: none;
+        }
+
+        [data-theme="light"] .theme-btn .icon-moon {
+            display: block;
+        }
+
+        .top-bar .login-btn {
+            display: inline-flex;
+            align-items: center;
+            height: 34px;
+            padding: 0 14px !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 10px !important;
+            background: transparent !important;
+            color: var(--text-primary) !important;
+            font-size: 0.85rem !important;
+            font-weight: 600;
+        }
+
+        .top-bar .login-btn:hover {
+            background: rgba(127, 127, 127, 0.12) !important;
+        }
+
+        @media (max-width: 768px) {
+            .theme-btn {
+                width: 30px;
+                height: 30px;
+                border-radius: 8px;
+            }
+
+            .theme-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .top-bar .login-btn {
+                height: 30px;
+                padding: 0 10px !important;
+                border-radius: 8px !important;
+                font-size: 0.75rem !important;
+            }
+        }
     </style>
 </head>
 
@@ -762,8 +837,17 @@
                         <!-- JavaScript로 동적 렌더링 -->
                     </div>
                     <div class="darkmode-toggle">
-                        <button id="darkModeToggle" class="btn btn-outline-light btn-sm">
-                            🌙 다크모드
+                        <button id="darkModeToggle" class="theme-btn" type="button" aria-label="테마 전환">
+                            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="4" />
+                                <path
+                                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                            </svg>
+                            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -993,9 +1077,7 @@
                 } else {
                     // 비로그인 상태
                     loginSection.innerHTML = `
-                        <a href="/login" class="login-btn">
-                            🔐 로그인
-                        </a>
+                    <a href="/login" class="login-btn">로그인</a>
                     `;
                 }
             } catch (error) {

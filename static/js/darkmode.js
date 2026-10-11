@@ -10,7 +10,7 @@ const initDarkMode = () => {
 
         // 버튼 텍스트 업데이트
         if (darkModeToggle) {
-            darkModeToggle.textContent = savedTheme === 'dark' ? '☀️ 라이트모드' : '🌙 다크모드';
+            darkModeToggle.title = savedTheme === 'dark' ? '라이트모드로 전환' : '다크모드로 전환';
         }
     };
 
@@ -29,7 +29,7 @@ const initDarkMode = () => {
             localStorage.setItem('theme', newTheme);
 
             // 버튼 텍스트 업데이트
-            darkModeToggle.textContent = newTheme === 'dark' ? '☀️ 라이트모드' : '🌙 다크모드';
+            darkModeToggle.title = newTheme === 'dark' ? '라이트모드로 전환' : '다크모드로 전환';
 
             if (typeof currentChart !== 'undefined' && currentChart) {
                 const titleColor = newTheme === 'dark' ? '#e2e8f0' : '#212529';
@@ -57,7 +57,7 @@ window.addEventListener('pageshow', function (event) {
 
         const darkModeToggle = document.getElementById('darkModeToggle');
         if (darkModeToggle) {
-            darkModeToggle.textContent = savedTheme === 'dark' ? '☀️ 라이트모드' : '🌙 다크모드';
+            darkModeToggle.title = savedTheme === 'dark' ? '라이트모드로 전환' : '다크모드로 전환';
         }
 
         console.log('페이지 복원됨, 테마 재적용:', savedTheme);
