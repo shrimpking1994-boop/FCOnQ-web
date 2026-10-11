@@ -78,19 +78,64 @@
         opacity: 0.85;
     }
 
+    .sm-btn-tier,
+    .sm-btn-ranker,
+    .sm-btn-owner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid rgba(128, 128, 128, 0.4);
+        transition: border-color 0.2s;
+    }
+
+    .sm-btn-tier:hover,
+    .sm-btn-ranker:hover,
+    .sm-btn-owner:hover {
+        opacity: 1;
+        background: var(--hover-bg);
+    }
+
     .sm-btn-tier {
-        background: #14944a;
-        color: #fff;
+        border-left: 3px solid #14944a;
     }
 
     .sm-btn-ranker {
-        background: #962e23;
-        color: #fff;
+        border-left: 3px solid #c0392b;
     }
 
     .sm-btn-owner {
-        background: #1f5fa8;
-        color: #fff;
+        border-left: 3px solid #1f5fa8;
+    }
+
+    /* 버튼 앞 번호 배지 */
+    .sm-num {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .sm-num.n1 {
+        background: rgba(76, 175, 80, 0.18);
+        color: #4caf50;
+    }
+
+    .sm-num.n2 {
+        background: rgba(217, 119, 87, 0.18);
+        color: #D97757;
+    }
+
+    .sm-num.n3 {
+        background: rgba(100, 181, 246, 0.18);
+        color: #64b5f6;
     }
 
     .sm-btn-reset {
@@ -1610,8 +1655,7 @@
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
         <!-- 빠른 스쿼드 제작 -->
-        <div class="sm-quick-vertical"
-            style="border: 1.5px solid var(--primary-color); box-shadow: 0 0 8px rgba(138,43,226,0.25);">
+        <div class="sm-quick-vertical" style="border: 1.5px solid #D97757; box-shadow: 0 0 8px rgba(217,119,87,0.25);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="sm-quick-label">✨ 빠른 스쿼드 제작</span>
                 <button onclick="openQuickGuide()" style="background:none; border:1px solid var(--border-color);
@@ -1620,18 +1664,21 @@
             </div>
             <button class="sm-btn sm-btn-tier"
                 onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'autofill' }); autoFillByTier()">
-                <span class="btn-full">1. 픽률 자동 완성</span>
-                <span class="btn-short">1. 픽률 자동 완성</span>
+
+                <span class="btn-full">픽률 자동 완성</span>
+                <span class="btn-short">픽률 자동 완성</span>
             </button>
             <button class="sm-btn sm-btn-ranker"
                 onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'ranker' }); loadRankerSquad()">
-                <span class="btn-full">2. 랭커 스쿼드 조회</span>
-                <span class="btn-short">2. 랭커 스쿼드</span>
+
+                <span class="btn-full">랭커 스쿼드 조회</span>
+                <span class="btn-short">랭커 스쿼드</span>
             </button>
             <button class="sm-btn sm-btn-owner"
                 onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'owner' }); openOwnerSearch()">
-                <span class="btn-full">3. 구단주명 검색</span>
-                <span class="btn-short">3. 구단주명 검색</span>
+
+                <span class="btn-full">구단주명 검색</span>
+                <span class="btn-short">구단주명 검색</span>
             </button>
         </div>
         <!-- 스쿼드 관리 -->
