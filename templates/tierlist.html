@@ -317,6 +317,69 @@
     }
 
 
+    /* ===== GD: 구단가치 구간 탭 ===== */
+    .gd-filter {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 10px 0 14px;
+    }
+
+    .gd-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .gd-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .gd-btn {
+        padding: 6px 16px;
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .gd-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+        .gd-filter {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+
+        .gd-label {
+            text-align: center;
+        }
+
+        .gd-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .gd-btn {
+            padding: 6px 0;
+            font-size: 0.8rem;
+        }
+    }
+
     .card-info-line {
         display: flex;
         align-items: center;
@@ -1178,8 +1241,23 @@
                 <li>🏆 <b>팀컬러 순위</b>: 1만 명 중 해당 팀컬러를 사용하는 인원 순이며, 사용 인원이 10명 미만인 팀컬러는 제외됩니다.</li>
                 <li>🃏 <b>카드 순위</b>: 각 팀컬러 사용자들의 스쿼드에서 포지션별 카드 사용 횟수를 집계했습니다. 사용 횟수가 매우 적은 카드는 제외되며, 10위 카드가 10회 이상이면
                     20위까지 보여줍니다. 드물게 해당 팀컬러 소속이 아닌 카드가 포함될 수 있습니다.</li>
+                <li>💰 <b>랭커 구단가치</b>: 카드 가격이 아닌 <b>랭커 스쿼드 전체의 구단가치</b> 기준입니다. 구간을 선택하면 해당 구단가치의 랭커들만으로 팀컬러·카드
+                    순위를 다시 집계합니다. 순위 변화(▲▼)는 전체에서만 표시됩니다.</li>
                 <li>🔄 <b>업데이트</b>: 당일 오전 10시 이후 기준으로 매일 갱신됩니다.</li>
             </ul>
+        </div>
+
+        <div class="gd-filter">
+            <span class="gd-label">💰 랭커 구단가치</span>
+            <div class="gd-tabs" id="gdTabs">
+                <button type="button" class="gd-btn active" data-bucket="">전체</button>
+                <button type="button" class="gd-btn" data-bucket="5">1~5억</button>
+                <button type="button" class="gd-btn" data-bucket="10">5~10억</button>
+                <button type="button" class="gd-btn" data-bucket="30">10~30억</button>
+                <button type="button" class="gd-btn" data-bucket="50">30~50억</button>
+                <button type="button" class="gd-btn" data-bucket="100">50~100억</button>
+                <button type="button" class="gd-btn" data-bucket="100p">100억+</button>
+            </div>
         </div>
 
         <div id="cardTierlistWrap" class="card-tierlist-wrap">
@@ -1665,15 +1743,41 @@
         "GK 데드아이": "trait_icon_68", "프레데터": "trait_icon_67"
     };
 
+    // ===== GD: 구단가치 구간 =====
+    let cardBucket = '';            // '' = 전체
+    const cardBucketCache = {};     // 구간별 응답 저장 (탭을 다시 눌러도 서버에 재요청 안 함)
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.gd-btn');
+        if (!btn || btn.dataset.bucket === cardBucket) return;
+        cardBucket = btn.dataset.bucket;
+        document.querySelectorAll('.gd-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const wrap = document.getElementById('cardTierlistWrap');
+        wrap.dataset.loaded = '';
+        if (!cardBucketCache[cardBucket]) {
+            wrap.innerHTML = '<div class="empty-state"><h3 class="loading-pulse">💰 구단가치 구간별 정보를 불러오는 중이에요.</h3></div>';
+        }
+        loadCardTierlist();
+        if (typeof gtag === 'function') {
+            gtag('event', 'tierlist_gd_bucket', { bucket: btn.textContent.trim() });
+        }
+    });
+
     // 카드 티어리스트 불러오기
     async function loadCardTierlist() {
         const wrap = document.getElementById('cardTierlistWrap');
         if (wrap.dataset.loaded === 'true') return;
 
         try {
-            const res = await fetch('/api/get_card_tierlist_data?include_hover=true');
-            const json = await res.json();
-            if (!json.success) throw new Error(json.message);
+            let json = cardBucketCache[cardBucket];
+            if (!json) {
+                const res = await fetch('/api/get_card_tierlist_data?include_hover=true'
+                    + (cardBucket ? '&bucket=' + encodeURIComponent(cardBucket) : ''));
+                json = await res.json();
+                if (!json.success) throw new Error(json.message);
+                cardBucketCache[cardBucket] = json;
+            }
 
             const data = json.data;
             const teamcolors = data._order || Object.keys(data).filter(k => k !== '_order');
@@ -1704,7 +1808,7 @@
                 let positionsHtml = '';
                 POSITION_ORDER.forEach(pos => {
                     if (!positions[pos] || positions[pos].length === 0) return;
-                    const threshold = idx <= 24 ? 2 : 1;
+                    const threshold = cardBucket ? 1 : (idx <= 24 ? 2 : 1);  // 구간은 랭커 수가 적어 기준 완화
                     const filteredCards = positions[pos].filter(c => c.count > threshold);
                     const top10 = filteredCards.slice(0, 10);
                     const cardLimit = (top10.length === 10 && top10[9].count >= 10) ? 20 : 10;

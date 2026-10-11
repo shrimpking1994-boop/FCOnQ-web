@@ -2608,6 +2608,7 @@ TIERLIST_EXCLUDE_TEAMCOLORS = {'단일 팀'}
 def get_card_tierlist_data():
     """카드 티어리스트 데이터 반환 (가장 최근 날짜)"""
     include_hover = request.args.get('include_hover') == 'true'
+    bucket = request.args.get('bucket', '').strip()   # 구단가치 구간 (없으면 전체)
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -2627,6 +2628,15 @@ def get_card_tierlist_data():
         return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
 
     full_data = result['full_data']
+    bucket_label = ''
+    if bucket:
+        cur.execute("SELECT label, full_data FROM card_tierlist_gd WHERE bucket = %s", (bucket,))
+        gd = cur.fetchone()
+        if gd:
+            full_data = gd['full_data']
+            bucket_label = gd['label']
+        else:
+            bucket = ''   # 없는 구간이면 전체로
 
     # ===== 티어리스트 노출 설정 =====
     MIN_USERS = TIERLIST_MIN_USERS # 이 인원 미만 팀컬러는 제외
@@ -2660,7 +2670,7 @@ def get_card_tierlist_data():
     """, (result['crawl_date'] - timedelta(days=7),))
     prev = cur.fetchone()
     rank_change, prev_date = {}, ''
-    if prev:
+    if prev and not bucket:
         p_usage = prev['tc_usage'] or {}
         p_order = [tc for tc in (prev['tc_order'] or []) if tc not in EXCLUDE_TEAMCOLORS]
         if p_usage:
@@ -2762,7 +2772,8 @@ def get_card_tierlist_data():
 
     response = {'success': True, 'data': full_data, 'effects': effects,
                 'crawl_date': str(result['crawl_date']),
-                'prev_date': prev_date, 'rank_change': rank_change}
+                'prev_date': prev_date, 'rank_change': rank_change,
+                'bucket': bucket, 'bucket_label': bucket_label}
     if include_hover:
         response['hover_map'] = hover_map
         response['price_map'] = price_map
