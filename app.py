@@ -604,10 +604,13 @@ def community_list():
     params = []
     conditions = []
     
-    # 카테고리 필터
+        # 카테고리 필터
     if category:
         conditions.append("category = %s")
         params.append(category)
+    else:
+        # 전체글·인기글·전체 검색에서는 관리자 업데이트 글 제외 (업데이트 탭에서만 보이게)
+        conditions.append("COALESCE(category, '') <> '업데이트'")
         
     # 인기글 필터 추가
     if show_popular:

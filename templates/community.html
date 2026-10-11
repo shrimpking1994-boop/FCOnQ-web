@@ -29,13 +29,14 @@
     <div class="community-top-buttons"
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px;">
         <div style="display: flex; gap: 10px;">
-            <a href="/community{% if category %}?category={{ category }}{% endif %}"
-                class="btn {% if not show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            {% set is_update = category == '업데이트' %}
+            <a href="/community{% if category and not is_update %}?category={{ category }}{% endif %}"
+                class="btn {% if not show_popular and not is_update %}btn-primary{% else %}btn-outline-secondary{% endif %}"
                 style="padding: 8px 20px; border-radius: 6px;">
                 📋전체글
             </a>
-            <a href="/community?popular=true{% if category %}&category={{ category }}{% endif %}"
-                class="btn {% if show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            <a href="/community?popular=true{% if category and not is_update %}&category={{ category }}{% endif %}"
+                class="btn {% if show_popular and not is_update %}btn-primary{% else %}btn-outline-secondary{% endif %}"
                 style="padding: 8px 20px; border-radius: 6px;">
                 🔥인기글
             </a>
@@ -218,13 +219,14 @@
     <div class="community-bottom-buttons"
         style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 10px;">
         <div style="display: flex; gap: 10px;">
-            <a href="/community{% if category %}?category={{ category }}{% endif %}"
-                class="btn {% if not show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            {% set is_update = category == '업데이트' %}
+            <a href="/community{% if category and not is_update %}?category={{ category }}{% endif %}"
+                class="btn {% if not show_popular and not is_update %}btn-primary{% else %}btn-outline-secondary{% endif %}"
                 style="padding: 8px 20px; border-radius: 6px;">
                 📋전체글
             </a>
-            <a href="/community?popular=true{% if category %}&category={{ category }}{% endif %}"
-                class="btn {% if show_popular %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+            <a href="/community?popular=true{% if category and not is_update %}&category={{ category }}{% endif %}"
+                class="btn {% if show_popular and not is_update %}btn-primary{% else %}btn-outline-secondary{% endif %}"
                 style="padding: 8px 20px; border-radius: 6px;">
                 🔥인기글
             </a>
