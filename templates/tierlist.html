@@ -1918,7 +1918,7 @@
 
     function copyTcLink(e, tc) {
         e.stopPropagation(); // 아코디언 열리는 것 방지
-        const url = `${location.origin}/tierlist?tab=card&tc=${tc}`;
+        const url = `${location.origin}/tierlist?tab=card&tc=${tc}` + (cardBucket ? `&gd=${cardBucket}` : '');
         navigator.clipboard.writeText(url).then(() => {
             showToast('링크가 복사되었습니다! 🔗');
         });
@@ -2375,6 +2375,14 @@
         const urlParams = new URLSearchParams(location.search);
         const tabParam = urlParams.get('tab');
         const tcParam = urlParams.get('tc');
+        // 공유 주소에 구단가치 구간이 있으면 그 탭으로 시작
+        const gdParam = urlParams.get('gd');
+        const gdBtn = gdParam ? document.querySelector(`.gd-btn[data-bucket="${gdParam}"]`) : null;
+        if (gdBtn) {
+            cardBucket = gdParam;
+            document.querySelectorAll('.gd-btn').forEach(b => b.classList.remove('active'));
+            gdBtn.classList.add('active');
+        }
 
         let lastTab = tabParam || localStorage.getItem('lastTab') || 'teamcolor';
         if (lastTab === 'formation') lastTab = 'teamcolor';
