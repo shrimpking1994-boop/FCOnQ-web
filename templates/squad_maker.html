@@ -88,6 +88,11 @@
         color: #fff;
     }
 
+    .sm-btn-owner {
+        background: #1f5fa8;
+        color: #fff;
+    }
+
     .sm-btn-reset {
         background: var(--bg-main);
         color: var(--text-secondary);
@@ -1620,8 +1625,13 @@
             </button>
             <button class="sm-btn sm-btn-ranker"
                 onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'ranker' }); loadRankerSquad()">
-                <span class="btn-full">2. 랭커 스쿼드 불러오기</span>
+                <span class="btn-full">2. 랭커 스쿼드 조회</span>
                 <span class="btn-short">2. 랭커 스쿼드</span>
+            </button>
+            <button class="sm-btn sm-btn-owner"
+                onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'owner' }); openOwnerSearch()">
+                <span class="btn-full">3. 구단주명 검색</span>
+                <span class="btn-short">3. 구단주명 검색</span>
             </button>
         </div>
         <!-- 스쿼드 관리 -->
@@ -1803,7 +1813,7 @@
         <div class="sm-ranker-list" style="overflow-y:auto;">
             <div style="padding:4px 0 12px;">
                 <div style="font-size:0.95rem; font-weight:700; color:var(--primary-color); margin-bottom:6px;">
-                    1. 사용률 기반 자동완성
+                    1. 픽률 자동 완성
                 </div>
                 <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6;">
                     선수 티어리스트 데이터를 기반으로 팀컬러별 각 포지션 사용률 순위에 따라 스쿼드를 자동으로 채워드립니다. 포메이션 → 팀컬러 → 순위 조합을 선택하면 즉시
@@ -1817,6 +1827,16 @@
                 </div>
                 <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6;">
                     실제 상위 랭커들의 스쿼드를 그대로 불러올 수 있습니다. 원하는 팀컬러와 구단가치 범위를 설정하면 조건에 맞는 랭커 목록이 표시되며, 선택 시 해당 스쿼드 정보가 바로 적용됩니다.
+                </div>
+            </div>
+
+            <div style="border-top:1px solid var(--border-color); padding:12px 0 4px;">
+                <div style="font-size:0.95rem; font-weight:700; color:#1f5fa8; margin-bottom:6px;">
+                    3. 구단주명 검색
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6;">
+                    구단주명을 입력하면 해당 구단주가 최근 공식경기에서 사용한 라인업을 그대로 불러옵니다. 내 스쿼드나 친구, 상대의 스쿼드를 빠르게 확인할 때 활용해보세요.<br><br>최근 경기
+                    기록을 기준으로 하기 때문에, 스쿼드를 바꾼 뒤 아직 공식경기를 하지 않았다면 이전 라인업이 표시될 수 있습니다.
                 </div>
             </div>
         </div>
@@ -1833,6 +1853,26 @@
         </div>
         <div class="sm-ranker-list" id="ranker-content"></div>
         <div class="sm-ranker-footer" id="ranker-footer"></div>
+    </div>
+</div>
+
+<!-- 구단주 스쿼드 모달 -->
+<div class="sm-ranker-overlay" id="owner-overlay">
+    <div class="sm-ranker-box">
+        <div class="sm-ranker-header">
+            <span class="sm-ranker-title">구단주 스쿼드 불러오기</span>
+            <button style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);"
+                onclick="closeOwnerModal()">✕</button>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-muted);">
+            구단주명을 입력하면 최근 공식경기 라인업을 불러옵니다.
+        </div>
+        <div class="sm-ranker-value-row">
+            <input class="sm-ranker-input" id="owner-nickname" type="text" placeholder="구단주명" style="min-width:0;"
+                onkeydown="if (event.key === 'Enter') searchOwnerSquad()">
+            <button class="sm-ranker-search-btn" id="owner-search-btn" onclick="searchOwnerSquad()">검색</button>
+        </div>
+        <div id="owner-msg" style="font-size:0.8rem;color:#e74c3c;min-height:1em;"></div>
     </div>
 </div>
 
@@ -3661,6 +3701,80 @@
         updateTeamColor();
     }
 
+    // ── 구단주 스쿼드 불러오기 ──────────────────────────────
+    function openOwnerSearch() {
+        document.getElementById('owner-msg').textContent = '';
+        document.getElementById('owner-overlay').classList.add('active');
+        setTimeout(() => document.getElementById('owner-nickname').focus(), 100);
+    }
+
+    function closeOwnerModal() {
+        document.getElementById('owner-overlay').classList.remove('active');
+    }
+
+    async function searchOwnerSquad() {
+        const input = document.getElementById('owner-nickname');
+        const btn = document.getElementById('owner-search-btn');
+        const msg = document.getElementById('owner-msg');
+        const nickname = input.value.trim();
+        if (!nickname) { msg.textContent = '구단주명을 입력해주세요.'; return; }
+
+        btn.disabled = true;
+        btn.textContent = '검색 중...';
+        msg.textContent = '';
+        try {
+            const res = await fetch(`/api/owner_squad?nickname=${encodeURIComponent(nickname)}`);
+            const data = await res.json();
+            if (!data.success) {
+                msg.textContent = data.message || '스쿼드를 불러오지 못했습니다.';
+                return;
+            }
+            closeOwnerModal();
+            closeRankerQueueBar();
+            await fillFieldFromSquad(data.squad);
+        } catch (e) {
+            msg.textContent = '스쿼드를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '검색';
+        }
+    }
+
+    async function fillFieldFromSquad(squad) {
+        const spids = squad.map(c => parseInt(c.spid));
+        const cardRes = await fetch('/api/squad_cards_batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ spids })
+        });
+        const cardList = await cardRes.json();
+        const cardMap = {};
+        cardList.forEach(c => { cardMap[String(c.spid)] = c; });
+
+        // 그린필드 초기화 — 받아온 포지션 그대로 슬롯 생성
+        const positions = squad.map(c => c.position).filter(p => POS_COORDS[p]);
+        squadData = {};
+        slotPositions = {};
+        positions.forEach(pos => {
+            squadData[pos] = null;
+            slotPositions[pos] = { top: POS_COORDS[pos].top, left: POS_COORDS[pos].left };
+        });
+        document.getElementById('field-rows').innerHTML = '';
+        positions.forEach(pos => createSlotElement(pos));
+
+        // 카드 배치 (가격은 동시에 조회해서 빠르게)
+        await Promise.all(squad.map(async slotCard => {
+            const pos = slotCard.position;
+            const full = cardMap[String(slotCard.spid)];
+            if (!POS_COORDS[pos] || !full) return;
+            full.boost = slotCard.buildup;
+            await fetchCardPrice(full);
+            squadData[pos] = full;
+            renderSlotCard(pos, full);
+        }));
+        updateSummary();
+    }
+
     // ── 스쿼드 저장/불러오기 ──────────────────────────────────
     const IS_LOGGED_IN = {{ 'true' if is_logged_in else 'false' }};
     const SQUAD_STORAGE_KEY = 'fconq_saved_squads';
@@ -3889,6 +4003,7 @@
     // 모달 바깥 클릭 시 닫기
     [
         { id: 'formation-overlay', fn: () => closeFormationPicker() },
+        { id: 'owner-overlay', fn: () => closeOwnerModal() },
         { id: 'player-modal', fn: () => closePlayerModal() },
         { id: 'edit-overlay', fn: () => closeEditModal() },
         { id: 'tier-overlay', fn: () => closeTierModal() },

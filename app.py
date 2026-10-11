@@ -13,6 +13,9 @@ import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values
 import json
 import pytz
+import urllib.request
+import urllib.parse
+import urllib.error
 import hashlib
 
 # .env 파일 로드  # ← 추가!
@@ -3519,6 +3522,91 @@ def card_price(spid):
     if not row:
         return jsonify({})
     return jsonify(dict(row))
+
+# ── 구단주명으로 스쿼드 조회 (넥슨 오픈 API) ─────────────────
+NEXON_API_KEY = os.getenv('NEXON_API_KEY')
+NEXON_API_BASE = 'https://open.api.nexon.com/fconline/v1'
+OFFICIAL_MATCH_TYPE = 50  # 공식경기(1vs1)
+
+# 넥슨 포지션 번호 → 스쿼드 메이커 포지션명 (28번은 후보라 제외)
+NEXON_SPPOSITION = {
+    0: 'GK', 1: 'SW', 2: 'RWB', 3: 'RB', 4: 'RCB', 5: 'CB', 6: 'LCB', 7: 'LB', 8: 'LWB',
+    9: 'RDM', 10: 'CDM', 11: 'LDM', 12: 'RM', 13: 'RCM', 14: 'CM', 15: 'LCM', 16: 'LM',
+    17: 'RAM', 18: 'CAM', 19: 'LAM', 20: 'RF', 21: 'CF', 22: 'LF', 23: 'RW', 24: 'RS',
+    25: 'ST', 26: 'LS', 27: 'LW'
+}
+_owner_squad_cache = {}  # 같은 구단주명 반복 검색 시 3분간 재사용
+
+
+def nexon_get(path, params):
+    """넥슨 오픈 API 호출"""
+    url = f"{NEXON_API_BASE}{path}?{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(url, headers={'x-nxopen-api-key': NEXON_API_KEY})
+    with urllib.request.urlopen(req, timeout=10) as res:
+        return json.loads(res.read().decode('utf-8'))
+
+
+@app.route('/api/owner_squad')
+def owner_squad():
+    """구단주명 → 최근 공식경기 출전 라인업"""
+    nickname = request.args.get('nickname', '').strip()
+    if not nickname:
+        return jsonify({'success': False, 'message': '구단주명을 입력해주세요.'}), 400
+    if not NEXON_API_KEY:
+        return jsonify({'success': False, 'message': '서버 설정 오류입니다.'}), 500
+
+    now = datetime.now()
+    cached = _owner_squad_cache.get(nickname)
+    if cached and (now - cached['time']).total_seconds() < 180:
+        return jsonify(cached['data'])
+
+    # 1) 구단주명 → ouid
+    try:
+        ouid = nexon_get('/id', {'nickname': nickname}).get('ouid')
+    except urllib.error.HTTPError:
+        return jsonify({'success': False, 'message': '존재하지 않는 구단주명입니다.'}), 404
+    except Exception:
+        return jsonify({'success': False, 'message': '넥슨 서버 응답이 없습니다. 잠시 후 다시 시도해주세요.'}), 502
+    if not ouid:
+        return jsonify({'success': False, 'message': '존재하지 않는 구단주명입니다.'}), 404
+
+    # 2) 최근 공식경기 목록
+    try:
+        match_ids = nexon_get('/user/match', {
+            'ouid': ouid, 'matchtype': OFFICIAL_MATCH_TYPE, 'offset': 0, 'limit': 5
+        })
+    except Exception:
+        return jsonify({'success': False, 'message': '넥슨 서버 응답이 없습니다. 잠시 후 다시 시도해주세요.'}), 502
+    if not match_ids:
+        return jsonify({'success': False, 'message': '최근 공식경기 기록이 없습니다.'}), 404
+
+    # 3) 최근 경기부터 확인해서 11명이 다 있는 라인업 찾기 (몰수·기권 경기 대비)
+    for match_id in match_ids:
+        try:
+            detail = nexon_get('/match-detail', {'matchid': match_id})
+        except Exception:
+            continue
+        me = next((m for m in detail.get('matchInfo', []) if m.get('ouid') == ouid), None)
+        if not me:
+            continue
+        squad = []
+        for p in me.get('player', []):
+            pos = NEXON_SPPOSITION.get(p.get('spPosition'))
+            if pos:
+                squad.append({'position': pos, 'spid': p.get('spId'), 'buildup': p.get('spGrade') or 1})
+        if len(squad) >= 11:
+            data = {
+                'success': True,
+                'nickname': me.get('nickname', nickname),
+                'match_date': detail.get('matchDate', ''),
+                'squad': squad
+            }
+            if len(_owner_squad_cache) > 500:
+                _owner_squad_cache.clear()
+            _owner_squad_cache[nickname] = {'data': data, 'time': now}
+            return jsonify(data)
+
+    return jsonify({'success': False, 'message': '최근 공식경기에서 스쿼드 정보를 찾지 못했습니다.'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
