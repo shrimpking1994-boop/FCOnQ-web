@@ -763,6 +763,35 @@
             transition: background 0.2s, border-color 0.2s;
         }
 
+        /* 로그인 후 프로필 버튼 (로그인 버튼과 같은 모양) */
+        .top-bar .profile-btn {
+            height: 34px;
+            padding: 0 12px !important;
+            gap: 6px;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 10px !important;
+            background: transparent !important;
+            color: var(--text-primary) !important;
+            font-size: 0.85rem !important;
+            font-weight: 600;
+        }
+
+        .top-bar .profile-btn:hover {
+            background: rgba(127, 127, 127, 0.12) !important;
+        }
+
+        .top-bar .profile-btn img {
+            width: 22px;
+            height: 22px;
+            border: none;
+        }
+
+        .top-bar .dropdown-icon {
+            font-size: 9px;
+            margin-left: 0;
+            opacity: 0.6;
+        }
+
         .theme-btn:hover {
             background: rgba(127, 127, 127, 0.12);
         }
@@ -819,6 +848,18 @@
                 padding: 0 10px !important;
                 border-radius: 8px !important;
                 font-size: 0.75rem !important;
+            }
+
+            .top-bar .profile-btn {
+                height: 30px;
+                padding: 0 10px !important;
+                border-radius: 8px !important;
+                font-size: 0.75rem !important;
+            }
+
+            .top-bar .profile-btn img {
+                width: 18px;
+                height: 18px;
             }
         }
     </style>
@@ -1082,11 +1123,7 @@
                 }
             } catch (error) {
                 console.error('로그인 상태 확인 실패:', error);
-                loginSection.innerHTML = `
-                    <a href="/login" class="login-btn">
-                        🔐 로그인
-                    </a>
-                `;
+                loginSection.innerHTML = `<a href="/login" class="login-btn">로그인</a>`;
             }
         });
     </script>
