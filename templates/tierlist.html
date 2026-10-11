@@ -324,7 +324,7 @@
         justify-content: center;
         flex-wrap: wrap;
         gap: 10px;
-        margin: 10px 0 14px;
+        margin: 4px 0 10px;
     }
 
     .gd-label {
@@ -1231,6 +1231,19 @@
     <div class="tab-content" id="tab-card">
         <!-- 선수 카드 티어리스트 탭 콘텐츠 -->
 
+        <div class="gd-filter">
+            <span class="gd-label">💰 랭커 구단가치</span>
+            <div class="gd-tabs" id="gdTabs">
+                <button type="button" class="gd-btn active" data-bucket="">전체</button>
+                <button type="button" class="gd-btn" data-bucket="5">1~5억</button>
+                <button type="button" class="gd-btn" data-bucket="10">5~10억</button>
+                <button type="button" class="gd-btn" data-bucket="30">10~30억</button>
+                <button type="button" class="gd-btn" data-bucket="50">30~50억</button>
+                <button type="button" class="gd-btn" data-bucket="100">50~100억</button>
+                <button type="button" class="gd-btn" data-bucket="100p">100억+</button>
+            </div>
+        </div>
+
         <div class="card-info-line">
             <span id="cardInfoDate">📅 기준일 확인 중</span>
             <button class="card-info-btn" onclick="toggleCardInfo()" aria-label="설명 보기">i</button>
@@ -1245,19 +1258,6 @@
                     순위를 다시 집계합니다. 순위 변화(▲▼)는 전체에서만 표시됩니다.</li>
                 <li>🔄 <b>업데이트</b>: 당일 오전 10시 이후 기준으로 매일 갱신됩니다.</li>
             </ul>
-        </div>
-
-        <div class="gd-filter">
-            <span class="gd-label">💰 랭커 구단가치</span>
-            <div class="gd-tabs" id="gdTabs">
-                <button type="button" class="gd-btn active" data-bucket="">전체</button>
-                <button type="button" class="gd-btn" data-bucket="5">1~5억</button>
-                <button type="button" class="gd-btn" data-bucket="10">5~10억</button>
-                <button type="button" class="gd-btn" data-bucket="30">10~30억</button>
-                <button type="button" class="gd-btn" data-bucket="50">30~50억</button>
-                <button type="button" class="gd-btn" data-bucket="100">50~100억</button>
-                <button type="button" class="gd-btn" data-bucket="100p">100억+</button>
-            </div>
         </div>
 
         <div id="cardTierlistWrap" class="card-tierlist-wrap">
