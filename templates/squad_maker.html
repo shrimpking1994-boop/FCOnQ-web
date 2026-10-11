@@ -3396,30 +3396,24 @@
         <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">
             구단가치 범위를 입력하세요. (비워두면 전체 조회)
         </div>
-        <div class="sm-ranker-value-row">
-            <span class="sm-ranker-value-label">최소</span>
-            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-min-eok" type="number" placeholder="0">
+                <div class="sm-ranker-value-row">
+            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-min-eok" type="number" placeholder="최소"
+                style="flex:1; width:auto; min-width:0;">
             <span class="sm-ranker-unit">억</span>
-            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-min-man" type="number" placeholder="0">
-            <span class="sm-ranker-unit">만</span>
-        </div>
-        <div style="text-align:center;color:var(--text-muted);">~</div>
-        <div class="sm-ranker-value-row">
-            <span class="sm-ranker-value-label">최대</span>
-            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-max-eok" type="number" placeholder="0">
+            <span style="color:var(--text-muted);">~</span>
+            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-max-eok" type="number" placeholder="최대"
+                style="flex:1; width:auto; min-width:0;">
             <span class="sm-ranker-unit">억</span>
-            <input class="sm-ranker-input sm-ranker-input-num" id="ranker-max-man" type="number" placeholder="0">
-            <span class="sm-ranker-unit">만</span>
         </div>
                 <button class="sm-ranker-search-btn" style="width:100%;margin-top:4px;" onclick="goToRankerTcStep()">다음</button>
     `;
     }
 
     function goToRankerTcStep() {
-        rankerMinVal = (parseInt(document.getElementById('ranker-min-eok').value) || 0) * 1e8
-            + (parseInt(document.getElementById('ranker-min-man').value) || 0) * 1e4;
-        rankerMaxVal = (parseInt(document.getElementById('ranker-max-eok').value) || 0) * 1e8
-            + (parseInt(document.getElementById('ranker-max-man').value) || 0) * 1e4;
+        rankerMinVal = (parseInt(document.getElementById('ranker-min-eok').value) || 0) * 1e8;
+        rankerMaxVal = (parseInt(document.getElementById('ranker-max-eok').value) || 0) * 1e8;
+        // 최소만 입력한 경우: 최대를 사실상 무제한으로 설정
+        if (rankerMinVal > 0 && rankerMaxVal === 0) rankerMaxVal = 1e20;
         showRankerTcStep();
     }
 
