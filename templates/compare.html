@@ -1530,13 +1530,23 @@ endblock %}
             element.style.color = color;
         }
 
+        // 강화 선택 시 적응도 Lv.5, 팀컬러 자동 설정 (1~4강 +6 / 5~7강 +7 / 8~13강 +8)
+        function onEnhanceChange(cardNum) {
+            const lv = parseInt(document.getElementById(`enhanceLevel${cardNum}`).value);
+            if (lv > 0) {
+                document.getElementById(`adaptLevel${cardNum}`).value = 5;
+                document.getElementById(`teamColor${cardNum}`).value = lv >= 8 ? 8 : (lv >= 5 ? 7 : 6);
+            }
+            updateStatsForCard(cardNum);
+        }
+
         // 이벤트 리스너 등록 (카드1)
-        document.getElementById('enhanceLevel1').addEventListener('change', () => updateStatsForCard(1));
+        document.getElementById('enhanceLevel1').addEventListener('change', () => onEnhanceChange(1));
         document.getElementById('adaptLevel1').addEventListener('change', () => updateStatsForCard(1));
         document.getElementById('teamColor1').addEventListener('change', () => updateStatsForCard(1));
 
         // 이벤트 리스너 등록 (카드2)
-        document.getElementById('enhanceLevel2').addEventListener('change', () => updateStatsForCard(2));
+        document.getElementById('enhanceLevel2').addEventListener('change', () => onEnhanceChange(2));
         document.getElementById('adaptLevel2').addEventListener('change', () => updateStatsForCard(2));
         document.getElementById('teamColor2').addEventListener('change', () => updateStatsForCard(2));
 

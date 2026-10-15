@@ -1179,7 +1179,15 @@
     saveOriginalStats();
     applyInitialColors();
 
-    document.getElementById('enhanceLevel').addEventListener('change', updateStats);
+    document.getElementById('enhanceLevel').addEventListener('change', function () {
+        const lv = parseInt(this.value);
+        if (lv > 0) {
+            // 강화 선택 시 적응도 Lv.5, 팀컬러 자동 설정 (1~4강 +6 / 5~7강 +7 / 8~13강 +8)
+            document.getElementById('adaptLevel').value = 5;
+            document.getElementById('teamColor').value = lv >= 8 ? 8 : (lv >= 5 ? 7 : 6);
+        }
+        updateStats();
+    });
     document.getElementById('adaptLevel').addEventListener('change', updateStats);
     document.getElementById('teamColor').addEventListener('change', updateStats);
     });
