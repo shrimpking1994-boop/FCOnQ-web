@@ -1619,6 +1619,26 @@ def card_detail(spid):
                 'name': r['name'], 'image_url': r['image_url'],
                 'min_count': r['min_count'], 'stats': groups
             })
+            
+# 선수 후기 (카드 상세 '선수 후기' 탭용)
+        if session.get('user_role') == 'admin':
+            cur.execute("""
+                SELECT * FROM player_reviews
+                WHERE spid = %s
+                ORDER BY parent_comment_id NULLS FIRST, created_at DESC
+            """, (spid,))
+        else:
+            cur.execute("""
+                SELECT * FROM player_reviews
+                WHERE spid = %s AND is_deleted = false
+                ORDER BY parent_comment_id NULLS FIRST, created_at DESC
+            """, (spid,))
+        reviews = cur.fetchall()
+        kst = pytz.timezone('Asia/Seoul')
+        for review in reviews:
+            if review['created_at']:
+                review['created_at'] = review['created_at'].replace(tzinfo=pytz.UTC).astimezone(kst)
+            review['ip_display'] = format_ip_display(review.get('author_ip'))            
     finally:
         cur.close()
         conn.close()
@@ -1638,6 +1658,7 @@ def card_detail(spid):
                                                detailed_order=DETAILED_ORDER,
                                                price_history=price_history_data,
                                                trait_teamcolors=trait_teamcolors,
+                                               reviews=reviews,
                                                og_title=og_title,
                                                og_description=og_description)
 
@@ -1765,58 +1786,8 @@ def vote_post(post_id, vote_type):
 
 @app.route('/player_review/<int:spid>')
 def player_review(spid):
-    """선수 후기 페이지"""
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    # 선수 카드 정보 조회
-    cur.execute("""
-        SELECT pc.*, 
-               pc.full_data->'basic_info' as basic_info,
-               pc.full_data->'image_info' as image_info
-        FROM player_cards pc
-        WHERE pc.spid = %s
-    """, (spid,))
-    
-    card = cur.fetchone()
-    
-    if not card:
-        cur.close()
-        conn.close()
-        return "선수 카드를 찾을 수 없습니다", 404
-    
-    # 관리자 여부 확인
-    is_admin = session.get('user_role') == 'admin'
-
-    # 후기 조회 (일반 사용자는 삭제되지 않은 후기만)
-    if is_admin:
-        cur.execute("""
-            SELECT * FROM player_reviews
-            WHERE spid = %s
-            ORDER BY parent_comment_id NULLS FIRST, created_at DESC
-        """, (spid,))
-    else:
-        cur.execute("""
-            SELECT * FROM player_reviews
-            WHERE spid = %s AND is_deleted = false
-            ORDER BY parent_comment_id NULLS FIRST, created_at DESC
-        """, (spid,))
-    reviews = cur.fetchall()
-    # 후기 시간 UTC → KST 변환
-    kst = pytz.timezone('Asia/Seoul')
-    for review in reviews:
-        if review['created_at']:
-            utc_time = review['created_at'].replace(tzinfo=pytz.UTC)
-            review['created_at'] = utc_time.astimezone(kst)    
-    
-    # IP 표시 추가
-    for review in reviews:
-        review['ip_display'] = format_ip_display(review.get('author_ip'))    
-    
-    cur.close()
-    conn.close()
-    
-    return render_template('player_review.html', card=card, reviews=reviews)
+    """(통합) 예전 선수 후기 주소 → 카드 상세 '선수 후기' 탭으로 이동"""
+    return redirect(url_for('card_detail', spid=spid) + '#review', code=301)
 
 
 @app.route('/player_review/<spid>/write', methods=['POST'])
@@ -1861,7 +1832,7 @@ def write_player_review(spid):
         """, (spid, author, content, rating, user_id, password_hash, ip_hash, author_ip, parent_comment_id, datetime.now(pytz.UTC)))
         
         conn.commit()
-        return redirect(url_for('player_review', spid=spid))
+        return redirect(url_for('card_detail', spid=spid) + '#review')
         
     except Exception as e:
         conn.rollback()

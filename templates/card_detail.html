@@ -291,8 +291,379 @@
         padding: 30px 0;
     }
 
+    /* ===== 페이지 탭 (선수 정보 / 선수 후기) ===== */
+    .cd-tabs {
+        display: flex;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 10px;
+    }
+
+    .cd-tab {
+        flex: 1;
+        padding: 12px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        color: var(--text-muted);
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .cd-tab.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+    }
+
+    .cd-tab-count {
+        font-size: 0.85rem;
+        margin-left: 2px;
+    }
+
+    #tab-info>.stat-section:first-child {
+        margin-top: 20px;
+    }
+
+    /* ===== 선수 후기 탭 ===== */
+    .rv-wrap {
+        margin-top: 20px;
+    }
+
+    .rv-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .rv-head-count {
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+
+    .rv-write-btn {
+        padding: 8px 16px;
+        background: #10b981;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.2s;
+    }
+
+    .rv-write-btn:hover {
+        background: #059669;
+    }
+
+    .rv-form-box {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 16px;
+    }
+
+    .rv-form-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .rv-form-row .rv-field {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .rv-field {
+        margin-bottom: 12px;
+    }
+
+    .rv-field label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+
+    .rv-req {
+        color: #ff4444;
+    }
+
+    .rv-input {
+        width: 100%;
+        background: var(--bg-main) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+
+    textarea.rv-input {
+        resize: vertical;
+    }
+
+    .rv-readonly {
+        opacity: 0.7;
+    }
+
+    [data-theme="dark"] .rv-input option {
+        background: #2d3748;
+        color: #ffffff;
+    }
+
+    .rv-form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .rv-btn-primary {
+        padding: 8px 20px;
+        background: #10b981;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .rv-btn-ghost {
+        padding: 8px 16px;
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .rv-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .rv-item {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 14px 16px;
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .rv-deleted {
+        background: rgba(255, 0, 0, 0.05) !important;
+        opacity: 0.75;
+    }
+
+    .rv-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+    .rv-author {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .rv-name {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .rv-ip {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+    }
+
+    .rv-rating {
+        color: #fbbf24;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    .rv-date {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    .rv-badge-del {
+        background: #ef4444;
+        color: #fff;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+    }
+
+    .rv-content {
+        color: var(--text-primary);
+        line-height: 1.6;
+        white-space: pre-line;
+        margin: 0 0 10px;
+        font-size: 0.95rem;
+        word-break: break-word;
+    }
+
+    .rv-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .rv-actions-left {
+        display: flex;
+        gap: 2px;
+    }
+
+    .rv-link {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        padding: 2px 6px;
+        cursor: pointer;
+    }
+
+    .rv-link:hover {
+        color: var(--text-primary);
+    }
+
+    .rv-link-danger:hover {
+        color: #ef4444;
+    }
+
+    .rv-votes {
+        display: flex;
+        gap: 6px;
+        margin-left: auto;
+    }
+
+    .rv-vote {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: 1px solid var(--border-color);
+        padding: 3px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .rv-vote.like:hover {
+        border-color: #10b981;
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+    }
+
+    .rv-vote.dislike:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .rv-reply-form {
+        margin-top: 12px;
+        padding: 12px;
+        background: var(--bg-main);
+        border-radius: 8px;
+    }
+
+    .rv-reply {
+        margin-top: 10px;
+        padding: 10px 0 0 14px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .rv-reply .rv-content {
+        margin-bottom: 4px;
+        font-size: 0.9rem;
+    }
+
+    .rv-reply-mark {
+        color: var(--text-muted);
+        margin-right: 2px;
+    }
+
+    .rv-empty {
+        text-align: center;
+        padding: 50px 20px;
+        color: var(--text-secondary);
+        background: var(--bg-secondary);
+        border-radius: 10px;
+    }
+
+    .rv-empty-icon {
+        font-size: 2.4rem;
+        margin-bottom: 6px;
+    }
+
+    .rv-empty p {
+        margin: 0 0 4px;
+    }
+
+    .rv-empty-sub {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
     /* 모바일 대응 */
     @media (max-width: 768px) {
+
+        .cd-tab {
+            padding: 10px;
+            font-size: 0.95rem;
+        }
+
+        .rv-form-box {
+            padding: 14px 12px;
+        }
+
+        .rv-form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .rv-item {
+            padding: 12px;
+        }
+
+        .rv-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .rv-name {
+            font-size: 0.9rem;
+        }
+
+        .rv-date,
+        .rv-ip {
+            font-size: 0.75rem;
+        }
+
+        .rv-vote {
+            padding: 2px 8px;
+            font-size: 0.78rem;
+        }
+
+        .rv-reply {
+            padding-left: 8px;
+        }
 
         .club-history-box {
             min-height: 215px !important;
@@ -628,9 +999,9 @@
         onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
         🔗 공유하기
     </button>
-    <a href="/player_review/{{ card.spid }}" class="back-btn"
+    <a href="#review" class="back-btn" onclick="switchMainTab('review', true); return false;"
         style="display: inline-block; border: 2px solid #667eea; border-radius: 8px; color: var(--text-primary); text-decoration: none; transition: all 0.3s;">
-        선수 후기 →
+        선수 후기 ↓
     </a>
 </div>
 
@@ -805,146 +1176,160 @@
         </div>
     </div>
 </div>
-<!-- 통합 능력치 섹션 -->
-<div class="stat-section">
-    <h4>능력치</h4>
 
-    <!-- 동적 시뮬레이터 컨트롤 -->
-    <div class="mb-3" style="display: flex; justify-content: center;">
-        <div style="background: var(--bg-secondary); border-radius: 10px; padding: 15px 20px; width: 60%;">
-            <div style="display: flex; gap: 15px;">
-                <div style="flex: 1; position: relative;">
-                    <select class="form-select simulator-select" id="enhanceLevel" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
-                                appearance: none; padding-right: 30px; cursor: pointer;">
-                        <option value="0" selected>강화</option>
-                        <option value="1" class="enhance-level-1">+1</option>
-                        <option value="2" class="enhance-level-2-4">+2</option>
-                        <option value="3" class="enhance-level-2-4">+3</option>
-                        <option value="4" class="enhance-level-2-4">+4</option>
-                        <option value="5" class="enhance-level-5-7">+5</option>
-                        <option value="6" class="enhance-level-5-7">+6</option>
-                        <option value="7" class="enhance-level-5-7">+7</option>
-                        <option value="8" class="enhance-level-8-10">+8</option>
-                        <option value="9" class="enhance-level-8-10">+9</option>
-                        <option value="10" class="enhance-level-8-10">+10</option>
-                        <option value="11" class="enhance-level-11-13">+11</option>
-                        <option value="12" class="enhance-level-11-13">+12</option>
-                        <option value="13" class="enhance-level-11-13">+13</option>
-                    </select>
-                    <span
-                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
-                </div>
-
-                <div style="flex: 1; position: relative;">
-                    <select class="form-select simulator-select" id="adaptLevel" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
-                       appearance: none; padding-right: 30px; cursor: pointer;">
-                        <option value="0" selected>적응도</option>
-                        <option value="1">Lv.1</option>
-                        <option value="5">Lv.5</option>
-                    </select>
-                    <span
-                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
-                </div>
-
-                <div style="flex: 1; position: relative;">
-                    <select class="form-select simulator-select" id="teamColor" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
-                       appearance: none; padding-right: 30px; cursor: pointer;">
-                        <option value="0" selected>팀컬러</option>
-                        <option value="1">+1</option>
-                        <option value="2">+2</option>
-                        <option value="3">+3</option>
-                        <option value="4">+4</option>
-                        <option value="5">+5</option>
-                        <option value="6">+6</option>
-                        <option value="7">+7</option>
-                        <option value="8">+8</option>
-                        <option value="9">+9</option>
-                    </select>
-                    <span
-                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 포지션별 오버롤 -->
-    <div class="stat-category mb-2">
-        <!--<h6 class="text-muted mb-2">포지션별 오버롤</h6>-->
-        <div class="position-table"
-            style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; text-align: center;">
-            {% set position_mapping = {
-            'ST': ['ST'],
-            'W': ['LW', 'RW'],
-            'CF': ['CF'],
-            'CAM': ['CAM'],
-            'M': ['LM', 'RM'],
-            'CM': ['CM'],
-            'CDM': ['CDM'],
-            'WB': ['LWB', 'RWB'],
-            'B': ['LB', 'RB'],
-            'CB': ['CB'],
-            'SW': ['SW'],
-            'GK': ['GK']
-            } %}
-
-            {% for display_pos in position_order %}
-            {% set actual_pos = position_mapping[display_pos][0] %}
-            {% if card.stats_info.position_overall[actual_pos] is defined %}
-            <div>
-                <div style="font-size: 11px; color: var(--text-muted);">
-                    {% if position_mapping[display_pos]|length > 1 %}
-                    L{{ display_pos }}/R{{ display_pos }}
-                    {% else %}
-                    {{ display_pos }}
-                    {% endif %}
-                </div>
-                <div class="position-value" style="font-size: 16px; font-weight: bold;">
-                    {{ card.stats_info.position_overall[actual_pos] }}
-                </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- 요약 스탯 -->
-    <div class="stat-category mb-2">
-        <!--<h6 class="text-muted mb-2">요약 스탯</h6>-->
-        <div class="summary-table"
-            style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; text-align: center;">
-            {% for stat_name in summary_order %}
-            {% if card.stats_info.summary_stats[stat_name] is defined %}
-            <div>
-                <div style="font-size: 11px; color: var(--text-muted);">{{ stat_name }}</div>
-                <div class="summary-value" style="font-size: 18px; font-weight: bold;">
-                    {{ card.stats_info.summary_stats[stat_name] }}
-                </div>
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- 세부 스탯 -->
-    <div class="stat-category">
-        <!--<h6 class="text-muted mb-2">세부 스탯</h6>-->
-        <div class="detailed-stats-grid"
-            style="display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-flow: column; grid-template-rows: repeat(7, auto); gap: 0;">
-            {% for i in range(35) %}
-            {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
-                class="detailed-column"
-                style="padding: 0 10px; {% if i >= 7 and i < 14 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 14 and i < 21 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 21 and i < 28 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 28 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% endif %}">
-                <div class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
-                    <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
-                    <span class="stat-value" style="font-size: 14px;">
-                        {{ card.stats_info.detailed_stats[detailed_order[i]] }}
-                    </span>
-                </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-    </div>
+<!-- 페이지 탭: 선수 정보 / 선수 후기 -->
+{% set top_reviews = reviews|selectattr('parent_comment_id', 'none')|list %}
+{% set review_count = top_reviews|rejectattr('is_deleted')|list|length %}
+<div class="cd-tabs" id="cd-tabs">
+    <button type="button" class="cd-tab active" data-tab="info" onclick="switchMainTab('info')">선수 정보</button>
+    <button type="button" class="cd-tab" data-tab="review" onclick="switchMainTab('review')">
+        선수 후기<span class="cd-tab-count">({{ review_count }})</span>
+    </button>
 </div>
+
+<!-- ===== 선수 정보 탭 ===== -->
+<div id="tab-info">
+    <!-- 통합 능력치 섹션 -->
+    <div class="stat-section">
+        <h4>능력치</h4>
+
+        <!-- 동적 시뮬레이터 컨트롤 -->
+        <div class="mb-3" style="display: flex; justify-content: center;">
+            <div style="background: var(--bg-secondary); border-radius: 10px; padding: 15px 20px; width: 60%;">
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1; position: relative;">
+                        <select class="form-select simulator-select" id="enhanceLevel" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
+                                appearance: none; padding-right: 30px; cursor: pointer;">
+                            <option value="0" selected>강화</option>
+                            <option value="1" class="enhance-level-1">+1</option>
+                            <option value="2" class="enhance-level-2-4">+2</option>
+                            <option value="3" class="enhance-level-2-4">+3</option>
+                            <option value="4" class="enhance-level-2-4">+4</option>
+                            <option value="5" class="enhance-level-5-7">+5</option>
+                            <option value="6" class="enhance-level-5-7">+6</option>
+                            <option value="7" class="enhance-level-5-7">+7</option>
+                            <option value="8" class="enhance-level-8-10">+8</option>
+                            <option value="9" class="enhance-level-8-10">+9</option>
+                            <option value="10" class="enhance-level-8-10">+10</option>
+                            <option value="11" class="enhance-level-11-13">+11</option>
+                            <option value="12" class="enhance-level-11-13">+12</option>
+                            <option value="13" class="enhance-level-11-13">+13</option>
+                        </select>
+                        <span
+                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
+                    </div>
+
+                    <div style="flex: 1; position: relative;">
+                        <select class="form-select simulator-select" id="adaptLevel" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
+                       appearance: none; padding-right: 30px; cursor: pointer;">
+                            <option value="0" selected>적응도</option>
+                            <option value="1">Lv.1</option>
+                            <option value="5">Lv.5</option>
+                        </select>
+                        <span
+                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
+                    </div>
+
+                    <div style="flex: 1; position: relative;">
+                        <select class="form-select simulator-select" id="teamColor" style="background: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); 
+                       appearance: none; padding-right: 30px; cursor: pointer;">
+                            <option value="0" selected>팀컬러</option>
+                            <option value="1">+1</option>
+                            <option value="2">+2</option>
+                            <option value="3">+3</option>
+                            <option value="4">+4</option>
+                            <option value="5">+5</option>
+                            <option value="6">+6</option>
+                            <option value="7">+7</option>
+                            <option value="8">+8</option>
+                            <option value="9">+9</option>
+                        </select>
+                        <span
+                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">▼</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 포지션별 오버롤 -->
+        <div class="stat-category mb-2">
+            <!--<h6 class="text-muted mb-2">포지션별 오버롤</h6>-->
+            <div class="position-table"
+                style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; text-align: center;">
+                {% set position_mapping = {
+                'ST': ['ST'],
+                'W': ['LW', 'RW'],
+                'CF': ['CF'],
+                'CAM': ['CAM'],
+                'M': ['LM', 'RM'],
+                'CM': ['CM'],
+                'CDM': ['CDM'],
+                'WB': ['LWB', 'RWB'],
+                'B': ['LB', 'RB'],
+                'CB': ['CB'],
+                'SW': ['SW'],
+                'GK': ['GK']
+                } %}
+
+                {% for display_pos in position_order %}
+                {% set actual_pos = position_mapping[display_pos][0] %}
+                {% if card.stats_info.position_overall[actual_pos] is defined %}
+                <div>
+                    <div style="font-size: 11px; color: var(--text-muted);">
+                        {% if position_mapping[display_pos]|length > 1 %}
+                        L{{ display_pos }}/R{{ display_pos }}
+                        {% else %}
+                        {{ display_pos }}
+                        {% endif %}
+                    </div>
+                    <div class="position-value" style="font-size: 16px; font-weight: bold;">
+                        {{ card.stats_info.position_overall[actual_pos] }}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 요약 스탯 -->
+        <div class="stat-category mb-2">
+            <!--<h6 class="text-muted mb-2">요약 스탯</h6>-->
+            <div class="summary-table"
+                style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; text-align: center;">
+                {% for stat_name in summary_order %}
+                {% if card.stats_info.summary_stats[stat_name] is defined %}
+                <div>
+                    <div style="font-size: 11px; color: var(--text-muted);">{{ stat_name }}</div>
+                    <div class="summary-value" style="font-size: 18px; font-weight: bold;">
+                        {{ card.stats_info.summary_stats[stat_name] }}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 세부 스탯 -->
+        <div class="stat-category">
+            <!--<h6 class="text-muted mb-2">세부 스탯</h6>-->
+            <div class="detailed-stats-grid"
+                style="display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-flow: column; grid-template-rows: repeat(7, auto); gap: 0;">
+                {% for i in range(35) %}
+                {% if i < detailed_order|length and detailed_order[i] in card.stats_info.detailed_stats %} <div
+                    class="detailed-column"
+                    style="padding: 0 10px; {% if i >= 7 and i < 14 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 14 and i < 21 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 21 and i < 28 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 28 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% endif %}">
+                    <div class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
+                        <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
+                        <span class="stat-value" style="font-size: 14px;">
+                            {{ card.stats_info.detailed_stats[detailed_order[i]] }}
+                        </span>
+                    </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div><!-- /능력치 stat-section (원래 닫는 태그가 빠져 있던 부분) -->
 
 <!-- 클럽 경력 + 시세 -->
 {% if card.basic_info.club_history or card.bp1 or price_history or trait_teamcolors %}
@@ -1102,6 +1487,177 @@
     </div>
 </div>
 {% endif %}
+</div><!-- /선수 정보 탭 -->
+
+<!-- ===== 선수 후기 탭 ===== -->
+<div id="tab-review" style="display: none;">
+    <div class="rv-wrap">
+        <div class="rv-head">
+            <h4 class="mb-0">선수 후기 <span class="rv-head-count">{{ review_count }}</span></h4>
+            <button type="button" id="toggleWriteBtn" class="rv-write-btn" onclick="toggleWriteForm()">✍️ 후기 작성</button>
+        </div>
+
+        <!-- 후기 작성 폼 -->
+        <div id="writeForm" class="rv-form-box" style="display: none;">
+            <form method="POST" action="/player_review/{{ card.spid }}/write">
+                {% if not session.get('user_id') %}
+                <div class="rv-form-row">
+                    <div class="rv-field">
+                        <label>작성자 <span class="rv-req">*</span></label>
+                        <input type="text" name="author" value="익명" required maxlength="100" class="rv-input">
+                    </div>
+                    <div class="rv-field">
+                        <label>비밀번호 <span class="rv-req">*</span></label>
+                        <input type="password" name="password" required maxlength="50" placeholder="삭제 시 필요한 비밀번호"
+                            class="rv-input">
+                    </div>
+                </div>
+                {% else %}
+                <div class="rv-field">
+                    <label>작성자</label>
+                    <div class="rv-input rv-readonly">{{ session.get('user_name', '익명') }}</div>
+                </div>
+                {% endif %}
+
+                <div class="rv-field">
+                    <label>평점 (선택)</label>
+                    <select name="rating" class="rv-input">
+                        <option value="">선택 안 함</option>
+                        <option value="10">⭐ 10점 - 최고!</option>
+                        <option value="9">⭐ 9점 - 매우 좋음</option>
+                        <option value="8">⭐ 8점 - 좋음</option>
+                        <option value="7">⭐ 7점 - 괜찮음</option>
+                        <option value="6">⭐ 6점 - 보통</option>
+                        <option value="5">⭐ 5점 - 그저 그럼</option>
+                        <option value="4">⭐ 4점 - 아쉬움</option>
+                        <option value="3">⭐ 3점 - 별로</option>
+                        <option value="2">⭐ 2점 - 나쁨</option>
+                        <option value="1">⭐ 1점 - 최악</option>
+                    </select>
+                </div>
+
+                <div class="rv-field">
+                    <label>후기 내용 <span class="rv-req">*</span></label>
+                    <textarea name="content" required rows="4" placeholder="이 선수를 사용한 경험을 공유해주세요..."
+                        class="rv-input"></textarea>
+                </div>
+
+                <div class="rv-form-actions">
+                    <button type="button" class="rv-btn-ghost" onclick="toggleWriteForm()">취소</button>
+                    <button type="submit" class="rv-btn-primary">작성 완료</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 후기 목록 -->
+        {% if top_reviews %}
+        <div class="rv-list">
+            {% for review in top_reviews %}
+            <div class="rv-item {% if review.is_deleted %}rv-deleted{% endif %}">
+                <div class="rv-meta">
+                    <div class="rv-author">
+                        {% if review.is_deleted and session.get('user_role') == 'admin' %}
+                        <span class="rv-badge-del">삭제됨</span>
+                        {% endif %}
+                        <span class="rv-name">{{ review.author }}</span>
+                        <span class="rv-ip">{{ review.ip_display }}</span>
+                        {% if review.rating %}<span class="rv-rating">⭐ {{ review.rating }}/10</span>{% endif %}
+                    </div>
+                    <span class="rv-date">{{ review.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+
+                <p class="rv-content">{{ review.content }}</p>
+
+                {% if not review.is_deleted %}
+                <div class="rv-actions">
+                    <div class="rv-actions-left">
+                        <button type="button" class="rv-link" onclick="showReplyForm({{ review.id }})">댓글</button>
+                        <button type="button" class="rv-link rv-link-danger"
+                            onclick="deleteReview({{ review.id }})">삭제</button>
+                        {% if session.get('user_role') == 'admin' %}
+                        <button type="button" class="rv-link rv-link-danger"
+                            onclick="adminDeleteReview({{ review.id }})">🔧 관리자삭제</button>
+                        {% endif %}
+                    </div>
+                    <div class="rv-votes">
+                        <button type="button" class="rv-vote like" onclick="voteReview({{ review.id }}, 'like', this)">
+                            👍 <span id="likes-{{ review.id }}">{{ review.likes }}</span>
+                        </button>
+                        <button type="button" class="rv-vote dislike"
+                            onclick="voteReview({{ review.id }}, 'dislike', this)">
+                            👎 <span id="dislikes-{{ review.id }}">{{ review.dislikes }}</span>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 대댓글 작성 폼 -->
+                <div id="replyForm-{{ review.id }}" class="rv-reply-form" style="display: none;">
+                    <form method="POST" action="/player_review/{{ card.spid }}/write">
+                        <input type="hidden" name="parent_comment_id" value="{{ review.id }}">
+                        {% if not session.get('user_id') %}
+                        <div class="rv-form-row">
+                            <div class="rv-field">
+                                <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
+                                    class="rv-input">
+                            </div>
+                            <div class="rv-field">
+                                <input type="password" name="password" required maxlength="50" placeholder="비밀번호"
+                                    class="rv-input">
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="rv-field">
+                            <textarea name="content" required rows="3" placeholder="답글을 입력하세요"
+                                class="rv-input"></textarea>
+                        </div>
+                        <div class="rv-form-actions">
+                            <button type="button" class="rv-btn-ghost"
+                                onclick="hideReplyForm({{ review.id }})">취소</button>
+                            <button type="submit" class="rv-btn-primary">등록</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 대댓글 목록 -->
+                {% for reply in reviews if reply.parent_comment_id == review.id %}
+                <div class="rv-reply {% if reply.is_deleted %}rv-deleted{% endif %}">
+                    <div class="rv-meta">
+                        <div class="rv-author">
+                            <span class="rv-reply-mark">ㄴ</span>
+                            {% if reply.is_deleted and session.get('user_role') == 'admin' %}
+                            <span class="rv-badge-del">삭제됨</span>
+                            {% endif %}
+                            <span class="rv-name">{{ reply.author }}</span>
+                            <span class="rv-ip">{{ reply.ip_display }}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <span class="rv-date">{{ reply.created_at.strftime('%m-%d %H:%M') }}</span>
+                            {% if not reply.is_deleted %}
+                            <button type="button" class="rv-link rv-link-danger"
+                                onclick="deleteReview({{ reply.id }})">삭제</button>
+                            {% if session.get('user_role') == 'admin' %}
+                            <button type="button" class="rv-link rv-link-danger"
+                                onclick="adminDeleteReview({{ reply.id }})">🔧</button>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="rv-content">{{ reply.content }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="rv-empty">
+            <div class="rv-empty-icon">💭</div>
+            <p>아직 작성된 후기가 없습니다</p>
+            <p class="rv-empty-sub">이 카드를 써보셨다면 첫 후기를 남겨주세요!</p>
+        </div>
+        {% endif %}
+    </div>
+</div><!-- /선수 후기 탭 -->
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -1404,6 +1960,102 @@
 {% endif %}
 
 <script>
+    // ===== 페이지 탭 (선수 정보 / 선수 후기) =====
+    function switchMainTab(tab, scroll) {
+        document.getElementById('tab-info').style.display = tab === 'info' ? '' : 'none';
+        document.getElementById('tab-review').style.display = tab === 'review' ? '' : 'none';
+        document.querySelectorAll('.cd-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        // 주소 끝에 #review를 붙여서 새로고침·공유·뒤로 가기 시에도 후기 탭 유지
+        history.replaceState(null, '', location.pathname + location.search + (tab === 'review' ? '#review' : ''));
+        if (scroll) document.getElementById('cd-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (location.hash === '#review') switchMainTab('review', true);
+    });
+
+    // ===== 선수 후기 =====
+    const RV_IS_LOGGED_IN = {{ 'true' if session.get('user_id') else 'false' }};
+
+    function toggleWriteForm() {
+        const form = document.getElementById('writeForm');
+        const btn = document.getElementById('toggleWriteBtn');
+        const open = form.style.display === 'none';
+        form.style.display = open ? 'block' : 'none';
+        btn.textContent = open ? '✕ 닫기' : '✍️ 후기 작성';
+        if (open) form.querySelector('textarea').focus();
+    }
+
+    function showReplyForm(reviewId) {
+        document.querySelectorAll('[id^="replyForm-"]').forEach(f => { f.style.display = 'none'; });
+        const form = document.getElementById('replyForm-' + reviewId);
+        form.style.display = 'block';
+        form.querySelector('textarea').focus();
+    }
+
+    function hideReplyForm(reviewId) {
+        document.getElementById('replyForm-' + reviewId).style.display = 'none';
+    }
+
+    function voteReview(reviewId, voteType, btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        fetch(`/player_review/vote/${reviewId}/${voteType}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`likes-${reviewId}`).textContent = data.likes;
+                    document.getElementById(`dislikes-${reviewId}`).textContent = data.dislikes;
+                    alert(voteType === 'like' ? '👍 추천했습니다!' : '👎 비추천했습니다!');
+                } else {
+                    alert(data.message || '투표 중 오류가 발생했습니다');
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                alert('투표 중 오류가 발생했습니다');
+                btn.disabled = false;
+            });
+    }
+
+    function deleteReview(reviewId) {
+        let password = '';
+        if (!RV_IS_LOGGED_IN) {
+            password = prompt('비밀번호를 입력하세요:');
+            if (!password) return;
+        } else if (!confirm('정말로 삭제하시겠습니까?')) {
+            return;
+        }
+        fetch(`/player_review/${reviewId}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `password=${encodeURIComponent(password)}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) location.reload();
+            })
+            .catch(() => alert('삭제 중 오류가 발생했습니다'));
+    }
+
+    function adminDeleteReview(reviewId) {
+        if (!confirm('정말로 이 후기를 삭제하시겠습니까?\n삭제된 후기는 관리자만 볼 수 있습니다.')) return;
+        fetch(`/player_review/${reviewId}/admin_delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.success ? '후기가 삭제되었습니다' : (data.message || '삭제 중 오류가 발생했습니다'));
+                if (data.success) location.reload();
+            })
+            .catch(() => alert('삭제 중 오류가 발생했습니다'));
+    }
+
     function switchCareerTab(tab) {
         document.getElementById('careerClub').style.display = tab === 'club' ? 'block' : 'none';
         document.getElementById('careerTrait').style.display = tab === 'trait' ? 'block' : 'none';

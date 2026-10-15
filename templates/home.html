@@ -1161,7 +1161,7 @@
                 ? reviews.map(r => {
                     const pid = parseInt(String(r.spid).slice(-6));
                     return `
-                    <a class="home-list-row" href="/player_review/${r.spid}">
+                    <a class="home-list-row" href="/card/${r.spid}#review">
                         <img class="home-review-face" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${r.spid}.png" alt="" loading="lazy"
                             onerror="this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${pid}.png';">
                         <div class="home-review-body">
