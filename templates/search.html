@@ -620,40 +620,45 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 3px;
-        width: 70px;
-        height: 60px;
-        background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
-        border: none;
+        gap: 2px;
+        width: 52px;
+        height: 48px;
+        flex-shrink: 0;
+        background: transparent;
+        border: 1px solid rgba(255, 167, 38, 0.45);
         border-radius: 10px;
-        color: white;
+        color: #ffa726;
         cursor: pointer;
-        transition: all 0.3s;
-        padding: 5px;
+        transition: all 0.2s;
+        padding: 4px;
     }
 
     .add-to-basket-btn .btn-icon {
-        font-size: 28px;
+        font-size: 20px;
         font-weight: bold;
         line-height: 1;
-        margin-top: -6px;
-    }
-
-    .add-to-basket-btn .btn-text {
-        font-size: 9px;
-        font-weight: 500;
-        text-align: center;
-        line-height: 1.1;
         margin-top: -2px;
     }
 
-    .add-to-basket-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(255, 167, 38, 0.4);
+    .add-to-basket-btn .btn-text {
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.1;
     }
 
-    .add-to-basket-btn.added {
+    /* 카드나 버튼에 마우스를 올리면 살짝 강조 */
+    .player-card:hover .add-to-basket-btn,
+    .add-to-basket-btn:hover {
+        background: rgba(255, 167, 38, 0.12);
+        border-color: #ffa726;
+    }
+
+    /* 담긴 상태는 확실하게 */
+    .add-to-basket-btn.added,
+    .player-card:hover .add-to-basket-btn.added {
         background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+        border-color: transparent;
+        color: #fff;
     }
 
     .content-wrapper {
@@ -1003,7 +1008,7 @@
 
         .card-row {
             display: grid;
-            grid-template-columns: 70px 1fr 60px;
+            grid-template-columns: 70px 1fr 48px;
             gap: 10px;
             align-items: center;
         }
@@ -1100,17 +1105,17 @@
         .add-to-basket-btn {
             grid-column: 3;
             grid-row: 1;
-            width: 60px;
-            height: 60px;
+            width: 48px;
+            height: 44px;
             align-self: center;
         }
 
         .add-to-basket-btn .btn-icon {
-            font-size: 24px;
+            font-size: 18px;
         }
 
         .add-to-basket-btn .btn-text {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
         }
 
         .overall-badge {
@@ -1227,7 +1232,7 @@
         }
 
         .card-row {
-            grid-template-columns: 60px 1fr 55px;
+            grid-template-columns: 60px 1fr 46px;
             gap: 8px;
         }
 
@@ -1280,8 +1285,8 @@
         }
 
         .add-to-basket-btn {
-            width: 55px;
-            height: 55px;
+            width: 46px;
+            height: 42px;
         }
     }
 </style>
