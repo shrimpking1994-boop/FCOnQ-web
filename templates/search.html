@@ -302,6 +302,99 @@
         min-height: 100px;
     }
 
+    /* 고유 특성 탭 + 칩 */
+    .trait-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .trait-tab {
+        flex: 1;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .trait-tab.new.active {
+        border-color: #c9a227;
+        background: rgba(201, 162, 39, 0.15);
+        color: #d4ab2c;
+    }
+
+    .trait-tab.normal.active {
+        border-color: var(--primary-color);
+        background: rgba(138, 43, 226, 0.15);
+        color: var(--primary-color);
+    }
+
+    .trait-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-main);
+    }
+
+    .trait-chip input {
+        display: none;
+    }
+
+    .trait-chip span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        font-size: 0.78rem;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s;
+    }
+
+    .trait-chip-icon {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+    }
+
+    .trait-chip.new input:checked+span {
+        border-color: #c9a227;
+        background: rgba(201, 162, 39, 0.18);
+        color: #d4ab2c;
+    }
+
+    .trait-chip.normal input:checked+span {
+        border-color: var(--primary-color);
+        background: rgba(138, 43, 226, 0.18);
+        color: var(--primary-color);
+    }
+
+    .trait-all-btn {
+        padding: 4px 10px;
+        border-radius: 16px;
+        border: 1px dashed #c9a227;
+        background: transparent;
+        color: #d4ab2c;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .trait-search {
+        margin-bottom: 8px;
+    }
+
     .foot-select-group {
         display: flex;
         gap: 20px;
@@ -1120,6 +1213,12 @@
         .no-results p {
             font-size: 0.9rem;
         }
+
+        .trait-chip span,
+        .trait-all-btn {
+            font-size: 0.72rem;
+            padding: 4px 8px;
+        }
     }
 
     @media (max-width: 480px) {
@@ -1483,43 +1582,44 @@
                 </div>
 
                 <!-- 보유 고유 특성 -->
+                <!-- 고유 특성 (탭 + 칩, 같은 탭 안 OR / 탭끼리 AND) -->
                 <div class="filter-group">
-                    <div class="filter-group-title">고유 특성</div>
-                    <div class="row g-2">
-                        <div class="col-3">
-                            <label class="form-label label-title">신규 특성 종류 무관</label>
-                            <label class="trait-has-checkbox-wrap">
-                                <input type="checkbox" name="has_new_trait" id="hasNewTrait" class="trait-has-checkbox">
-                                <span>보유 여부만</span>
-                            </label>
-                        </div>
-                        <div class="col-3">
-                            <label class="form-label label-title">신규 특성</label>
-                            <select class="form-select trait-select" name="new_trait" data-placeholder="▼">
-                                <option value=""></option>
-                                {% for trait in new_traits %}
-                                <option value="{{ trait }}">{{ trait }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-3">
-                            <label class="form-label label-title">일반 특성 1</label>
-                            <select class="form-select trait-select" name="normal_trait_1" data-placeholder="▼">
-                                <option value=""></option>
-                                {% for trait in normal_traits %}
-                                <option value="{{ trait }}">{{ trait }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-3">
-                            <label class="form-label label-title">일반 특성 2</label>
-                            <select class="form-select trait-select" name="normal_trait_2" data-placeholder="▼">
-                                <option value=""></option>
-                                {% for trait in normal_traits %}
-                                <option value="{{ trait }}">{{ trait }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="filter-group-title">고유 특성
+                        <span style="font-size:0.78rem; color:var(--text-muted); font-weight:400;">(OR 조건)</span>
+                    </div>
+                    <div class="trait-tabs">
+                        <button type="button" class="trait-tab new active" data-tab="new"
+                            onclick="switchTraitTab('new')">
+                            신규특성 <span id="traitCountNew">0</span>/{{ new_traits|length }}
+                        </button>
+                        <button type="button" class="trait-tab normal" data-tab="normal"
+                            onclick="switchTraitTab('normal')">
+                            일반특성 <span id="traitCountNormal">0</span>/{{ normal_traits|length }}
+                        </button>
+                    </div>
+
+                    <input type="text" class="form-control trait-search" id="traitSearchInput" placeholder="특성 이름 검색"
+                        autocomplete="off" oninput="filterTraitChips(this.value)"
+                        onkeydown="if (event.key === 'Enter') event.preventDefault()">
+
+                    <div id="traitPanelNew" class="trait-chips">
+                        <button type="button" class="trait-all-btn" id="traitAllNewBtn"
+                            onclick="toggleAllNewTraits()">신규 전체 선택</button>
+                        {% for trait in new_traits %}
+                        <label class="trait-chip new">
+                            <input type="checkbox" name="new_traits" value="{{ trait }}" onchange="updateTraitCounts()">
+                            <span><img class="trait-chip-icon" data-trait="{{ trait }}" alt="">{{ trait }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div id="traitPanelNormal" class="trait-chips" style="display:none;">
+                        {% for trait in normal_traits %}
+                        <label class="trait-chip normal">
+                            <input type="checkbox" name="normal_traits" value="{{ trait }}"
+                                onchange="updateTraitCounts()">
+                            <span><img class="trait-chip-icon" data-trait="{{ trait }}" alt="">{{ trait }}</span>
+                        </label>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -1698,11 +1798,9 @@
                 if (el) state[name] = el.value;
             });
 
-            // 고유 특성 (Select2)
-            ['new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
-                const el = document.querySelector(`select[name="${name}"]`);
-                if (el) state[name] = el.value;
-            });
+            // 고유 특성 (칩)
+            state.newTraits = [...document.querySelectorAll('input[name="new_traits"]:checked')].map(cb => cb.value);
+            state.normalTraits = [...document.querySelectorAll('input[name="normal_traits"]:checked')].map(cb => cb.value);
 
             sessionStorage.setItem('searchState', JSON.stringify(state));
         }
@@ -1754,14 +1852,13 @@
 
             // 팀컬러 & 고유 특성 (Select2 - trigger 필요)
             // 고유 특성은 기존 방식으로
-            setTimeout(() => {
-                ['new_trait', 'normal_trait_1', 'normal_trait_2', 'normal_trait_3'].forEach(name => {
-                    const el = document.querySelector(`select[name="${name}"]`);
-                    if (el && state[name]) {
-                        $(el).val(state[name]).trigger('change');
-                    }
-                });
-            }, 500);
+            document.querySelectorAll('input[name="new_traits"]').forEach(cb => {
+                cb.checked = (state.newTraits || []).includes(cb.value);
+            });
+            document.querySelectorAll('input[name="normal_traits"]').forEach(cb => {
+                cb.checked = (state.normalTraits || []).includes(cb.value);
+            });
+            updateTraitCounts();
 
             // 팀컬러는 Select2 초기화 완료 후 복원
             const teamColorNames = ['nation_team_color', 'club_team_color_1', 'club_team_color_2', 'trait_team_color'];
@@ -2052,6 +2149,57 @@
         "프레데터": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_67.png",
         "GK 데드아이": "https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_68.png"
     };
+
+    // ── 고유 특성 칩 ──
+    function initTraitChips() {
+        document.querySelectorAll('.trait-chip-icon').forEach(img => {
+            const url = TRAIT_MAP[img.dataset.trait];
+            if (url) img.src = url;
+            else img.remove();
+        });
+    }
+
+    function switchTraitTab(tab) {
+        document.getElementById('traitPanelNew').style.display = tab === 'new' ? 'flex' : 'none';
+        document.getElementById('traitPanelNormal').style.display = tab === 'normal' ? 'flex' : 'none';
+        document.querySelectorAll('.trait-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    }
+
+    function updateTraitCounts() {
+        const newBoxes = document.querySelectorAll('input[name="new_traits"]');
+        const newChecked = document.querySelectorAll('input[name="new_traits"]:checked').length;
+        document.getElementById('traitCountNew').textContent = newChecked;
+        document.getElementById('traitCountNormal').textContent =
+            document.querySelectorAll('input[name="normal_traits"]:checked').length;
+        document.getElementById('traitAllNewBtn').textContent =
+            (newChecked > 0 && newChecked === newBoxes.length) ? '신규 전체 해제' : '신규 전체 선택';
+    }
+
+    function toggleAllNewTraits() {
+        const boxes = document.querySelectorAll('input[name="new_traits"]');
+        const allOn = [...boxes].every(b => b.checked);
+        boxes.forEach(b => { b.checked = !allOn; });
+        updateTraitCounts();
+    }
+
+    function filterTraitChips(keyword) {
+        const kw = keyword.replace(/\s/g, '').toLowerCase();
+        const counts = { new: 0, normal: 0 };
+        document.querySelectorAll('.trait-chip').forEach(chip => {
+            const name = chip.querySelector('input').value.replace(/\s/g, '').toLowerCase();
+            const show = !kw || name.includes(kw);
+            chip.style.display = show ? '' : 'none';
+            if (show) counts[chip.classList.contains('new') ? 'new' : 'normal']++;
+        });
+        // 검색 중엔 '신규 전체 선택' 숨김
+        document.getElementById('traitAllNewBtn').style.display = kw ? 'none' : '';
+        // 현재 탭에 결과가 없고 다른 탭에 있으면 자동 전환
+        const activeTab = document.querySelector('.trait-tab.active').dataset.tab;
+        const otherTab = activeTab === 'new' ? 'normal' : 'new';
+        if (kw && counts[activeTab] === 0 && counts[otherTab] > 0) switchTraitTab(otherTab);
+    }
+
+    initTraitChips();
 
     function getPosColor(pos) {
         if (['ST', 'CF', 'RW', 'LW'].includes(pos)) return '#e74c3c';

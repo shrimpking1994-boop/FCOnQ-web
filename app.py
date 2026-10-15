@@ -193,7 +193,8 @@ def get_db_connection():
 def build_search_conditions(player_names, selected_seasons, selected_positions, min_ovr, max_ovr,
                             min_salary, max_salary, preferred_foot, weak_foot_min, min_height, max_height,
                             min_weight, max_weight, selected_body_types, selected_traits, nation_team_color,
-                            club_team_color_1, club_team_color_2, trait_team_color, has_new_trait=False):
+                            club_team_color_1, club_team_color_2, trait_team_color, has_new_trait=False,
+                            new_trait_list=None, normal_trait_list=None):
     """검색 조건 SQL 문자열과 파라미터 생성 (재사용 가능)"""
     conditions = ""
     params = []
@@ -319,6 +320,16 @@ def build_search_conditions(player_names, selected_seasons, selected_positions, 
             FROM jsonb_array_elements_text(player_cards.full_data->'game_info'->'traits') AS card_trait
             WHERE card_trait IN (SELECT trait_name FROM player_traits WHERE trait_type = 'new')
         )"""
+        
+    # 특성 OR 조건: 신규끼리 OR, 일반끼리 OR, 두 그룹 사이는 AND
+    for trait_list in (new_trait_list, normal_trait_list):
+        if trait_list:
+            conditions += """ AND EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements_text(player_cards.full_data->'game_info'->'traits') AS card_trait
+                WHERE card_trait = ANY(%s)
+            )"""
+            params.append(list(trait_list))    
     
     # 국가 팀컬러
     if nation_team_color:
@@ -1398,10 +1409,8 @@ def api_search_results():
         min_weight = request.args.get('min_weight', '')
         max_weight = request.args.get('max_weight', '')
         selected_body_types = request.args.getlist('body_types')
-        new_trait = request.args.get('new_trait', '')
-        normal_trait_1 = request.args.get('normal_trait_1', '')
-        normal_trait_2 = request.args.get('normal_trait_2', '')
-        has_new_trait = request.args.get('has_new_trait', '') == 'on'
+        new_trait_list = [t for t in request.args.getlist('new_traits') if t]
+        normal_trait_list = [t for t in request.args.getlist('normal_traits') if t]
         nation_team_color = request.args.get('nation_team_color', '')
         club_team_color_1 = request.args.get('club_team_color_1', '')
         club_team_color_2 = request.args.get('club_team_color_2', '')
@@ -1409,16 +1418,12 @@ def api_search_results():
 
         per_page = 200
 
-        selected_traits = []
-        if new_trait: selected_traits.append(new_trait)
-        if normal_trait_1: selected_traits.append(normal_trait_1)
-        if normal_trait_2: selected_traits.append(normal_trait_2)
-
         search_conditions, search_params = build_search_conditions(
             player_names, selected_seasons, selected_positions, min_ovr, max_ovr,
             min_salary, max_salary, preferred_foot, weak_foot_min, min_height, max_height,
-            min_weight, max_weight, selected_body_types, selected_traits, nation_team_color,
-            club_team_color_1, club_team_color_2, trait_team_color, has_new_trait
+            min_weight, max_weight, selected_body_types, [], nation_team_color,
+            club_team_color_1, club_team_color_2, trait_team_color, False,
+            new_trait_list, normal_trait_list
         )
 
         count_query = "SELECT COUNT(*) FROM player_cards WHERE 1=1" + search_conditions
