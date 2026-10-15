@@ -661,6 +661,12 @@
         setupTcsAutocomplete('tcs-nation-input', 'tcs-nation-list', tcsNationList, tcsGroupIds);
         setupTcsAutocomplete('tcs-club-input', 'tcs-club-list', tcsClubList, tcsGroupIds);
         setupTcsAutocomplete('tcs-trait-input', 'tcs-trait-list', tcsTraitList, tcsGroupIds);
+        // 카드 상세에서 넘어온 경우: 해당 특성 팀컬러 바로 검색
+        const traitParam = new URLSearchParams(location.search).get('trait');
+        if (traitParam) {
+            document.getElementById('tcs-trait-input').value = traitParam;
+            searchByName('trait', traitParam);
+        }
     });
 
     function runNameSearch() {

@@ -1593,6 +1593,32 @@ def card_detail(spid):
         """, (spid,))
         price_history = cur.fetchone()
         price_history_data = price_history['full_data'] if price_history else None
+                # 해당 선수가 속한 특성 팀컬러 (선수 기준 = spid 뒤 6자리)
+        cur.execute("""
+            SELECT DISTINCT sc.name, te.image_url, te.min_count,
+                   te.stat1_name, te.stat1_value, te.stat2_name, te.stat2_value,
+                   te.stat3_name, te.stat3_value, te.stat4_name, te.stat4_value
+            FROM special_teamcolor_players scp
+            JOIN special_teamcolors sc ON scp.teamcolor_id = sc.id
+            LEFT JOIN teamcolor_effects te ON te.name = sc.name AND te.type = '특성'
+            WHERE scp.player_id = %s
+            ORDER BY sc.name
+        """, (str(spid)[-6:],))
+        trait_teamcolors = []
+        for r in cur.fetchall():
+            groups = []  # 같은 수치 스탯끼리 묶기
+            for i in range(1, 5):
+                n, v = r[f'stat{i}_name'], r[f'stat{i}_value']
+                if n and v is not None:
+                    g = next((g for g in groups if g['value'] == v), None)
+                    if g:
+                        g['names'].append(n)
+                    else:
+                        groups.append({'value': v, 'names': [n]})
+            trait_teamcolors.append({
+                'name': r['name'], 'image_url': r['image_url'],
+                'min_count': r['min_count'], 'stats': groups
+            })
     finally:
         cur.close()
         conn.close()
@@ -1611,6 +1637,7 @@ def card_detail(spid):
                                                summary_order=SUMMARY_ORDER,
                                                detailed_order=DETAILED_ORDER,
                                                price_history=price_history_data,
+                                               trait_teamcolors=trait_teamcolors,
                                                og_title=og_title,
                                                og_description=og_description)
 

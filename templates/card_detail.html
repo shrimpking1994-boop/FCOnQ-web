@@ -211,6 +211,86 @@
         color: #333;
     }
 
+    /* 커리어 박스 - 특성 팀컬러 */
+    .career-tab-btn,
+    .career-tab-btn:focus,
+    .career-tab-btn:active {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .trait-tc-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 4px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .trait-tc-item:last-child {
+        border-bottom: none;
+    }
+
+    .trait-tc-item {
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background 0.15s;
+    }
+
+    .trait-tc-item:hover {
+        background: var(--hover-bg);
+    }
+
+    .trait-tc-arrow {
+        font-size: 1.3rem;
+        color: var(--text-muted);
+        flex-shrink: 0;
+        padding-right: 4px;
+    }
+
+    .trait-tc-logo {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .trait-tc-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .trait-tc-min {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-left: 4px;
+    }
+
+    .trait-tc-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 4px;
+    }
+
+    .trait-tc-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        color: #64b5f6;
+        background: rgba(100, 181, 246, 0.12);
+    }
+
+    .career-empty {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        padding: 30px 0;
+    }
+
     /* 모바일 대응 */
     @media (max-width: 768px) {
 
@@ -867,14 +947,24 @@
 </div>
 
 <!-- 클럽 경력 + 시세 -->
-{% if card.basic_info.club_history or card.bp1 or price_history %}
+{% if card.basic_info.club_history or card.bp1 or price_history or trait_teamcolors %}
 <div class="stat-section">
     <div class="row">
         <div class="col-md-6">
-            {% if card.basic_info.club_history %}
-            <h4>클럽 경력</h4>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <h4 class="mb-0">커리어</h4>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active career-tab-btn" id="btnClubHistory"
+                        onclick="switchCareerTab('club')" style="padding: 2px 8px; font-size: 14px;">클럽 경력</button>
+                    <button class="btn btn-outline-secondary career-tab-btn" id="btnTraitTc"
+                        onclick="switchCareerTab('trait')" style="padding: 2px 8px; font-size: 14px;">특성 팀컬러({{
+                        trait_teamcolors|length }})</button>
+                </div>
+            </div>
             <div class="stat-category club-history-box" style="min-height: 332px;">
-                <div class="club-history" style="max-height: 300px; overflow-y: auto;">
+                <!-- 클럽 경력 -->
+                <div class="club-history" id="careerClub" style="max-height: 300px; overflow-y: auto;">
+                    {% if card.basic_info.club_history %}
                     {% for club in card.basic_info.club_history %}
                     <div class="club-item">
                         <div
@@ -889,9 +979,42 @@
                         </div>
                     </div>
                     {% endfor %}
+                    {% else %}
+                    <div class="career-empty">클럽 경력 정보가 없습니다.</div>
+                    {% endif %}
+                </div>
+
+                <!-- 특성 팀컬러 -->
+                <div class="club-history" id="careerTrait" style="max-height: 300px; overflow-y: auto; display: none;">
+                    {% if trait_teamcolors %}
+                    {% for tc in trait_teamcolors %}
+                    <div class="trait-tc-item" data-name="{{ tc.name }}"
+                        onclick="window.open('/teamcolor_search?trait=' + encodeURIComponent(this.dataset.name), '_blank')">
+                        {% if tc.image_url %}
+                        <img src="{{ tc.image_url }}" class="trait-tc-logo" alt="{{ tc.name }}"
+                            onerror="this.style.visibility='hidden'">
+                        {% endif %}
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="trait-tc-name">
+                                {{ tc.name }}
+                                {% if tc.min_count %}<span class="trait-tc-min">최소 {{ tc.min_count }}명</span>{% endif %}
+                            </div>
+                            {% if tc.stats %}
+                            <div class="trait-tc-stats">
+                                {% for g in tc.stats %}
+                                <span class="trait-tc-badge">{{ g.names|join(' & ') }} +{{ g.value }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <span class="trait-tc-arrow">›</span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="career-empty">해당되는 특성 팀컬러가 없습니다.</div>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
         </div>
 
         <div class="col-md-6">
@@ -1281,6 +1404,12 @@
 {% endif %}
 
 <script>
+    function switchCareerTab(tab) {
+        document.getElementById('careerClub').style.display = tab === 'club' ? 'block' : 'none';
+        document.getElementById('careerTrait').style.display = tab === 'trait' ? 'block' : 'none';
+        document.getElementById('btnClubHistory').classList.toggle('active', tab === 'club');
+        document.getElementById('btnTraitTc').classList.toggle('active', tab === 'trait');
+    }
     function shareCard() {
         const boost = document.getElementById('enhanceLevel').value;
         const adapt = document.getElementById('adaptLevel').value;
