@@ -143,6 +143,30 @@
 </script>
 
 <style>
+    /* 구분선 색: 다크모드는 사이트 기본, 라이트모드는 조금 더 진하게 */
+    .pw-wrap {
+        --line: var(--border-color);
+    }
+
+    html:not([data-theme="dark"]) .pw-wrap {
+        --line: #c3cad5;
+    }
+
+    /* 선택 상자 펼침 목록: 테마에 맞게 */
+    [data-theme="dark"] .pw-wrap select {
+        color-scheme: dark;
+    }
+
+    [data-theme="dark"] .pw-wrap select option {
+        background: #2d3748;
+        color: #ffffff;
+    }
+
+    html:not([data-theme="dark"]) .pw-wrap select option {
+        background: #ffffff;
+        color: #111827;
+    }
+
     .pw-wrap {
         --pw-accent: #6366f1;
         max-width: 900px;
@@ -160,7 +184,7 @@
 
     .pw-card {
         background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         border-radius: 12px;
         padding: 18px;
         display: flex;
@@ -176,7 +200,7 @@
     .pw-field {
         box-sizing: border-box;
         background: var(--secondary-bg);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         color: var(--text-primary);
         border-radius: 8px;
         padding: 10px 12px;
@@ -228,13 +252,13 @@
     /* 에디터 */
     .pw-editor-box .ql-toolbar.ql-snow {
         background: var(--secondary-bg);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         border-radius: 8px 8px 0 0;
         padding: 6px 8px;
     }
 
     .pw-editor-box .ql-container.ql-snow {
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         border-top: none;
         border-radius: 0 0 8px 8px;
         font-size: 1rem;
@@ -292,7 +316,7 @@
 
     .pw-editor-box .ql-snow .ql-tooltip {
         background: var(--card-bg);
-        border-color: var(--border-color);
+        border-color: var(--line);
         color: var(--text-primary);
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
         z-index: 5;
@@ -300,7 +324,7 @@
 
     .pw-editor-box .ql-snow .ql-tooltip input[type=text] {
         background: var(--secondary-bg);
-        border-color: var(--border-color);
+        border-color: var(--line);
         color: var(--text-primary);
     }
 
@@ -315,7 +339,7 @@
     .pw-btn {
         padding: 9px 22px;
         border-radius: 8px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         background: transparent;
         color: var(--text-secondary);
         font-size: 0.92rem;

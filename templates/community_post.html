@@ -334,6 +334,30 @@
 </script>
 
 <style>
+    /* 구분선 색: 다크모드는 사이트 기본, 라이트모드는 조금 더 진하게 */
+    .pv-wrap {
+        --line: var(--border-color);
+    }
+
+    html:not([data-theme="dark"]) .pv-wrap {
+        --line: #c3cad5;
+    }
+
+    /* 선택 상자 펼침 목록: 테마에 맞게 */
+    [data-theme="dark"] .pv-wrap select {
+        color-scheme: dark;
+    }
+
+    [data-theme="dark"] .pv-wrap select option {
+        background: #2d3748;
+        color: #ffffff;
+    }
+
+    html:not([data-theme="dark"]) .pv-wrap select option {
+        background: #ffffff;
+        color: #111827;
+    }
+
     .pv-wrap {
         --pv-accent: #6366f1;
         max-width: 1000px;
@@ -345,13 +369,13 @@
     /* 본문 카드 */
     .pv-article {
         background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         border-radius: 12px;
         padding: 24px 28px;
     }
 
     .pv-header {
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--line);
         padding-bottom: 14px;
         margin-bottom: 22px;
     }
@@ -423,7 +447,7 @@
         gap: 4px;
         padding: 5px 12px;
         border-radius: 6px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         background: transparent;
         color: var(--text-secondary);
         font-size: 0.82rem;
@@ -530,7 +554,7 @@
     }
 
     .post-content blockquote {
-        border-left: 3px solid var(--border-color);
+        border-left: 3px solid var(--line);
         padding-left: 12px;
         color: var(--text-secondary);
     }
@@ -590,7 +614,7 @@
         min-width: 76px;
         padding: 8px 14px;
         border-radius: 10px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         background: var(--secondary-bg);
         color: var(--text-secondary);
         font-family: inherit;
@@ -636,7 +660,7 @@
     .pv-comments {
         margin-top: 16px;
         background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         border-radius: 12px;
         padding: 20px 28px;
     }
@@ -654,7 +678,7 @@
 
     .pv-cmt {
         padding: 12px 0;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--line);
     }
 
     .pv-cmt.is-deleted {
@@ -737,7 +761,7 @@
     .pv-reply-form {
         margin-top: 10px;
         padding-left: 14px;
-        border-left: 3px solid var(--border-color);
+        border-left: 3px solid var(--line);
     }
 
     .pv-form {
@@ -759,7 +783,7 @@
         box-sizing: border-box;
         width: 100%;
         background: var(--secondary-bg);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--line);
         color: var(--text-primary);
         border-radius: 8px;
         padding: 9px 12px;
