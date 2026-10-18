@@ -747,6 +747,9 @@ def _community_list(cur):
     if not is_admin:
         conditions.append("is_deleted = false")
 
+    # 공지는 목록 위 '접는 공지 띠'로 따로 보여주므로 일반 목록에서는 제외
+    conditions.append("COALESCE(is_notice, false) = false")
+
     # 조건 적용
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
@@ -762,10 +765,7 @@ def _community_list(cur):
     
     # 페이징 적용
     query += """ 
-    ORDER BY 
-            is_notice DESC,
-            CASE WHEN is_notice = true THEN created_at END ASC,
-            CASE WHEN is_notice = false THEN created_at END DESC 
+        ORDER BY created_at DESC
         LIMIT %s OFFSET %s
     """
     params.extend([per_page, (page - 1) * per_page])
@@ -792,8 +792,20 @@ def _community_list(cur):
             post['display_date'] = post['created_at'].strftime('%m-%d')
         post['ip_display'] = format_ip_display(post.get('author_ip'))
 
+    # 공지 목록 (검색 중이 아닐 때만, 최신순, 가벼운 컬럼만)
+    notices = []
+    if not keyword:
+        cur.execute("""
+            SELECT id, title, created_at FROM community.posts
+            WHERE is_notice = true AND is_deleted = false
+            ORDER BY created_at DESC
+            LIMIT 10
+        """)
+        notices = cur.fetchall()
+
     return render_template('community.html',
                          posts=posts,
+                         notices=notices,
                          current_page=page,
                          total_pages=total_pages,
                          category=category,
