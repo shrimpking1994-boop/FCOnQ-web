@@ -484,7 +484,17 @@
         // 비로그인: 비밀번호 입력 필요
         const password = prompt('비밀번호를 입력하세요:');
         if (!password) return;
-        window.location.href = `/community/post/${postId}/edit?password=${encodeURIComponent(password)}`;
+        // 비밀번호를 주소창이 아닌 POST로 전송
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/community/post/${postId}/edit/auth`;
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'password';
+        input.value = password;
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
     } else {
         // 로그인: 비밀번호 입력 불필요
         window.location.href = `/community/post/${postId}/edit`;

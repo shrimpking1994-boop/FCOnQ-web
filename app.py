@@ -17,6 +17,8 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import hashlib
+import re
+import nh3  # 커뮤니티 글 HTML 정화 (requirements.txt에 nh3 추가 필요)
 
 # .env 파일 로드  # ← 추가!
 load_dotenv()       # ← 추가!
@@ -599,12 +601,58 @@ def home_squads():
     return jsonify(data)
 
 
+# ── 커뮤니티 글 HTML 정화 ─────────────────────────────────────
+# 에디터(Quill)가 만드는 태그만 허용하고, 스크립트·이벤트 속성·외부 iframe 등은 제거
+COMMUNITY_CATEGORIES = ['잡담', '꿀팁', '스쿼드', '선수 후기', '전술', '강화/득템', '감독모드', '미니 페이스온', '명장면']
+_POST_ALLOWED_TAGS = {'p', 'br', 'span', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del',
+                      'h1', 'h2', 'h3', 'blockquote', 'pre', 'code', 'ol', 'ul', 'li',
+                      'a', 'img', 'iframe'}
+_POST_ALLOWED_ATTRS = {
+    '*': {'class', 'style'},
+    'a': {'href', 'target'},
+    'img': {'src', 'alt', 'width', 'height'},
+    'iframe': {'src', 'frameborder', 'allowfullscreen', 'width', 'height'},
+    'li': {'data-list'},
+    'pre': {'spellcheck'},
+}
+_POST_VIDEO_SRC = re.compile(r'^https://(www\.)?(youtube\.com|youtube-nocookie\.com)/embed/[\w\-]+')
+
+
+def _post_attr_filter(tag, attr, value):
+    if tag == 'iframe' and attr == 'src':
+        return value if _POST_VIDEO_SRC.match(value) else None  # 유튜브 영상만 허용
+    if tag == 'img' and attr == 'src':
+        return value if value.startswith(('https://', 'http://', 'data:image/')) else None
+    if tag == 'a' and attr == 'href':
+        return value if value.startswith(('https://', 'http://', '/')) else None
+    if attr == 'class':
+        kept = [c for c in value.split() if c.startswith('ql-')]  # 에디터 정렬/들여쓰기 클래스만
+        return ' '.join(kept) or None
+    return value
+
+
+def clean_post_html(html):
+    """커뮤니티 글 본문에서 허용된 HTML만 남김 (저장 시 + 표시 시 모두 사용)"""
+    if not html:
+        return ''
+    return nh3.clean(html, tags=_POST_ALLOWED_TAGS, attributes=_POST_ALLOWED_ATTRS,
+                     attribute_filter=_post_attr_filter,
+                     url_schemes={'http', 'https', 'data'},
+                     filter_style_properties={'color', 'background-color'})
+
+
 @app.route('/community')
 def community_list():
     """커뮤니티 메인 - 게시글 목록"""
     conn = get_db_connection()
-    cur = conn.cursor()
-    
+    try:
+        cur = conn.cursor()
+        return _community_list(cur)
+    finally:
+        conn.close()
+
+
+def _community_list(cur):
     # 파라미터
     category = request.args.get('category', '')
     page = request.args.get('page', 1, type=int)
@@ -613,8 +661,18 @@ def community_list():
     show_popular = request.args.get('popular', '') == 'true'
     per_page = 20
     
-    # 기본 쿼리
-    query = "SELECT * FROM community.posts"
+    # 기본 쿼리 (본문 전체는 가져오지 않음: 사진이 본문에 들어 있어 글당 수백 KB)
+    # 이미지/영상 여부와 댓글 수는 DB 안에서 계산해서 결과만 받아옴
+    query = """
+        SELECT id, category, title, author, author_ip, created_at, views, likes,
+               is_notice, is_deleted,
+               (POSITION('<img' IN content) > 0) AS has_image,
+               (POSITION('<iframe' IN content) > 0
+                OR POSITION('youtube.com' IN content) > 0
+                OR POSITION('youtu.be' IN content) > 0) AS has_video,
+               (SELECT COUNT(*) FROM community.comments c
+                WHERE c.post_id = community.posts.id AND c.is_deleted = false) AS comment_count
+        FROM community.posts"""
     params = []
     conditions = []
     
@@ -721,38 +779,20 @@ def community_list():
         if post['created_at']:
             # UTC로 저장된 시간을 KST로 변환
             utc_time = post['created_at'].replace(tzinfo=pytz.UTC)
-            post['created_at'] = utc_time.astimezone(kst)    
-    
-    # 각 게시글의 댓글 수 조회
-    for post in posts:    
-        cur.execute("""
-            SELECT COUNT(*) as comment_count 
-            FROM community.comments 
-            WHERE post_id = %s AND is_deleted = false
-        """, (post['id'],))
-        comment_result = cur.fetchone()
-        post['comment_count'] = comment_result['comment_count'] if comment_result else 0
-    
-    # 날짜 포맷 처리 + 이미지/영상 감지
-    from datetime import datetime, date
-    kst_now = datetime.now(kst)
-    today = kst_now.date()
-    
+            post['created_at'] = utc_time.astimezone(kst)
+
+    # 날짜 포맷 처리 (댓글 수·이미지/영상 여부는 위 쿼리에서 이미 계산됨)
+    today = datetime.now(kst).date()
+
     for post in posts:
         post_date = post['created_at'].date()
         if post_date == today:
             post['display_date'] = post['created_at'].strftime('%H:%M')
         else:
             post['display_date'] = post['created_at'].strftime('%m-%d')
-        
-        post['has_image'] = '<img' in post['content']
-        post['has_video'] = '<iframe' in post['content'] or 'youtube.com' in post['content'] or 'youtu.be' in post['content']
         post['ip_display'] = format_ip_display(post.get('author_ip'))
-    
-    cur.close()
-    conn.close()
-    
-    return render_template('community.html', 
+
+    return render_template('community.html',
                          posts=posts,
                          current_page=page,
                          total_pages=total_pages,
@@ -778,13 +818,14 @@ def community_write():
              cur.close()
              conn.close()
         category = request.form.get('category')
-        VALID_CATEGORIES = ['잡담', '꿀팁', '스쿼드', '선수 후기', '전술', '강화/득템', '감독모드', '미니 페이스온', '명장면']
         is_admin = session.get('user_role') == 'admin'
-        if category not in VALID_CATEGORIES and not (category == '업데이트' and is_admin):
+        if category not in COMMUNITY_CATEGORIES and not (category == '업데이트' and is_admin):
             return redirect('/community')
-        title = request.form.get('title')
-        content = request.form.get('content')
-        
+        title = (request.form.get('title') or '').strip()[:200]
+        content = clean_post_html(request.form.get('content') or '')  # 허용된 HTML만 저장
+        if not title or not content.strip():
+            return redirect('/community/write')
+
         # 로그인 여부 확인
         if 'user_id' in session:
             # 로그인 상태: 세션 정보 사용
@@ -801,33 +842,55 @@ def community_write():
             user_id = None
         
         conn = get_db_connection()
-        cur = conn.cursor()
-        
-        cur.execute("""
-            INSERT INTO community.posts (category, title, content, author, author_ip, password_hash, user_id, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (category, title, content, author, author_ip,  password_hash, user_id, datetime.now(pytz.UTC)))        
-        
-        conn.commit()
-        cur.close()
-        conn.close()
-        
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO community.posts (category, title, content, author, author_ip, password_hash, user_id, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (category, title, content, author, author_ip,  password_hash, user_id, datetime.now(pytz.UTC)))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
         return redirect('/community')
     
     return render_template('community_write.html')
 
 
+def _should_count_view(post_id):
+    """최근 본 글 목록(세션)에 없거나 6시간이 지났으면 True"""
+    now = int(datetime.now(pytz.UTC).timestamp())
+    viewed = session.get('viewed_posts', {})
+    key = str(post_id)
+    if now - viewed.get(key, 0) < 6 * 3600:
+        return False
+    viewed[key] = now
+    # 쿠키 용량 보호: 최근 30개만 유지
+    if len(viewed) > 30:
+        viewed = dict(sorted(viewed.items(), key=lambda x: x[1])[-30:])
+    session['viewed_posts'] = viewed
+    return True
+
+
 @app.route('/community/post/<int:post_id>')
 def community_post(post_id):
     """게시글 상세보기"""
-    from flask import request
-    
     conn = get_db_connection()
-    cur = conn.cursor()
-    
-    # 조회수 증가
-    cur.execute("UPDATE community.posts SET views = views + 1 WHERE id = %s", (post_id,))
-    conn.commit()
+    try:
+        cur = conn.cursor()
+        return _community_post(conn, cur, post_id)
+    finally:
+        conn.close()
+
+
+def _community_post(conn, cur, post_id):
+    # 조회수 증가 (같은 브라우저는 6시간에 한 번만 집계)
+    if _should_count_view(post_id):
+        cur.execute("UPDATE community.posts SET views = views + 1 WHERE id = %s", (post_id,))
+        conn.commit()
     
     # 게시글 조회
     cur.execute("SELECT * FROM community.posts WHERE id = %s", (post_id,))
@@ -875,80 +938,17 @@ def community_post(post_id):
     for comment in comments:
         comment['ip_display'] = format_ip_display(comment.get('author_ip'))
     
-    # URL에서 카테고리 파라미터 가져오기
-    category_filter = request.args.get('category', '')
-    page = request.args.get('page', 1, type=int)
-    per_page = 20
-    
-    # 카테고리에 따라 게시글 목록 조회
-    if category_filter:
-        # 전체 개수
-        cur.execute("""
-            SELECT COUNT(*) FROM community.posts
-            WHERE category = %s AND is_deleted = false
-        """, (category_filter,))
-        total_count = cur.fetchone()['count']
-        
-        # 특정 카테고리만
-        cur.execute("""
-            SELECT id, category, title, author, author_ip, created_at, views, likes, content
-            FROM community.posts
-            WHERE category = %s AND is_deleted = false
-            ORDER BY created_at DESC
-            LIMIT %s OFFSET %s
-        """, (category_filter, per_page, (page - 1) * per_page))
-    else:
-        # 전체 개수
-        cur.execute("SELECT COUNT(*) FROM community.posts WHERE is_deleted = false")
-        total_count = cur.fetchone()['count']
-        
-        # 전체 게시글
-        cur.execute("""
-            SELECT id, category, title, author, author_ip, created_at, views, likes, content
-            FROM community.posts
-            WHERE is_deleted = false
-            ORDER BY created_at DESC
-            LIMIT %s OFFSET %s
-        """, (per_page, (page - 1) * per_page))
-    
-    related_posts = cur.fetchall()
-    total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
-    
-    # 날짜 포맷 처리
-    from datetime import date
-    today = date.today()
-    for p in related_posts:
-        post_date = p['created_at'].date()
-        if post_date == today:
-            p['display_date'] = p['created_at'].strftime('%H:%M')
-        else:
-            p['display_date'] = p['created_at'].strftime('%m-%d')
-            
-        # 이미지/영상 감지 추가
-        p['has_image'] = '<img' in p['content']
-        p['has_video'] = '<iframe' in p['content'] or 'youtube.com' in p['content'] or 'youtu.be' in p['content']
-        # IP 표시 추가
-        p['ip_display'] = format_ip_display(p.get('author_ip'))
-    
-        # 댓글 수 조회 추가
-        cur.execute("""
-            SELECT COUNT(*) as comment_count 
-            FROM community.comments 
-            WHERE post_id = %s AND is_deleted = false
-        """, (p['id'],))
-        comment_result = cur.fetchone()
-        p['comment_count'] = comment_result['comment_count'] if comment_result else 0    
-    
-    cur.close()
-    conn.close()
-    
+    # 본문 정화 (예전 글 포함, 허용된 HTML만 출력)
+    post['content'] = clean_post_html(post.get('content'))
+
+    # 하단 관련 글 목록은 현재 사용하지 않으므로 조회하지 않음 (템플릿 호환용 빈 값 전달)
     return render_template('community_post.html', 
                          post=post, 
                          comments=comments,
-                         related_posts=related_posts,
-                         current_category=category_filter,
-                         current_page=page,
-                         total_pages=total_pages)
+                         related_posts=[],
+                         current_category='',
+                         current_page=1,
+                         total_pages=1)
 
 
 @app.route('/community/comment/<int:post_id>', methods=['POST'])
@@ -1245,9 +1245,8 @@ def edit_post_page(post_id):
             alert_message = "본인이 작성한 글만 수정할 수 있습니다"
             return f"<script>alert('{alert_message}'); window.location='/community/post/{post_id}';</script>"
     else:
-        # 비로그인 유저가 작성한 글: 비밀번호 확인
-        password = request.args.get('password', '')
-        if not verify_password(password, post['password_hash']):
+        # 비로그인 유저가 작성한 글: 비밀번호 확인을 통과했는지 세션으로 확인
+        if session.get('edit_auth') != post_id:
             cur.close()
             conn.close()
             return redirect(f'/community/post/{post_id}')
@@ -1258,13 +1257,40 @@ def edit_post_page(post_id):
     return render_template('community_edit.html', post=post)
 
 
+@app.route('/community/post/<int:post_id>/edit/auth', methods=['POST'])
+def edit_post_auth(post_id):
+    """비로그인 글 수정 전 비밀번호 확인 (비밀번호가 주소창에 남지 않도록 POST로 받음)"""
+    password = request.form.get('password', '')
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT password_hash, user_id FROM community.posts WHERE id = %s", (post_id,))
+        post = cur.fetchone()
+    finally:
+        conn.close()
+
+    if post and not post['user_id'] and post['password_hash'] and verify_password(password, post['password_hash']):
+        session['edit_auth'] = post_id
+        return redirect(f'/community/post/{post_id}/edit')
+    return """
+        <script>
+            alert('비밀번호가 일치하지 않습니다');
+            window.location='/community/post/""" + str(post_id) + """';
+        </script>
+    """
+
+
 @app.route('/community/post/<int:post_id>/edit', methods=['POST'])
 def edit_post_submit(post_id):
     """게시글 수정 처리"""
     category = request.form.get('category')
     title = request.form.get('title')
-    content = request.form.get('content')
-    if category == '업데이트' and session.get('user_role') != 'admin':
+    content = clean_post_html(request.form.get('content') or '')  # 허용된 HTML만 저장
+    is_admin = session.get('user_role') == 'admin'
+    if category not in COMMUNITY_CATEGORIES and not (category == '업데이트' and is_admin):
+        return redirect(f'/community/post/{post_id}')
+    title = (title or '').strip()[:200]
+    if not title or not content.strip():
         return redirect(f'/community/post/{post_id}')
     
     conn = get_db_connection()
@@ -1293,15 +1319,14 @@ def edit_post_submit(post_id):
                     </script>
                 """
         else:
-            # 비로그인 유저가 작성한 글: 비밀번호 확인
-            password = request.form.get('password', '')
-            if not verify_password(password, post['password_hash']):
+            # 비로그인 유저가 작성한 글: 비밀번호 확인 통과 여부(세션) 확인
+            if session.get('edit_auth') != post_id:
                 cur.close()
                 conn.close()
                 return """
                     <script>
-                        alert('비밀번호가 일치하지 않습니다');
-                        history.back();
+                        alert('수정 권한이 만료되었습니다. 글에서 수정 버튼을 다시 눌러주세요');
+                        window.location='/community/post/""" + str(post_id) + """';
                     </script>
                 """
         
@@ -1313,6 +1338,7 @@ def edit_post_submit(post_id):
         """, (category, title, content, post_id))
         
         conn.commit()
+        session.pop('edit_auth', None)  # 수정 완료 후 허가 해제
         return redirect(f'/community/post/{post_id}')
         
     except Exception as e:
