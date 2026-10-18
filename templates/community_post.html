@@ -1,215 +1,166 @@
 {% extends "index.html" %}
 
+{% block title %}{{ post.title }} | 엪씨온큐 커뮤니티{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="{{ post.summary }}">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="FCOnQ">
+<meta property="og:title" content="{{ post.title }} - FCOnQ 커뮤니티">
+<meta property="og:description" content="{{ post.summary }}">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:url" content="https://fconq.com/community/post/{{ post.id }}">
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ post.title }} - FCOnQ 커뮤니티">
+<meta name="twitter:description" content="{{ post.summary }}">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+{% endblock %}
+
 {% block content %}
-<div class="container" style="max-width: 1000px; margin: 10px auto; padding: 0;">
+{% set is_admin = session.get('user_role') == 'admin' %}
+{% set list_url = '/community' ~ ('?' ~ board_qs if board_qs else '') %}
 
-    <!-- 게시글 상세 -->
-    <div style="background: var(--card-bg); border-radius: 12px; padding: 10px 0; margin-bottom: 0;">
+<div class="pv-wrap">
 
-        <!-- 카테고리 + 제목 -->
-        <div style="margin-bottom: 20px;">
-            <span class="badge"
-                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 6px 14px; border-radius: 12px; font-size: 0.9rem; margin-bottom: 15px; display: inline-block;">
-                {{ post.category }}
-            </span>
-            <h2 style="color: var(--text-primary); font-weight: 700; margin: 0;">{{ post.title }}</h2>
-        </div>
-
-        <!-- 작성자 정보 -->
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 30px;">
-            <div class="post-meta" style="display: flex; gap: 20px; color: var(--text-secondary); font-size: 0.95rem;">
-                <span class="meta-author"><strong style="color: var(--text-primary);">{{ post.author }}</strong> <span
-                        style="color: var(--text-muted); font-size: 0.9em;">{{ post.ip_display }}</span></span>
-                <span class="meta-date">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                <span class="meta-stats">
-                    <span class="meta-views">조회 {{ post.views }}</span>
-                    <span class="meta-likes">추천 {{ post.likes }}</span>
-                    <span class="meta-comments">댓글 {{ comments|length }}</span>
+    <!-- 글 본문 -->
+    <article class="pv-article">
+        <header class="pv-header">
+            <a href="/community?category={{ post.category | urlencode }}" class="pv-cat">{{ post.category }}</a>
+            <h1 class="pv-title">
+                {% if post.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
+                {{ post.title }}
+            </h1>
+            <div class="pv-meta">
+                <span class="pv-author">{{ post.author }}{% if post.ip_display %} <span class="pv-ip">{{ post.ip_display
+                        }}</span>{% endif %}</span>
+                <span class="pv-dot">·</span>
+                <span>{{ post.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
+                <span class="pv-stats">
+                    <span>조회 {{ post.views }}</span>
+                    <span>추천 {{ post.likes }}</span>
+                    <span>댓글 {{ comments | rejectattr('is_deleted') | list | length }}</span>
                 </span>
             </div>
-
-            <!-- 버튼 그룹 -->
-            <div style="display: flex; gap: 10px;">
-                <!-- 공지글 고정/해제 버튼 (관리자 + 본인 글만) -->
-                {% if session.get('user_role') == 'admin' and post.user_id == session.get('user_id') %}
-                <button onclick="toggleNotice({{ post.id }})" id="noticeBtn"
-                    class="btn {% if post.is_notice %}btn-warning{% else %}btn-outline-warning{% endif %}"
-                    style="padding: 6px 20px; border-radius: 20px;">
-                    {% if post.is_notice %}
-                    📌 공지글 고정 해제
-                    {% else %}
-                    📌 공지글로 고정
-                    {% endif %}
+            <div class="pv-actions">
+                {% if is_admin and post.user_id == session.get('user_id') %}
+                <button type="button" onclick="toggleNotice({{ post.id }})" class="pv-btn pv-btn-notice">
+                    📌 {% if post.is_notice %}공지 해제{% else %}공지로 고정{% endif %}
                 </button>
                 {% endif %}
-
-                <!-- 공유 버튼 -->
-                <button onclick="sharePost()" class="btn btn-outline-secondary"
-                    style="padding: 6px 20px; border-radius: 20px;">
-                    📤 공유
-                </button>
-
-                <!-- 수정 버튼 -->
-                <button onclick="editPost({{ post.id }})" class="btn btn-outline-primary"
-                    style="padding: 6px 20px; border-radius: 20px;">
-                    ✏️ 수정
-                </button>
-
-                <!-- 삭제 버튼 -->
-                <button onclick="deletePost({{ post.id }})" class="btn btn-outline-danger"
-                    style="padding: 6px 20px; border-radius: 20px;">
-                    🗑️ 삭제
-                </button>
+                <button type="button" onclick="sharePost()" class="pv-btn">📤 공유</button>
+                {% if post.can_manage %}
+                <button type="button" onclick="editPost({{ post.id }})" class="pv-btn">수정</button>
+                <button type="button" onclick="deletePost({{ post.id }})" class="pv-btn pv-btn-danger">삭제</button>
+                {% endif %}
             </div>
-        </div>
+        </header>
 
-        <!-- 본문 내용 -->
-        <div class="post-content"
-            style="color: var(--text-primary); line-height: 1.8; font-size: 1.05rem; min-height: 200px; margin-bottom: 30px;">
+        <div class="post-content">
             {{ post.content | safe }}
         </div>
 
-
-
-    </div>
-
-    <div>
-        <!-- 추천/비추천 버튼 -->
-        <div style="text-align: center; padding: 30px 0;">
-            <div style="display: flex; gap: 20px; justify-content: center; align-items: center;">
-                <button onclick="votePost({{ post.id }}, 'like')" id="likeBtn" class="btn btn-primary"
-                    style="padding: 15px 35px; font-size: 1.2rem; border-radius: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; min-width: 180px;">
-                    👍 추천 (<span id="likeCount">{{ post.likes }}</span>)
-                </button>
-
-                <button onclick="votePost({{ post.id }}, 'dislike')" id="dislikeBtn" class="btn btn-secondary"
-                    style="padding: 15px 35px; font-size: 1.2rem; border-radius: 30px; background: linear-gradient(135deg, #6c757d 0%, #495057 100%); border: none; min-width: 180px;">
-                    👎 비추 (<span id="dislikeCount">{{ post.dislikes or 0 }}</span>)
-                </button>
-            </div>
+        <!-- 추천 / 비추천 -->
+        <div class="pv-vote">
+            <button type="button" onclick="votePost({{ post.id }}, 'like')" id="likeBtn" class="pv-vote-btn pv-like">
+                <span class="pv-vote-ico">👍</span>
+                <span class="pv-vote-label">추천</span>
+                <span id="likeCount" class="pv-vote-n">{{ post.likes }}</span>
+            </button>
+            <button type="button" onclick="votePost({{ post.id }}, 'dislike')" id="dislikeBtn"
+                class="pv-vote-btn pv-dislike">
+                <span class="pv-vote-ico">👎</span>
+                <span class="pv-vote-label">비추</span>
+                <span id="dislikeCount" class="pv-vote-n">{{ post.dislikes or 0 }}</span>
+            </button>
         </div>
-    </div>
 
-    <!-- 댓글 섹션 -->
-    <div style="background: var(--card-bg); border-radius: 12px; padding: 30px 0;">
+        <!-- 목록 / 글쓰기 -->
+        <div class="pv-nav">
+            <a href="{{ list_url }}" class="pv-btn">☰ 목록</a>
+            <a href="/community/write" class="pv-btn pv-btn-write">✏️ 글쓰기</a>
+        </div>
+    </article>
 
-        <h4 style="color: var(--text-primary); margin-bottom: 20px; font-weight: 600;">
-            💬 댓글 <span style="color: var(--text-secondary); font-size: 0.9rem;">({{ comments|length }})</span>
-        </h4>
+    <!-- 댓글 -->
+    <section class="pv-comments" id="comments">
+        <h2 class="pv-cmt-title">댓글 <span>{{ comments | rejectattr('is_deleted') | list | length }}</span></h2>
 
-        <!-- 댓글 목록 -->
         {% if comments %}
-        <div style="margin-bottom: 30px;">
+        <div class="pv-cmt-list">
             {% for comment in comments %}
             {% if not comment.parent_comment_id %}
-            <!-- 일반 댓글 -->
-            <div
-                style="padding: 20px; border-bottom: 1px solid var(--border-color); {% if loop.last %}border-bottom: none;{% endif %} {% if comment.is_deleted %}background: rgba(255, 0, 0, 0.05);{% endif %}">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        {% if comment.is_deleted and session.get('user_role') == 'admin' %}
-                        <span
-                            style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-right: 4px;">삭제됨</span>
-                        {% endif %}
-                        <strong style="color: var(--text-primary);">{{ comment.author }}</strong>
-                        <span style="color: var(--text-muted); font-size: 0.85em;">{{ comment.ip_display }}</span>
+            <div class="pv-cmt {% if comment.is_deleted %}is-deleted{% endif %}">
+                <div class="pv-cmt-head">
+                    <div class="pv-cmt-who">
+                        {% if comment.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
+                        <strong>{{ comment.author }}</strong>
+                        {% if comment.ip_display %}<span class="pv-ip">{{ comment.ip_display }}</span>{% endif %}
+                        <span class="pv-cmt-date">{{ comment.created_at.strftime('%m.%d %H:%M') }}</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="color: var(--text-secondary); font-size: 0.85rem;">
-                            {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
-                        </span>
-                        {% if not comment.is_deleted %}
-                        <button onclick="showReplyForm({{ comment.id }})" class="btn btn-sm btn-outline-info"
-                            style="padding: 2px 10px; font-size: 0.8rem;">
-                            댓글
-                        </button>
-                        <button onclick="deleteComment({{ comment.id }})" class="btn btn-sm btn-outline-danger"
-                            style="padding: 2px 10px; font-size: 0.8rem;">
-                            삭제
-                        </button>
-                        {% if session.get('user_role') == 'admin' %}
-                        <button onclick="adminDeleteComment({{ comment.id }})" class="btn btn-sm btn-danger"
-                            style="padding: 2px 10px; font-size: 0.8rem;">
-                            🔧 관리자삭제
-                        </button>
-                        {% endif %}
+                    {% if not comment.is_deleted %}
+                    <div class="pv-cmt-btns">
+                        <button type="button" onclick="showReplyForm({{ comment.id }})">답글</button>
+                        <button type="button"
+                            onclick="deleteComment({{ comment.id }}, {{ 'true' if comment.user_id else 'false' }})">삭제</button>
+                        {% if is_admin %}
+                        <button type="button" class="pv-admin"
+                            onclick="adminDeleteComment({{ comment.id }})">관리자삭제</button>
                         {% endif %}
                     </div>
+                    {% endif %}
                 </div>
-                <div style="color: var(--text-primary); line-height: 1.6; white-space: pre-line;">{{ comment.content }}
-                </div>
+                <div class="pv-cmt-body">{{ comment.content }}</div>
 
-                <!-- 대댓글 작성 폼 (숨겨진 상태) -->
-                <div id="replyForm-{{ comment.id }}"
-                    style="display: none; margin-top: 15px; padding-left: 20px; border-left: 3px solid var(--border-color);">
-                    <form method="POST" action="/community/comment/{{ post.id }}"
-                        style="padding: 15px; background: var(--secondary-bg); border-radius: 8px;">
+                <!-- 답글 작성 폼 (숨김) -->
+                <div id="replyForm-{{ comment.id }}" class="pv-reply-form" hidden>
+                    <form method="POST" action="/community/comment/{{ post.id }}" class="pv-form">
                         <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
-
                         {% if not session.get('user_id') %}
-                        <div class="mb-2">
+                        <div class="pv-form-row">
                             <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
-                                class="form-control"
-                                style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 6px; max-width: 200px; font-size: 0.9rem;">
-                        </div>
-                        <div class="mb-2">
+                                class="pv-input pv-input-sm">
                             <input type="password" name="password" required maxlength="50" placeholder="비밀번호"
-                                class="form-control"
-                                style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 6px; max-width: 200px; font-size: 0.9rem;">
+                                class="pv-input pv-input-sm">
                         </div>
                         {% endif %}
-
-                        <textarea name="content" required rows="3" placeholder="답글을 입력하세요" class="form-control"
-                            style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 6px; resize: vertical; font-size: 0.9rem;"></textarea>
-
-                        <div style="margin-top: 10px; display: flex; gap: 10px;">
-                            <button type="submit" class="btn btn-success btn-sm" style="padding: 6px 20px;">등록</button>
-                            <button type="button" onclick="hideReplyForm({{ comment.id }})"
-                                class="btn btn-secondary btn-sm" style="padding: 6px 20px;">취소</button>
+                        <textarea name="content" required rows="3" placeholder="답글을 입력하세요" class="pv-input"></textarea>
+                        <div class="pv-form-btns">
+                            <button type="button" onclick="hideReplyForm({{ comment.id }})" class="pv-btn">취소</button>
+                            <button type="submit" class="pv-btn pv-btn-submit">등록</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- 해당 댓글의 대댓글들 -->
             {% for reply in comments %}
             {% if reply.parent_comment_id == comment.id %}
-            <div
-                style="padding: 20px; padding-left: 50px; background: var(--secondary-bg); {% if reply.is_deleted %}opacity: 0.6;{% endif %}; position: relative;">
-                <div
-                    style="position: absolute; left: 50px; right: 0; bottom: 0; height: 1px; background: var(--border-color);">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="color: var(--text-secondary); font-size: 1.2rem; margin-right: 4px;">ㄴ</span>
-                        {% if reply.is_deleted and session.get('user_role') == 'admin' %}
-                        <span
-                            style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-right: 4px;">삭제됨</span>
-                        {% endif %}
-                        <strong style="color: var(--text-primary);">{{ reply.author }}</strong>
-                        <span style="color: var(--text-muted); font-size: 0.85em;">{{ reply.ip_display }}</span>
+            <div class="pv-cmt pv-reply {% if reply.is_deleted %}is-deleted{% endif %}">
+                <div class="pv-cmt-head">
+                    <div class="pv-cmt-who">
+                        <span class="pv-reply-mark">ㄴ</span>
+                        {% if reply.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
+                        <strong>{{ reply.author }}</strong>
+                        {% if reply.ip_display %}<span class="pv-ip">{{ reply.ip_display }}</span>{% endif %}
+                        <span class="pv-cmt-date">{{ reply.created_at.strftime('%m.%d %H:%M') }}</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="color: var(--text-secondary); font-size: 0.85rem;">
-                            {{ reply.created_at.strftime('%Y-%m-%d %H:%M') }}
-                        </span>
-                        {% if not reply.is_deleted %}
-                        <button onclick="deleteComment({{ reply.id }})" class="btn btn-sm btn-outline-danger"
-                            style="padding: 2px 10px; font-size: 0.8rem;">
-                            삭제
-                        </button>
-                        {% if session.get('user_role') == 'admin' %}
-                        <button onclick="adminDeleteComment({{ reply.id }})" class="btn btn-sm btn-danger"
-                            style="padding: 2px 10px; font-size: 0.8rem;">
-                            🔧 관리자삭제
-                        </button>
-                        {% endif %}
+                    {% if not reply.is_deleted %}
+                    <div class="pv-cmt-btns">
+                        <button type="button"
+                            onclick="deleteComment({{ reply.id }}, {{ 'true' if reply.user_id else 'false' }})">삭제</button>
+                        {% if is_admin %}
+                        <button type="button" class="pv-admin"
+                            onclick="adminDeleteComment({{ reply.id }})">관리자삭제</button>
                         {% endif %}
                     </div>
+                    {% endif %}
                 </div>
-                <div style="color: var(--text-primary); line-height: 1.6; white-space: pre-line;">{{ reply.content }}
-                </div>
+                <div class="pv-cmt-body">{{ reply.content }}</div>
             </div>
             {% endif %}
             {% endfor %}
@@ -217,271 +168,101 @@
             {% endfor %}
         </div>
         {% else %}
-        <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary); margin-bottom: 30px;">
-            첫 댓글을 작성해보세요!
-        </div>
+        <div class="pv-cmt-empty">첫 댓글을 작성해보세요!</div>
         {% endif %}
 
-        <!-- 댓글 작성 폼 -->
-        <form method="POST" action="/community/comment/{{ post.id }}" style="margin-top: 30px;">
-
-            <!-- 작성자 입력 (비로그인 시에만 표시) -->
+        <!-- 댓글 작성 -->
+        <form method="POST" action="/community/comment/{{ post.id }}" class="pv-form pv-cmt-form">
             {% if not session.get('user_id') %}
-            <div class="mb-3">
+            <div class="pv-form-row">
                 <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
-                    class="form-control"
-                    style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 8px; max-width: 200px;">
-            </div>
-            {% endif %}
-
-            <!-- 비밀번호 입력 (비로그인 시에만 표시) -->
-            {% if not session.get('user_id') %}
-            <div class="mb-3">
+                    class="pv-input pv-input-sm">
                 <input type="password" name="password" required maxlength="50" placeholder="비밀번호 (삭제 시 필요)"
-                    class="form-control"
-                    style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 8px; max-width: 200px;">
+                    class="pv-input pv-input-sm">
             </div>
             {% endif %}
-
-            <!-- 댓글 내용 -->
-            <div class="mb-3">
-                <textarea name="content" required rows="4" placeholder="댓글을 입력하세요" class="form-control"
-                    style="background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 15px; border-radius: 8px; resize: vertical;"></textarea>
+            <textarea name="content" required rows="3" placeholder="댓글을 입력하세요" class="pv-input"></textarea>
+            <div class="pv-form-btns">
+                <button type="submit" class="pv-btn pv-btn-submit">댓글 작성</button>
             </div>
-
-            <!-- 제출 버튼 -->
-            <div style="text-align: right;">
-                <button type="submit" class="btn btn-success" style="padding: 10px 30px; font-weight: 600;">
-                    댓글 작성
-                </button>
-            </div>
-
         </form>
-
-    </div>
-
+    </section>
 </div>
 
-
-
-<!-- 게시글 목록 섹션 추가 
-<div class="container" style="max-width: 1400px; margin: 40px auto 0; padding: 0 20px;">
-
-    <h4 style="color: var(--text-primary); margin-bottom: 20px; font-weight: 600;">
-        📋 {{ post.category }} 게시글
-    </h4>
-
-    <div class="table-responsive" style="background: var(--card-bg); border-radius: 12px; overflow: hidden;">
-        <table class="table table-hover"
-            style="margin: 0; color: var(--text-primary); table-layout: fixed; width: 100%;">
-            <thead style="background: var(--secondary-bg); border-bottom: 2px solid var(--border-color);">
-                <tr>
-                    <th style="width: 65px; text-align: center; padding: 15px 10px; ">번호</th>
-                    <th style="width: 85px; text-align: center; padding: 15px 10px;">탭</th>
-                    <th style="width: 60%; padding: 15px 20px; vertical-align: middle;">제목</th>
-                    <th style="width: 150px; text-align: center; padding: 15px 10px; vertical-align: middle;">글쓴이</th>
-                    <th style="width: 70px; text-align: center; padding: 15px 10px; vertical-align: middle;">날짜</th>
-                    <th style="width: 55px; text-align: center; padding: 15px 10px; vertical-align: middle;">조회</th>
-                    <th style="width: 55px; text-align: center; padding: 15px 10px; vertical-align: middle;">추천</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in related_posts %}
-                <tr style="cursor: pointer; border-bottom: 1px solid var(--border-color); {% if p.id == post.id %}background: var(--hover-bg);{% endif %}"
-                    onclick="window.location='/community/post/{{ p.id }}?category={{ current_category }}'">
-                    <td
-                        style="text-align: center; padding: 12px 10px; color: var(--text-secondary); font-weight: 500; vertical-align: middle;">
-                        {{ p.id }}
-                    </td>
-                    <td style="text-align: center; padding: 12px 10px; white-space: nowrap; vertical-align: middle;">
-                        <span style="color: var(--text-primary);">
-                            {% if p.category == '미니 페이스온' %}미페{% else %}{{ p.category }}{% endif %}
-                        </span>
-                    </td>
-                    <td style="padding: 12px 20px; vertical-align: middle;">
-                        <span
-                            style="color: var(--text-primary); font-size: 1rem; font-weight: 500; vertical-align: middle;">
-                            <span class="post-title-text">{{ p.title }}</span>
-                            {% if p.comment_count > 0 %}
-                            <span style="margin-left: 0px; color: var(--text-primary); font-size: 0.9rem;">[{{
-                                p.comment_count }}]</span>
-                            {% endif %}
-                            {% if p.has_image %}
-                            <span style="margin-left: 6px; font-size: 0.9rem;">🖼️</span>
-                            {% endif %}
-                            {% if p.has_video %}
-                            <span
-                                style="margin-left: {% if p.has_image %}-5px{% else %}6px{% endif %}; font-size: 0.9rem;">▶️</span>
-                            {% endif %}
-                        </span>
-                    </td>
-
-                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
-                        {{ p.author }} <span style="color: var(--text-muted); font-size: 0.85em;">{{ p.ip_display
-                            }}</span>
-                    </td>
-                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
-                        {{ p.display_date }}
-                    </td>
-                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
-                        {{ p.views }}
-                    </td>
-                    <td style="text-align: center; padding: 12px 10px; color: var(--text-secondary);">
-                        {{ p.likes }}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-     페이지네이션 
-    {% if total_pages > 1 %}
-    <nav style="margin-top: 30px;">
-        <ul class="pagination justify-content-center">
-            {% if current_page > 1 %}
-            <li class="page-item">
-                <a class="page-link"
-                    href="/community?category={{ current_category }}&page={{ current_page - 1 }}">이전</a>
-            </li>
-            {% endif %}
-
-            {% for p in range(1, total_pages + 1) %}
-            <li class="page-item {% if p == current_page %}active{% endif %}">
-                <a class="page-link" href="/community?category={{ current_category }}&page={{ p }}">{{ p }}</a>
-            </li>
-            {% endfor %}
-
-            {% if current_page < total_pages %} <li class="page-item">
-                <a class="page-link"
-                    href="/community?category={{ current_category }}&page={{ current_page + 1 }}">다음</a>
-                </li>
-                {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
-
+<!-- 글 아래 목록 (보던 목록 그대로) -->
+<div class="pv-board">
+    {% include "_community_board.html" %}
 </div>
 
-
-검색 영역 
-<div class="container" style="max-width: 1400px; margin: 30px auto 0; padding: 0 20px;">
-    <div style="display: flex; gap: 10px; align-items: center; max-width: 600px; margin: 0 auto;">
-        <select name="search_type" id="searchType" class="form-select"
-            style="width: 140px; background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: 8px;">
-            <option value="title_content">제목+내용</option>
-            <option value="title">제목</option>
-            <option value="content">내용</option>
-            <option value="author">글쓴이</option>
-            <option value="comment">댓글</option>
-        </select>
-
-        <input type="text" id="searchKeyword" placeholder="검색어를 입력하세요"
-            style="flex: 1; background: var(--secondary-bg); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: 8px;">
-
-        <button onclick="searchPosts()" class="btn btn-primary" style="padding: 8px 20px; white-space: nowrap;">
-            🔍 검색
-        </button>
-    </div>
-</div>
-
-나중에 이거 다시 활성화시킬때는 게시글 목록 섹션 추가 , 페이지네이션, 검색 영역 텍스트에 주석 표시하면 됨-->
-
+<!-- 스크립트에서 쓰는 값 (스크립트 안에 템플릿 코드를 넣지 않기 위해 여기에 둠) -->
+<div id="pvData" hidden data-post-id="{{ post.id }}" data-title="{{ post.title }}" data-list-url="{{ list_url }}"
+    data-member="{{ '1' if post.user_id else '0' }}"></div>
 
 <script>
+    const PV = document.getElementById('pvData').dataset;
+    // 회원 글은 본인 확인(세션), 비회원 글은 비밀번호로 확인
+    const IS_MEMBER_POST = PV.member === '1';
+
     function sharePost() {
-        // 현재 페이지 URL 복사
-        const url = window.location.href;
-
-        // 클립보드에 복사
-        navigator.clipboard.writeText(url).then(() => {
-            alert('게시글 주소가 복사되었습니다!\n' + url);
-        }).catch(err => {
-            // 복사 실패 시 fallback
-            prompt('이 주소를 복사하세요:', url);
-        });
-    }
-
-    function searchPosts() {
-        const searchType = document.getElementById('searchType').value;
-        const keyword = document.getElementById('searchKeyword').value.trim();
-
-        if (!keyword) {
-            alert('검색어를 입력해주세요');
+        const url = 'https://fconq.com/community/post/' + PV.postId;
+        if (navigator.share) {
+            navigator.share({ title: PV.title, url: url }).catch(() => { });
             return;
         }
-
-        window.location.href = `/community?search_type=${searchType}&keyword=${encodeURIComponent(keyword)}`;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('게시글 주소가 복사되었습니다!\n' + url);
+        }).catch(() => {
+            prompt('이 주소를 복사하세요:', url);
+        });
     }
 
     function votePost(postId, voteType) {
         fetch(`/community/vote/${postId}/${voteType}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    // 카운트 업데이트
                     document.getElementById('likeCount').textContent = data.likes;
                     document.getElementById('dislikeCount').textContent = data.dislikes;
-
-                    // 버튼 비활성화
                     document.getElementById('likeBtn').disabled = true;
                     document.getElementById('dislikeBtn').disabled = true;
-
-                    alert(voteType === 'like' ? '추천했습니다!' : '비추천했습니다!');
+                    document.getElementById(voteType === 'like' ? 'likeBtn' : 'dislikeBtn').classList.add('voted');
                 } else {
                     alert(data.message);
                 }
             })
-            .catch(error => {
-                alert('오류가 발생했습니다: ' + error);
-            });
+            .catch(error => alert('오류가 발생했습니다: ' + error));
     }
 
     function deletePost(postId) {
-        // 로그인 여부 확인
-        const isLoggedIn = {{ 'true' if session.get('user_id') else 'false'
-    }};
+        let password = '';
+        if (!IS_MEMBER_POST) {
+            password = prompt('비밀번호를 입력하세요:');
+            if (!password) return;
+        } else if (!confirm('정말로 삭제하시겠습니까?')) {
+            return;
+        }
 
-    let password = '';
-    if (!isLoggedIn) {
-        password = prompt('비밀번호를 입력하세요:');
-        if (!password) return;
-    } else {
-        if (!confirm('정말로 삭제하시겠습니까?')) return;
-    }
-
-    fetch(`/community/post/${postId}/delete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `password=${encodeURIComponent(password)}`
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                window.location.href = '/community';
-            } else {
-                alert(data.message);
-            }
+        fetch(`/community/post/${postId}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `password=${encodeURIComponent(password)}`
         })
-        .catch(error => {
-            alert('삭제 중 오류가 발생했습니다');
-            console.error(error);
-        });
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) window.location.href = PV.listUrl;
+            })
+            .catch(() => alert('삭제 중 오류가 발생했습니다'));
     }
 
     function editPost(postId) {
-        // 로그인 여부 확인
-        const isLoggedIn = {{ 'true' if session.get('user_id') else 'false'
-    }};
-
-    if (!isLoggedIn) {
-        // 비로그인: 비밀번호 입력 필요
+        if (IS_MEMBER_POST) {
+            window.location.href = `/community/post/${postId}/edit`;
+            return;
+        }
         const password = prompt('비밀번호를 입력하세요:');
         if (!password) return;
         // 비밀번호를 주소창이 아닌 POST로 전송
@@ -495,571 +276,585 @@
         form.appendChild(input);
         document.body.appendChild(form);
         form.submit();
-    } else {
-        // 로그인: 비밀번호 입력 불필요
-        window.location.href = `/community/post/${postId}/edit`;
     }
-}
 
-    // 대댓글 폼 표시
     function showReplyForm(commentId) {
-        // 모든 대댓글 폼 숨기기
-        document.querySelectorAll('[id^="replyForm-"]').forEach(form => {
-            form.style.display = 'none';
-        });
-
-        // 해당 댓글의 대댓글 폼만 표시
-        document.getElementById('replyForm-' + commentId).style.display = 'block';
+        document.querySelectorAll('.pv-reply-form').forEach(f => { f.hidden = true; });
+        const form = document.getElementById('replyForm-' + commentId);
+        form.hidden = false;
+        form.querySelector('textarea').focus();
     }
 
-    // 대댓글 폼 숨기기
     function hideReplyForm(commentId) {
-        document.getElementById('replyForm-' + commentId).style.display = 'none';
+        document.getElementById('replyForm-' + commentId).hidden = true;
     }
 
-    function deleteComment(commentId) {
-        // 로그인 여부 확인
-        const isLoggedIn = {{ 'true' if session.get('user_id') else 'false'
-    }};
-
-    let password = '';
-    if (!isLoggedIn) {
-        password = prompt('비밀번호를 입력하세요:');
-        if (!password) return;
-    } else {
-        if (!confirm('정말로 삭제하시겠습니까?')) return;
-    }
-
-    fetch(`/community/comment/${commentId}/delete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `password=${encodeURIComponent(password)}`
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => {
-            alert('삭제 중 오류가 발생했습니다');
-            console.error(error);
-        });
-    }
-
-    // 관리자 전용 댓글 삭제
-    function adminDeleteComment(commentId) {
-        if (!confirm('정말로 이 댓글을 삭제하시겠습니까?\n삭제된 댓글은 관리자만 볼 수 있습니다.')) {
+    function deleteComment(commentId, isMemberComment) {
+        let password = '';
+        if (!isMemberComment) {
+            password = prompt('비밀번호를 입력하세요:');
+            if (!password) return;
+        } else if (!confirm('정말로 삭제하시겠습니까?')) {
             return;
         }
 
-        fetch(`/community/comment/${commentId}/admin_delete`, {
+        fetch(`/community/comment/${commentId}/delete`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `password=${encodeURIComponent(password)}`
         })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    alert('댓글이 삭제되었습니다');
-                    location.reload();
-                } else {
-                    alert(data.message || '삭제 중 오류가 발생했습니다');
-                }
+                alert(data.message);
+                if (data.success) location.reload();
             })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('삭제 중 오류가 발생했습니다');
-            });
+            .catch(() => alert('삭제 중 오류가 발생했습니다'));
     }
 
-    // 엔터키 검색
-    document.getElementById('searchKeyword').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            searchPosts();
-        }
-    });
+    function adminDeleteComment(commentId) {
+        if (!confirm('정말로 이 댓글을 삭제하시겠습니까?\n삭제된 댓글은 관리자만 볼 수 있습니다.')) return;
+        fetch(`/community/comment/${commentId}/admin_delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) location.reload();
+                else alert(data.message || '삭제 중 오류가 발생했습니다');
+            })
+            .catch(() => alert('삭제 중 오류가 발생했습니다'));
+    }
 
-    // 공지글 고정/해제
     function toggleNotice(postId) {
         fetch(`/community/post/${postId}/toggle_notice`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert(data.message);
-                }
+                alert(data.message);
+                if (data.success) location.reload();
             })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('오류가 발생했습니다');
-            });
+            .catch(() => alert('오류가 발생했습니다'));
     }
 </script>
 
-
 <style>
-    /* 테이블 전체 정렬 통일 */
-    .table {
-        border-collapse: collapse;
+    .pv-wrap {
+        --pv-accent: #6366f1;
+        max-width: 1000px;
+        margin: 16px auto 0;
+        padding: 0 20px;
+        color: var(--text-primary);
     }
 
-    .table thead th {
-        vertical-align: middle;
-        line-height: 1.4;
-    }
-
-    .table tbody td {
-        vertical-align: middle !important;
-        line-height: 1.4 !important;
-    }
-
-    /* 본문 내용 스타일 */
-    .post-content {
-        display: block !important;
-        color: var(--text-primary) !important;
-        line-height: 1.8 !important;
-        font-size: 1.05rem !important;
-        word-wrap: break-word !important;
-    }
-
-    .post-content .ql-cursor,
-    .post-content .ql-clipboard {
-        display: none !important;
-    }
-
-    .post-content strong,
-    .post-content b {
-        font-weight: 700 !important;
-    }
-
-    .post-content em,
-    .post-content i {
-        font-style: italic !important;
-    }
-
-    .post-content u {
-        text-decoration: underline !important;
-    }
-
-    .post-content s,
-    .post-content del {
-        text-decoration: line-through !important;
-    }
-
-    .post-content h1 {
-        font-size: 2rem !important;
-        font-weight: 700 !important;
-        margin: 20px 0 10px !important;
-    }
-
-    .post-content h2 {
-        font-size: 1.5rem !important;
-        font-weight: 700 !important;
-        margin: 20px 0 10px !important;
-    }
-
-    .post-content h3 {
-        font-size: 1.25rem !important;
-        font-weight: 700 !important;
-        margin: 20px 0 10px !important;
-    }
-
-    .post-content ul,
-    .post-content ol {
-        margin-left: 25px !important;
-    }
-
-    .post-content p {
-        margin: 10px 0 !important;
-    }
-
-    .post-content img {
-        max-width: 100% !important;
-        height: auto !important;
-        margin: 15px 0 !important;
-    }
-
-    .post-content a {
-        color: #667eea !important;
-        text-decoration: underline !important;
-    }
-
-    .btn-outline-secondary {
+    /* 본문 카드 */
+    .pv-article {
+        background: var(--card-bg);
         border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px 28px;
+    }
+
+    .pv-header {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 14px;
+        margin-bottom: 22px;
+    }
+
+    .pv-cat {
+        display: inline-block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--pv-accent);
+        text-decoration: none;
+        margin-bottom: 6px;
+    }
+
+    .pv-cat:hover {
+        text-decoration: underline;
+    }
+
+    .pv-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.4;
+        margin: 0 0 10px;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+        color: var(--text-primary);
+    }
+
+    .pv-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 6px;
+        font-size: 0.85rem;
         color: var(--text-secondary);
     }
 
-    .btn-outline-secondary:hover {
+    .pv-author {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .pv-ip {
+        color: var(--text-muted);
+        font-size: 0.85em;
+        font-weight: 400;
+    }
+
+    .pv-dot {
+        color: var(--text-muted);
+    }
+
+    .pv-stats {
+        display: flex;
+        gap: 10px;
+        margin-left: auto;
+    }
+
+    .pv-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .pv-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .pv-btn:hover {
         background: var(--hover-bg);
         color: var(--text-primary);
     }
 
-    /* 영상(iframe) 반응형 컨테이너 */
-    .post-content iframe {
-        max-width: 100% !important;
-        width: 100% !important;
-        aspect-ratio: 16 / 9 !important;
-        /* 16:9 비율 유지 */
-        height: auto !important;
-        border-radius: 8px !important;
-        margin: 20px 0 !important;
+    .pv-btn-danger:hover {
+        color: #ef4444;
+        border-color: #ef4444;
     }
 
-    /* 구형 브라우저 대응 (aspect-ratio 미지원 시) */
+    .pv-btn-notice {
+        color: #ff9800;
+        border-color: rgba(255, 152, 0, 0.5);
+    }
+
+    .pv-btn-write {
+        background: #22c55e;
+        border-color: #22c55e;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .pv-btn-write:hover {
+        background: #16a34a;
+        color: #fff;
+    }
+
+    .pv-btn-submit {
+        background: var(--pv-accent);
+        border-color: var(--pv-accent);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .pv-btn-submit:hover {
+        background: #4f46e5;
+        color: #fff;
+    }
+
+    .pv-deleted {
+        display: inline-block;
+        background: #ef4444;
+        color: #fff;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        vertical-align: middle;
+    }
+
+    /* 본문 */
+    .post-content {
+        min-height: 120px;
+        line-height: 1.8;
+        font-size: 1.02rem;
+        overflow-wrap: anywhere;
+        color: var(--text-primary);
+    }
+
+    .post-content .ql-cursor,
+    .post-content .ql-clipboard {
+        display: none;
+    }
+
+    .post-content p {
+        margin: 6px 0;
+    }
+
+    .post-content h1 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin: 18px 0 8px;
+    }
+
+    .post-content h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 18px 0 8px;
+    }
+
+    .post-content h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 16px 0 8px;
+    }
+
+    .post-content strong,
+    .post-content b {
+        font-weight: 700;
+    }
+
+    .post-content ul,
+    .post-content ol {
+        padding-left: 24px;
+    }
+
+    .post-content blockquote {
+        border-left: 3px solid var(--border-color);
+        padding-left: 12px;
+        color: var(--text-secondary);
+    }
+
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        margin: 12px 0;
+        border-radius: 6px;
+    }
+
+    .post-content a {
+        color: var(--pv-accent);
+        text-decoration: underline;
+    }
+
+    .post-content iframe {
+        width: 100%;
+        max-width: 100%;
+        aspect-ratio: 16 / 9;
+        height: auto;
+        border: 0;
+        border-radius: 8px;
+        margin: 16px 0;
+    }
+
     @supports not (aspect-ratio: 16 / 9) {
         .post-content iframe {
-            height: 450px !important;
+            height: 450px;
         }
     }
 
-    /* 모바일 대응 */
+    /* Quill 정렬/색상 클래스 */
+    .post-content .ql-align-center {
+        text-align: center;
+    }
+
+    .post-content .ql-align-right {
+        text-align: right;
+    }
+
+    /* 추천 / 비추천 */
+    .pv-vote {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 32px 0 20px;
+    }
+
+    .pv-vote-btn {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1px;
+        min-width: 76px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: var(--secondary-bg);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .pv-vote-ico {
+        font-size: 1.15rem;
+        line-height: 1.2;
+    }
+
+    .pv-vote-label {
+        font-size: 0.72rem;
+    }
+
+    .pv-vote-n {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .pv-like:hover,
+    .pv-like.voted {
+        border-color: var(--pv-accent);
+        background: rgba(99, 102, 241, 0.1);
+    }
+
+    .pv-like.voted .pv-vote-n {
+        color: var(--pv-accent);
+    }
+
+    .pv-dislike:hover,
+    .pv-dislike.voted {
+        border-color: #9ca3af;
+    }
+
+    .pv-vote-btn:disabled {
+        cursor: default;
+    }
+
+    .pv-nav {
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid var(--border-color);
+        padding-top: 14px;
+    }
+
+    /* 댓글 */
+    .pv-comments {
+        margin-top: 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px 28px;
+    }
+
+    .pv-cmt-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 0 0 10px;
+        color: var(--text-primary);
+    }
+
+    .pv-cmt-title span {
+        color: #f97316;
+    }
+
+    .pv-cmt {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .pv-cmt.is-deleted {
+        background: rgba(255, 0, 0, 0.05);
+    }
+
+    .pv-reply {
+        padding-left: 22px;
+        background: var(--secondary-bg);
+        margin: 0 -28px;
+        padding-right: 28px;
+        padding-left: 50px;
+    }
+
+    .pv-reply-mark {
+        color: var(--text-muted);
+        margin-right: 2px;
+    }
+
+    .pv-cmt-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .pv-cmt-who {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 0.88rem;
+        min-width: 0;
+    }
+
+    .pv-cmt-date {
+        color: var(--text-muted);
+        font-size: 0.78rem;
+    }
+
+    .pv-cmt-btns {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .pv-cmt-btns button {
+        background: none;
+        border: none;
+        padding: 0;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        cursor: pointer;
+    }
+
+    .pv-cmt-btns button:hover {
+        color: var(--text-primary);
+        text-decoration: underline;
+    }
+
+    .pv-cmt-btns .pv-admin {
+        color: #ef4444;
+    }
+
+    .pv-cmt-body {
+        white-space: pre-line;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        overflow-wrap: anywhere;
+    }
+
+    .pv-cmt-empty {
+        padding: 24px 0;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .pv-reply-form {
+        margin-top: 10px;
+        padding-left: 14px;
+        border-left: 3px solid var(--border-color);
+    }
+
+    .pv-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .pv-cmt-form {
+        margin-top: 16px;
+    }
+
+    .pv-form-row {
+        display: flex;
+        gap: 8px;
+    }
+
+    .pv-input {
+        box-sizing: border-box;
+        width: 100%;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 9px 12px;
+        font-size: 0.9rem;
+        resize: vertical;
+    }
+
+    .pv-input-sm {
+        max-width: 180px;
+    }
+
+    .pv-form-btns {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+
+    /* 글 아래 목록 */
+    .pv-board {
+        margin-top: 28px;
+    }
+
+    .pv-board .cm-wrap {
+        max-width: 1000px;
+    }
+
+    /* 모바일 */
     @media (max-width: 768px) {
-        @supports not (aspect-ratio: 16 / 9) {
-            .post-content iframe {
-                height: 300px !important;
-            }
-        }
-    }
-
-    /* 작성자 정보 두 줄로 */
-    .post-meta {
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-    }
-
-    /* 조회수 앞에서 줄바꿈 */
-    .meta-views::before {
-        content: '';
-        flex-basis: 100% !important;
-        height: 0 !important;
-    }
-
-    /* 추천/비추천 버튼 영역 */
-    div[style*="추천/비추천"]>div,
-    .container>div>div[style*="display: flex"][style*="justify-content: center"] {
-        flex-wrap: wrap !important;
-        gap: 10px !important;
-    }
-
-    /* 추천/비추천 버튼 모바일 */
-    #likeBtn,
-    #dislikeBtn {
-        padding: 10px 15px !important;
-        font-size: 0.9rem !important;
-        min-width: 130px !important;
-    }
-
-    /* 검색 타입 드롭다운 다크모드 대응 */
-    [data-theme="dark"] .form-select option {
-        background: #2d3748;
-        color: #ffffff;
-    }
-
-    /* 제목 컬럼 전체 너비 */
-    .table tbody td:nth-child(3) {
-        max-width: 700px;
-    }
-
-    /* 제목 텍스트 */
-    .post-title-text {
-        vertical-align: middle;
-        display: inline;
-    }
-
-    /* 모바일 대응 (768px 이하) */
-    @media (max-width: 768px) {
-
-        /* 전체 레이아웃 */
-        .container {
-            padding: 0 2px !important;
-            margin-top: 0 !important;
+        .pv-wrap {
+            padding: 0 10px;
+            margin-top: 10px;
         }
 
-        /* 게시글 상세 카드 */
-        .container>div[style*="background: var(--card-bg)"] {
-            padding: 20px 0 !important;
-            margin-bottom: 0 !important;
-            border-radius: 8px !important;
+        .pv-article {
+            padding: 16px 14px;
+            border-radius: 10px;
         }
 
-        /* 제목 */
-        h2 {
-            font-size: 1.3rem !important;
-            word-break: keep-all !important;
-            line-height: 1.4 !important;
+        .pv-title {
+            font-size: 1.2rem;
         }
 
-        /* 작성자 정보 영역 */
-        .container>div[style*="background: var(--card-bg)"]>div[style*="display: flex"] {
-            flex-direction: column !important;
-            gap: 10px !important;
-            align-items: flex-start !important;
+        .pv-meta {
+            font-size: 0.75rem;
         }
 
-        /* 작성자 정보 텍스트들 */
-        .container>div[style*="background: var(--card-bg)"]>div>div {
-            flex-wrap: wrap !important;
-            gap: 8px !important;
-            font-size: 0.75rem !important;
+        .pv-stats {
+            margin-left: 0;
+            width: 100%;
+            gap: 8px;
         }
 
-        /* 버튼 그룹 */
-        .container>div[style*="background: var(--card-bg)"]>div>div:last-child {
-            width: 100% !important;
-            justify-content: flex-start !important;
-            gap: 6px !important;
+        .pv-actions {
+            justify-content: flex-start;
         }
 
-        /* 버튼들 작게 */
-        .btn {
-            padding: 5px 12px !important;
-            font-size: 0.75rem !important;
+        .pv-btn {
+            padding: 4px 10px;
+            font-size: 0.78rem;
         }
 
-        .btn-sm {
-            padding: 3px 8px !important;
-            font-size: 0.65rem !important;
+        .post-content {
+            font-size: 0.97rem;
         }
 
-        /* 추천/비추천 버튼 영역 */
-        div[style*="text-align: center"][style*="border-top"] {
-            padding: 15px 0 !important;
+        .pv-vote {
+            margin: 24px 0 16px;
         }
 
-        div[style*="text-align: center"]>div[style*="display: flex"] {
-            gap: 8px !important;
-            justify-content: center !important;
+        .pv-comments {
+            padding: 14px;
+            border-radius: 10px;
         }
 
-        /* 추천/비추천 버튼 */
-        #likeBtn,
-        #dislikeBtn {
-            min-width: 0 !important;
-            width: auto !important;
-            padding: 10px 15px !important;
-            font-size: 0.85rem !important;
-            flex-shrink: 1 !important;
+        .pv-reply {
+            margin: 0 -14px;
+            padding-left: 30px;
+            padding-right: 14px;
         }
 
-        /* 댓글/대댓글 작성날짜 */
-        span[style*="font-size: 0.85rem"] {
-            font-size: 0.65rem !important;
+        .pv-input-sm {
+            max-width: none;
         }
 
-        /* 댓글 섹션 */
-        .container>div:has(h4:contains('댓글')) {
-            padding: 30px 0 !important;
-        }
-
-        /* 대댓글 */
-        div[style*="padding-left: 50px"][style*="background: var(--secondary-bg)"] {
-            padding: 12px !important;
-            padding-left: 18px !important;
-        }
-
-        /* 대댓글 하단 구분선 */
-        div[style*="padding-left: 50px"][style*="background: var(--secondary-bg)"]>div[style*="position: absolute"] {
-            left: 18px !important;
-        }
-
-        /* 각 댓글 */
-        div[style*="padding: 20px"][style*="border-bottom"] {
-            padding: 12px !important;
-        }
-
-        /* 댓글 헤더 영역 */
-        div[style*="justify-content: space-between"][style*="margin-bottom: 10px"] {
-            flex-wrap: wrap !important;
-        }
-
-        /* 버튼 그룹을 오른쪽으로 + 간격 줄이기 */
-        div[style*="gap: 10px"]:has(button.btn-sm) {
-            margin-left: auto !important;
-            gap: 6px !important;
-        }
-
-        /* 테이블 */
-        .table-responsive {
-            overflow-x: visible !important;
-        }
-
-        .table-responsive[style*="border-radius"] {
-            border-radius: 0 !important;
-            overflow: visible !important;
-        }
-
-        .table thead {
-            display: none !important;
-        }
-
-        .table tbody tr {
-            display: block !important;
-            margin-bottom: 12px !important;
-            padding: 12px !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px !important;
-        }
-
-        .table tbody td {
-            display: inline !important;
-            padding: 0 !important;
-            border: none !important;
-        }
-
-        /* 번호 숨기기 */
-        .table tbody td:nth-child(1) {
-            display: none !important;
-        }
-
-        /* 탭 */
-        .table tbody td:nth-child(2) {
-            font-size: 0.7rem !important;
-            color: var(--text-secondary) !important;
-        }
-
-        .table tbody td:nth-child(2)::before {
-            content: '[';
-        }
-
-        .table tbody td:nth-child(2)::after {
-            content: '] ';
-        }
-
-        /* 제목 */
-        .table tbody td:nth-child(3) {
-            display: block !important;
-            font-size: 0.9rem !important;
-            font-weight: 600 !important;
-            margin-bottom: 5px !important;
-            white-space: nowrap !important;
-        }
-
-        /* 제목 텍스트 길이 제한 */
-        .post-title-text {
-            max-width: 180px !important;
-        }
-
-        /* 글쓴이 */
-        .table tbody td:nth-child(4) {
-            font-size: 0.7rem !important;
-            color: var(--text-secondary) !important;
-        }
-
-        .table tbody td:nth-child(4)::after {
-            content: ' | ';
-        }
-
-        /* 날짜 */
-        .table tbody td:nth-child(5) {
-            font-size: 0.7rem !important;
-            color: var(--text-secondary) !important;
-        }
-
-        .table tbody td:nth-child(5)::after {
-            content: ' | ';
-        }
-
-        /* 조회 */
-        .table tbody td:nth-child(6) {
-            font-size: 0.7rem !important;
-            color: var(--text-secondary) !important;
-        }
-
-        .table tbody td:nth-child(6)::before {
-            content: '조회 ';
-        }
-
-        .table tbody td:nth-child(6)::after {
-            content: ' | ';
-        }
-
-        /* 추천 */
-        .table tbody td:nth-child(7) {
-            font-size: 0.7rem !important;
-            color: var(--text-secondary) !important;
-        }
-
-        .table tbody td:nth-child(7)::before {
-            content: '추천 ';
-        }
-
-        /* 페이지네이션 */
-        .pagination {
-            margin: 15px 0 !important;
-            justify-content: center !important;
-        }
-
-        .pagination .page-item {
-            font-size: 0.75rem !important;
-        }
-
-        .pagination .page-link {
-            padding: 4px 8px !important;
-            font-size: 0.75rem !important;
-            margin: 0 2px !important;
-        }
-
-        .pagination .page-item:nth-child(n+7):not(:last-child):not(:nth-last-child(2)) {
-            display: none !important;
-        }
-
-        /* 검색 영역 */
-        .container>div[style*="max-width: 600px"] {
-            max-width: 100% !important;
-            gap: 6px !important;
-            flex-wrap: nowrap !important;
-        }
-
-        #searchType {
-            width: 90px !important;
-            min-width: 90px !important;
-            font-size: 0.75rem !important;
-            padding: 6px 4px !important;
-        }
-
-        #searchKeyword {
-            flex: 1 !important;
-            min-width: 0 !important;
-            font-size: 0.75rem !important;
-            padding: 6px 8px !important;
-        }
-
-        button[onclick="searchPosts()"] {
-            flex-shrink: 0 !important;
-            font-size: 0.75rem !important;
-            padding: 6px 10px !important;
-            white-space: nowrap !important;
-        }
-
-        /* 첫 번째 게시글 위 선 제거 */
-        .table tbody tr:first-child {
-            margin-top: 0 !important;
-        }
-
-        /* 마지막 게시글 아래 여백 제거 */
-        .table tbody tr:last-child {
-            margin-bottom: 0 !important;
-        }
-
-        /* 테이블 전체 border 제거 */
-        .table {
-            border: none !important;
-        }
-
-        .table tbody {
-            border: none !important;
+        .pv-board {
+            margin-top: 20px;
         }
     }
 </style>

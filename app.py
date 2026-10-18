@@ -675,96 +675,59 @@ def community_list():
         conn.close()
 
 
-def _community_list(cur):
-    # 파라미터
-    category = request.args.get('category', '')
-    page = request.args.get('page', 1, type=int)
-    search_type = request.args.get('search_type', '')
-    keyword = request.args.get('keyword', '')
-    show_popular = request.args.get('popular', '') == 'true'
-    per_page = 20
-    
-    # 기본 쿼리 (본문 전체는 가져오지 않음: 사진이 본문에 들어 있어 글당 수백 KB)
-    # 이미지/영상 여부와 댓글 수는 DB 안에서 계산해서 결과만 받아옴
-    query = """
-        SELECT id, category, title, author, author_ip, created_at, views, likes,
-               is_notice, is_deleted,
-               (POSITION('<img' IN content) > 0) AS has_image,
-               (POSITION('<iframe' IN content) > 0
-                OR POSITION('youtube.com' IN content) > 0
-                OR POSITION('youtu.be' IN content) > 0) AS has_video,
-               (SELECT COUNT(*) FROM community.comments c
-                WHERE c.post_id = community.posts.id AND c.is_deleted = false) AS comment_count
-        FROM community.posts"""
+COMMUNITY_PER_PAGE = 20
+
+
+def _board_params(args):
+    """목록 상태(카테고리/인기글/검색/페이지)를 URL 파라미터에서 읽기"""
+    return {
+        'category': args.get('category', ''),
+        'page': max(args.get('page', 1, type=int) or 1, 1),
+        'search_type': args.get('search_type', ''),
+        'keyword': args.get('keyword', ''),
+        'show_popular': args.get('popular', '') == 'true',
+    }
+
+
+def _board_conditions(bp, is_admin):
+    """목록 조건(WHERE)과 파라미터 생성"""
     params = []
     conditions = []
-    
-        # 카테고리 필터
-    if category:
+
+    # 카테고리 필터
+    if bp['category']:
         conditions.append("category = %s")
-        params.append(category)
+        params.append(bp['category'])
     else:
         # 전체글·인기글·전체 검색에서는 관리자 업데이트 글 제외 (업데이트 탭에서만 보이게)
         conditions.append("COALESCE(category, '') <> '업데이트'")
-        
-    # 인기글 필터 추가
-    if show_popular:
-        conditions.append("is_popular = true")    
-    
-    # 검색 조건
+
+    # 인기글 필터
+    if bp['show_popular']:
+        conditions.append("is_popular = true")
+
+    # 검색 조건 (띄어쓰기 무시, 여러 단어는 모두 포함)
+    keyword, search_type = bp['keyword'], bp['search_type']
     if keyword and search_type:
-        # 검색어를 공백으로 분리
-        keywords = keyword.split()
-        
-        if search_type == 'title':
-            # 제목 검색
-            search_conditions = []
-            for kw in keywords:
-                # 띄어쓰기 무시: 검색어와 DB 데이터 모두 공백 제거
-                search_conditions.append("REPLACE(title, ' ', '') ILIKE %s")
-                params.append(f'%{kw.replace(" ", "")}%')
+        columns = {
+            'title': ["REPLACE(title, ' ', '')"],
+            'content': ["REPLACE(content, ' ', '')"],
+            'title_content': ["REPLACE(title, ' ', '')", "REPLACE(content, ' ', '')"],
+            'author': ["REPLACE(author, ' ', '')"],
+        }
+        search_conditions = []
+        for kw in keyword.split():
+            like = f'%{kw}%'
+            if search_type == 'comment':
+                search_conditions.append("""id IN (SELECT post_id FROM community.comments
+                                               WHERE REPLACE(content, ' ', '') ILIKE %s)""")
+                params.append(like)
+            elif search_type in columns:
+                cols = columns[search_type]
+                search_conditions.append('(' + ' OR '.join(f'{c} ILIKE %s' for c in cols) + ')')
+                params.extend([like] * len(cols))
+        if search_conditions:
             conditions.append(f"({' AND '.join(search_conditions)})")
-            
-        elif search_type == 'content':
-            # 내용 검색
-            search_conditions = []
-            for kw in keywords:
-                search_conditions.append("REPLACE(content, ' ', '') ILIKE %s")
-                params.append(f'%{kw.replace(" ", "")}%')
-            conditions.append(f"({' AND '.join(search_conditions)})")
-            
-        elif search_type == 'title_content':
-            # 제목+내용 검색
-            search_conditions = []
-            for kw in keywords:
-                search_conditions.append("(REPLACE(title, ' ', '') ILIKE %s OR REPLACE(content, ' ', '') ILIKE %s)")
-                kw_no_space = kw.replace(" ", "")
-                params.extend([f'%{kw_no_space}%', f'%{kw_no_space}%'])
-            conditions.append(f"({' AND '.join(search_conditions)})")
-            
-        elif search_type == 'author':
-            # 글쓴이 검색
-            search_conditions = []
-            for kw in keywords:
-                search_conditions.append("REPLACE(author, ' ', '') ILIKE %s")
-                params.append(f'%{kw.replace(" ", "")}%')
-            conditions.append(f"({' AND '.join(search_conditions)})")
-            
-        elif search_type == 'comment':
-            # 댓글 검색
-            search_conditions = []
-            for kw in keywords:
-                search_conditions.append("""
-                    id IN (
-                        SELECT post_id FROM community.comments 
-                        WHERE REPLACE(content, ' ', '') ILIKE %s
-                    )
-                """)
-                params.append(f'%{kw.replace(" ", "")}%')
-            conditions.append(f"({' AND '.join(search_conditions)})")
-    
-    # 관리자 여부 확인
-    is_admin = session.get('user_role') == 'admin'
 
     # 일반 사용자는 삭제되지 않은 글만 보기
     if not is_admin:
@@ -773,45 +736,71 @@ def _community_list(cur):
     # 공지는 목록 위 '접는 공지 띠'로 따로 보여주므로 일반 목록에서는 제외
     conditions.append("COALESCE(is_notice, false) = false")
 
-    # 조건 적용
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-    
-    # 전체 글 수 계산
-    count_query = f"SELECT COUNT(*) FROM community.posts"
-    if conditions:
-        count_query += " WHERE " + " AND ".join(conditions)
-    
-    cur.execute(count_query, params.copy())
+    return conditions, params
+
+
+def _board_qs(bp, page=None):
+    """글 링크/페이지 링크에 붙일 목록 상태 쿼리스트링"""
+    q = {}
+    if bp['show_popular']:
+        q['popular'] = 'true'
+    if bp['category']:
+        q['category'] = bp['category']
+    if bp['keyword'] and bp['search_type']:
+        q['search_type'] = bp['search_type']
+        q['keyword'] = bp['keyword']
+    page = page if page is not None else bp['page']
+    if page and page > 1:
+        q['page'] = page
+    return urllib.parse.urlencode(q)
+
+
+def build_board(cur, args, anchor_post=None, with_notices=True):
+    """커뮤니티 목록 데이터 (목록 화면 + 글 아래 목록 공용)
+    anchor_post: 글 상세에서 page 파라미터가 없으면 그 글이 들어 있는 페이지를 찾아서 보여줌
+    """
+    bp = _board_params(args)
+    is_admin = session.get('user_role') == 'admin'
+    conditions, params = _board_conditions(bp, is_admin)
+    where = " WHERE " + " AND ".join(conditions)
+
+    # 전체 글 수
+    cur.execute("SELECT COUNT(*) FROM community.posts" + where, params)
     total_count = cur.fetchone()['count']
-    total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
-    
-    # 페이징 적용
-    query += """ 
+    total_pages = max((total_count + COMMUNITY_PER_PAGE - 1) // COMMUNITY_PER_PAGE, 1)
+
+    # 글 상세에서 page가 따로 없으면: 현재 글보다 최신 글 수로 페이지 계산
+    if anchor_post is not None and 'page' not in args and anchor_post.get('created_at'):
+        cur.execute("SELECT COUNT(*) FROM community.posts" + where + " AND created_at > %s",
+                    params + [anchor_post['created_at']])
+        newer = cur.fetchone()['count']
+        bp['page'] = newer // COMMUNITY_PER_PAGE + 1
+
+    bp['page'] = min(bp['page'], total_pages)
+
+    # 목록 (본문 전체는 가져오지 않음: 사진이 본문에 들어 있어 글당 수백 KB)
+    cur.execute("""
+        SELECT id, category, title, author, author_ip, created_at, views, likes,
+               is_notice, is_deleted,
+               (POSITION('<img' IN content) > 0) AS has_image,
+               (POSITION('<iframe' IN content) > 0
+                OR POSITION('youtube.com' IN content) > 0
+                OR POSITION('youtu.be' IN content) > 0) AS has_video,
+               (SELECT COUNT(*) FROM community.comments c
+                WHERE c.post_id = community.posts.id AND c.is_deleted = false) AS comment_count
+        FROM community.posts""" + where + """
         ORDER BY created_at DESC
         LIMIT %s OFFSET %s
-    """
-    params.extend([per_page, (page - 1) * per_page])
-    
-    cur.execute(query, params)
+    """, params + [COMMUNITY_PER_PAGE, (bp['page'] - 1) * COMMUNITY_PER_PAGE])
     posts = cur.fetchall()
-    
-    # UTC를 KST로 변환
-    kst = pytz.timezone('Asia/Seoul')
-    for post in posts:
-        if post['created_at']:
-            # UTC로 저장된 시간을 KST로 변환
-            utc_time = post['created_at'].replace(tzinfo=pytz.UTC)
-            post['created_at'] = utc_time.astimezone(kst)
 
-    # 날짜 표시 (방금 / N분 전 / N시간 전 / 시:분 / 월.일)
-    for post in posts:
-        post['display_date'] = format_post_time(post['created_at'])
-        post['ip_display'] = format_ip_display(post.get('author_ip'))
+    for p in posts:
+        p['display_date'] = format_post_time(p['created_at'])
+        p['ip_display'] = format_ip_display(p.get('author_ip'))
 
     # 공지 목록 (검색 중이 아닐 때만, 최신순, 가벼운 컬럼만)
     notices = []
-    if not keyword:
+    if with_notices and not bp['keyword']:
         cur.execute("""
             SELECT id, title, created_at FROM community.posts
             WHERE is_notice = true AND is_deleted = false
@@ -820,15 +809,23 @@ def _community_list(cur):
         """)
         notices = cur.fetchall()
 
-    return render_template('community.html',
-                         posts=posts,
-                         notices=notices,
-                         current_page=page,
-                         total_pages=total_pages,
-                         category=category,
-                         search_type=search_type,
-                         keyword=keyword,
-                         show_popular=show_popular)
+    return {
+        'posts': posts,
+        'notices': notices,
+        'current_page': bp['page'],
+        'total_pages': total_pages,
+        'category': bp['category'],
+        'search_type': bp['search_type'],
+        'keyword': bp['keyword'],
+        'show_popular': bp['show_popular'],
+        'board_qs': _board_qs(bp),
+        'page_qs': _board_qs(bp, page=0),   # 페이지 번호 링크용 (page 제외)
+    }
+
+
+def _community_list(cur):
+    board = build_board(cur, request.args)
+    return render_template('community.html', current_post_id=None, **board)
 
 
 @app.route('/community/write', methods=['GET', 'POST'])
@@ -970,14 +967,23 @@ def _community_post(conn, cur, post_id):
     # 본문 정화 (예전 글 포함, 허용된 HTML만 출력)
     post['content'] = clean_post_html(post.get('content'))
 
-    # 하단 관련 글 목록은 현재 사용하지 않으므로 조회하지 않음 (템플릿 호환용 빈 값 전달)
-    return render_template('community_post.html', 
-                         post=post, 
+    # 검색엔진/공유 미리보기용 요약 (태그 제거한 본문 앞부분)
+    plain = re.sub(r'<[^>]+>', ' ', post['content'])
+    plain = re.sub(r'\s+', ' ', plain).strip()
+    post['summary'] = (plain[:120] + '…') if len(plain) > 120 else (plain or post['title'])
+
+    # 수정/삭제 버튼 노출: 관리자, 비로그인 글(비밀번호로 확인), 로그인 글은 작성자 본인만
+    post['can_manage'] = (is_admin or not post.get('user_id')
+                          or session.get('user_id') == post.get('user_id'))
+
+    # 글 아래 목록 (보던 목록 그대로, 현재 글이 들어 있는 페이지)
+    board = build_board(cur, request.args, anchor_post=post, with_notices=False)
+
+    return render_template('community_post.html',
+                         post=post,
                          comments=comments,
-                         related_posts=[],
-                         current_category='',
-                         current_page=1,
-                         total_pages=1)
+                         current_post_id=post['id'],
+                         **board)
 
 
 @app.route('/community/comment/<int:post_id>', methods=['POST'])
