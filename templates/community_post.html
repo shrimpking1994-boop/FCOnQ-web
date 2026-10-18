@@ -79,12 +79,6 @@
                 <span id="dislikeCount" class="pv-vote-n">{{ post.dislikes or 0 }}</span>
             </button>
         </div>
-
-        <!-- 목록 / 글쓰기 -->
-        <div class="pv-nav">
-            <a href="{{ list_url }}" class="pv-btn">☰ 목록</a>
-            <a href="/community/write" class="pv-btn pv-btn-write">✏️ 글쓰기</a>
-        </div>
     </article>
 
     <!-- 댓글 -->
@@ -433,6 +427,7 @@
         background: transparent;
         color: var(--text-secondary);
         font-size: 0.82rem;
+        font-family: inherit;
         text-decoration: none;
         cursor: pointer;
         white-space: nowrap;
@@ -540,7 +535,9 @@
         color: var(--text-secondary);
     }
 
+    /* 이미지는 항상 한 줄을 통째로 차지 (글자가 이미지 옆에 붙지 않게) */
     .post-content img {
+        display: block;
         max-width: 100%;
         height: auto;
         margin: 12px 0;
@@ -582,7 +579,7 @@
         display: flex;
         justify-content: center;
         gap: 10px;
-        margin: 32px 0 20px;
+        margin: 32px 0 8px;
     }
 
     .pv-vote-btn {
@@ -596,6 +593,7 @@
         border: 1px solid var(--border-color);
         background: var(--secondary-bg);
         color: var(--text-secondary);
+        font-family: inherit;
         cursor: pointer;
         transition: border-color 0.15s, color 0.15s, background 0.15s;
     }
@@ -632,13 +630,6 @@
 
     .pv-vote-btn:disabled {
         cursor: default;
-    }
-
-    .pv-nav {
-        display: flex;
-        justify-content: space-between;
-        border-top: 1px solid var(--border-color);
-        padding-top: 14px;
     }
 
     /* 댓글 */
@@ -835,7 +826,7 @@
         }
 
         .pv-vote {
-            margin: 24px 0 16px;
+            margin: 24px 0 4px;
         }
 
         .pv-comments {
