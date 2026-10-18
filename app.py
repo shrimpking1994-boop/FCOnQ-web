@@ -1289,6 +1289,7 @@ def edit_post_page(post_id):
     cur.close()
     conn.close()
     
+    post['content'] = clean_post_html(post.get('content'))  # 에디터에 넣기 전 정화
     return render_template('community_edit.html', post=post)
 
 

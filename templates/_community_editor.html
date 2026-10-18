@@ -1,0 +1,398 @@
+{# 글쓰기/글수정 공용 에디터 (community_write.html, community_edit.html에서 include)
+필요한 요소: form#postForm, div#editor, input#content
+글수정은 textarea#initialContent 에 기존 본문을 넣어두면 불러옴
+※ 아래 script 안에는 템플릿 코드({{ }})를 넣지 않음 (편집기 자동 정렬 시 깨짐 방지) #}
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+    (function () {
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: '내용을 입력하세요. 이미지는 버튼으로 올리거나 캡처 후 붙여넣기(Ctrl+V) 할 수 있어요.',
+            modules: {
+                toolbar: {
+                    container: [
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }],
+                        ['link', 'image', 'video']
+                    ],
+                    handlers: { image: pickImages }
+                }
+            }
+        });
+        window.quill = quill;
+
+        // 글수정: 기존 본문 불러오기
+        const initial = document.getElementById('initialContent');
+        if (initial) {
+            quill.root.innerHTML = initial.value;
+        }
+
+        // 이미지 압축 (긴 쪽 최대 1200px, JPEG 0.8)
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = reject;
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onerror = reject;
+                    img.onload = () => {
+                        const MAX = 1200;
+                        let w = img.width, h = img.height;
+                        if (w > MAX || h > MAX) {
+                            const r = Math.min(MAX / w, MAX / h);
+                            w = Math.round(w * r);
+                            h = Math.round(h * r);
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 이미지를 항상 자기 줄에 넣고, 커서는 이미지 다음 줄로
+        function insertImageOnOwnLine(src) {
+            const range = quill.getSelection(true);
+            let index = range ? range.index : quill.getLength();
+            if (index > 0 && quill.getText(index - 1, 1) !== '\n') {
+                quill.insertText(index, '\n', 'user');
+                index += 1;
+            }
+            quill.insertEmbed(index, 'image', src, 'user');
+            quill.insertText(index + 1, '\n', 'user');
+            quill.setSelection(index + 2, 0, 'silent');
+        }
+
+        async function insertFiles(files) {
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) continue;
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('이미지 크기는 10MB 이하로 올려주세요');
+                    continue;
+                }
+                try {
+                    insertImageOnOwnLine(await compressImage(file));
+                } catch (e) {
+                    alert('이미지를 불러오지 못했습니다');
+                }
+            }
+        }
+
+        // 툴바 이미지 버튼: 여러 장 한 번에 선택 가능
+        function pickImages() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.multiple = true;
+            input.onchange = () => insertFiles(Array.from(input.files));
+            input.click();
+        }
+
+        // 캡처 이미지 붙여넣기 (원본 그대로 들어가지 않게 압축해서 넣음)
+        quill.root.addEventListener('paste', e => {
+            const files = Array.from((e.clipboardData && e.clipboardData.files) || [])
+                .filter(f => f.type.startsWith('image/'));
+            if (files.length) {
+                e.preventDefault();
+                e.stopPropagation();
+                insertFiles(files);
+            }
+        }, true);
+
+        // 이미지 끌어다 놓기
+        quill.root.addEventListener('drop', e => {
+            const files = Array.from((e.dataTransfer && e.dataTransfer.files) || [])
+                .filter(f => f.type.startsWith('image/'));
+            if (files.length) {
+                e.preventDefault();
+                e.stopPropagation();
+                insertFiles(files);
+            }
+        }, true);
+
+        // 제출: 에디터 내용을 hidden input에 담기
+        const form = document.getElementById('postForm');
+        let submitting = false;
+        form.addEventListener('submit', e => {
+            const hasImage = quill.root.querySelector('img, iframe');
+            if (quill.getText().trim().length === 0 && !hasImage) {
+                e.preventDefault();
+                alert('내용을 입력해주세요');
+                return;
+            }
+            if (submitting) {
+                e.preventDefault();
+                return;
+            }
+            submitting = true;
+            document.getElementById('content').value = quill.root.innerHTML;
+            const btn = form.querySelector('.pw-submit');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '등록 중...';
+            }
+        });
+    })();
+</script>
+
+<style>
+    .pw-wrap {
+        --pw-accent: #6366f1;
+        max-width: 900px;
+        margin: 16px auto 40px;
+        padding: 0 20px;
+        color: var(--text-primary);
+    }
+
+    .pw-heading {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin: 0 0 12px;
+        color: var(--text-primary);
+    }
+
+    .pw-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .pw-row {
+        display: flex;
+        gap: 8px;
+    }
+
+    .pw-field {
+        box-sizing: border-box;
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        min-width: 0;
+    }
+
+    .pw-field:focus {
+        outline: none;
+        border-color: var(--pw-accent);
+    }
+
+    .pw-category {
+        flex: 0 0 150px;
+    }
+
+    .pw-category option {
+        background: var(--secondary-bg);
+        color: var(--text-primary);
+    }
+
+    .pw-title {
+        flex: 1;
+        font-weight: 600;
+    }
+
+    .pw-guest .pw-field {
+        flex: 0 1 180px;
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    .pw-guest-note {
+        align-self: center;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+    }
+
+    .pw-author-fixed {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .pw-author-fixed strong {
+        color: var(--text-primary);
+    }
+
+    /* 에디터 */
+    .pw-editor-box .ql-toolbar.ql-snow {
+        background: var(--secondary-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px 8px 0 0;
+        padding: 6px 8px;
+    }
+
+    .pw-editor-box .ql-container.ql-snow {
+        border: 1px solid var(--border-color);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        font-size: 1rem;
+        font-family: inherit;
+    }
+
+    .pw-editor-box .ql-editor {
+        min-height: 420px;
+        line-height: 1.7;
+        color: var(--text-primary);
+    }
+
+    .pw-editor-box .ql-editor.ql-blank::before {
+        color: var(--text-muted);
+        font-style: normal;
+    }
+
+    .pw-editor-box .ql-editor img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 8px 0;
+        border-radius: 6px;
+    }
+
+    .pw-editor-box .ql-editor iframe {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        height: auto;
+        border-radius: 8px;
+        margin: 12px 0;
+    }
+
+    .pw-editor-box .ql-snow .ql-stroke {
+        stroke: var(--text-secondary);
+    }
+
+    .pw-editor-box .ql-snow .ql-fill {
+        fill: var(--text-secondary);
+    }
+
+    .pw-editor-box .ql-snow button:hover .ql-stroke,
+    .pw-editor-box .ql-snow button.ql-active .ql-stroke {
+        stroke: var(--pw-accent);
+    }
+
+    .pw-editor-box .ql-snow button:hover .ql-fill,
+    .pw-editor-box .ql-snow button.ql-active .ql-fill {
+        fill: var(--pw-accent);
+    }
+
+    .pw-editor-box .ql-snow .ql-picker-label {
+        color: var(--text-secondary);
+    }
+
+    .pw-editor-box .ql-snow .ql-tooltip {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+        z-index: 5;
+    }
+
+    .pw-editor-box .ql-snow .ql-tooltip input[type=text] {
+        background: var(--secondary-bg);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    /* 버튼 */
+    .pw-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .pw-btn {
+        padding: 9px 22px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+        font-family: inherit;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .pw-btn:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+    }
+
+    .pw-submit {
+        background: var(--pw-accent);
+        border-color: var(--pw-accent);
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .pw-submit:hover {
+        background: #4f46e5;
+        color: #fff;
+    }
+
+    .pw-submit:disabled {
+        opacity: 0.6;
+        cursor: default;
+    }
+
+    @media (max-width: 768px) {
+        .pw-wrap {
+            padding: 0 8px;
+            margin-top: 10px;
+        }
+
+        .pw-card {
+            padding: 10px;
+            gap: 8px;
+        }
+
+        .pw-row {
+            flex-wrap: wrap;
+        }
+
+        .pw-category {
+            flex: 1 1 100%;
+        }
+
+        .pw-title {
+            flex: 1 1 100%;
+        }
+
+        .pw-guest .pw-field {
+            flex: 1 1 0;
+        }
+
+        .pw-guest-note {
+            display: none;
+        }
+
+        .pw-field {
+            font-size: 16px;
+            /* 아이폰 입력 시 화면 확대 방지 */
+        }
+
+        .pw-guest .pw-field {
+            font-size: 16px;
+        }
+
+        .pw-editor-box .ql-editor {
+            min-height: 320px;
+        }
+
+        .pw-btn {
+            flex: 1;
+        }
+    }
+</style>

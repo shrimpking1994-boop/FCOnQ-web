@@ -20,7 +20,8 @@
                 class="cm-view {% if show_popular and not is_update %}active{% endif %}">🔥 인기글</a>
             <a href="/community?category=업데이트" class="cm-view {% if is_update %}active{% endif %}">🛠️ 업데이트</a>
         </div>
-        <a href="/community/write" class="cm-write">✏️ 글쓰기</a>
+        <a href="/community/write{% if category and category != '업데이트' %}?category={{ category | urlencode }}{% endif %}"
+            class="cm-write">✏️ 글쓰기</a>
     </div>
 
     <!-- 2줄: 카테고리 (전부 노출, 모바일은 5개씩 2줄) -->
