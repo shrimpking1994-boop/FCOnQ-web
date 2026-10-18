@@ -124,28 +124,25 @@
         {% endif %}
     </div>
 
-    <!-- 페이지 번호: 현재 페이지 앞뒤 2개씩 -->
+    <!-- 페이지 번호: 10개씩 묶음 (이전/다음은 묶음 단위 이동, …은 페이지 직접 입력) -->
     {% if total_pages > 1 %}
     {% set base = '/community?' ~ (page_qs ~ '&' if page_qs else '') %}
-    {% set start = [current_page - 2, 1] | max %}
-    {% set end = [current_page + 2, total_pages] | min %}
-    <nav class="cm-pages">
-        {% if current_page > 1 %}<a href="{{ base }}page={{ current_page - 1 }}" class="cm-page" aria-label="이전">‹</a>{%
-        endif %}
-        {% if start > 1 %}
-        <a href="{{ base }}page=1" class="cm-page">1</a>
-        {% if start > 2 %}<span class="cm-page-gap">…</span>{% endif %}
+    {% set block_start = ((current_page - 1) // 10) * 10 + 1 %}
+    {% set block_end = [block_start + 9, total_pages] | min %}
+    <nav class="cm-pages" id="cmPages" data-base="{{ base }}" data-total="{{ total_pages }}">
+        {% if block_start > 1 %}
+        <a href="{{ base }}page={{ block_start - 1 }}" class="cm-page-nav" aria-label="이전 10페이지">‹<span
+                class="cm-page-word"> 이전</span></a>
         {% endif %}
-        {% for p in range(start, end + 1) %}
-        <a href="{{ base }}page={{ p }}"
-            class="cm-page {% if p == current_page %}active{% endif %} {% if (p - current_page) | abs == 2 %}cm-far{% endif %}">{{
-            p }}</a>
+        {% for p in range(block_start, block_end + 1) %}
+        <a href="{{ base }}page={{ p }}" class="cm-page {% if p == current_page %}active{% endif %}">{{ p }}</a>
         {% endfor %}
-        {% if end < total_pages %} {% if end < total_pages - 1 %}<span class="cm-page-gap">…</span>{% endif %}
-            <a href="{{ base }}page={{ total_pages }}" class="cm-page">{{ total_pages }}</a>
+        {% if total_pages > 10 %}
+        <button type="button" class="cm-page-jump" onclick="jumpToPage()" aria-label="페이지 이동">…</button>
+        {% endif %}
+        {% if block_end < total_pages %} <a href="{{ base }}page={{ block_end + 1 }}" class="cm-page-nav"
+            aria-label="다음 10페이지"><span class="cm-page-word">다음 </span>›</a>
             {% endif %}
-            {% if current_page < total_pages %}<a href="{{ base }}page={{ current_page + 1 }}" class="cm-page"
-                aria-label="다음">›</a>{% endif %}
     </nav>
     {% endif %}
 
@@ -536,38 +533,63 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 4px;
+        gap: 2px;
         margin-top: 20px;
     }
 
-    .cm-page {
-        min-width: 36px;
-        padding: 6px 10px;
-        text-align: center;
-        border-radius: 6px;
-        border: 1px solid var(--line);
-        background: var(--card-bg);
-        color: var(--text-primary);
+    .cm-page,
+    .cm-page-jump {
+        box-sizing: border-box;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        background: none;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+        font-weight: 600;
+        font-family: inherit;
         text-decoration: none;
-        font-size: 0.85rem;
+        cursor: pointer;
     }
 
     .cm-page:hover {
-        background: var(--hover-bg);
         color: var(--text-primary);
+        text-decoration: underline;
     }
 
     .cm-page.active {
-        background: var(--cm-accent);
-        border-color: var(--cm-accent);
-        color: #fff;
-        font-weight: 700;
+        border-color: var(--line);
+        background: var(--secondary-bg);
+        color: var(--text-primary);
+        font-weight: 800;
     }
 
-    .cm-page-gap {
-        color: var(--text-muted);
-        padding: 0 2px;
+    .cm-page-jump {
+        border-color: var(--line);
+        background: var(--secondary-bg);
+        color: var(--text-primary);
+        margin-left: 4px;
+    }
+
+    .cm-page-jump:hover {
+        background: var(--hover-bg);
+    }
+
+    .cm-page-nav {
+        padding: 0 10px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .cm-page-nav:hover {
+        color: var(--text-primary);
     }
 
     /* 검색 */
@@ -722,21 +744,25 @@
             font-size: 0.8rem;
         }
 
+        /* 페이지 번호: 모바일은 숫자만 촘촘하게 */
         .cm-pages {
-            gap: 3px;
-            flex-wrap: nowrap;
+            gap: 0;
         }
 
-        /* 모바일은 현재 페이지 앞뒤 1개씩만 */
-        .cm-page.cm-far {
-            display: none;
-        }
-
-        .cm-page {
-            box-sizing: border-box;
-            min-width: 32px;
-            padding: 5px 4px;
+        .cm-page,
+        .cm-page-jump {
+            min-width: 26px;
+            height: 28px;
+            padding: 0 2px;
             font-size: 0.8rem;
+        }
+
+        .cm-page-nav {
+            padding: 0 5px;
+        }
+
+        .cm-page-word {
+            display: none;
         }
 
         .cm-search-input,
@@ -786,6 +812,20 @@
             alert(`삭제 완료\n성공: ${successCount}개 / 실패: ${errorCount}개`);
             location.reload();
         });
+    }
+
+    // … 버튼: 페이지 번호 직접 입력해서 이동
+    function jumpToPage() {
+        const nav = document.getElementById('cmPages');
+        const total = parseInt(nav.dataset.total, 10);
+        const input = prompt(`이동할 페이지를 입력하세요 (1 ~ ${total})`);
+        if (input === null) return;
+        const page = parseInt(input, 10);
+        if (!page || page < 1 || page > total) {
+            alert(`1 ~ ${total} 사이의 숫자를 입력해주세요`);
+            return;
+        }
+        window.location.href = nav.dataset.base + 'page=' + page;
     }
 
     // 검색
