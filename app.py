@@ -379,12 +379,35 @@ def index():
 _home_cache = {'data': None, 'time': None}
 
 
-def _home_date(dt):
-    """홈 표시용 날짜: 오늘이면 시:분, 아니면 월-일"""
+def format_post_time(dt):
+    """커뮤니티 글 시간 표시
+    - 1분 미만: 방금 / 1시간 미만: N분 전 / 12시간 미만: N시간 전
+    - 12~24시간: 시:분 (예: 12:38)
+    - 24시간 이후: 월.일 (예: 10.13), 작년 이전 글은 연도 포함 (예: 25.12.30)
+    """
+    if not dt:
+        return ''
     kst = pytz.timezone('Asia/Seoul')
     t = dt.replace(tzinfo=pytz.UTC) if dt.tzinfo is None else dt
     t = t.astimezone(kst)
-    return t.strftime('%H:%M') if t.date() == datetime.now(kst).date() else t.strftime('%m-%d')
+    now = datetime.now(kst)
+    sec = (now - t).total_seconds()
+    if sec < 60:
+        return '방금'
+    if sec < 3600:
+        return f'{int(sec // 60)}분 전'
+    if sec < 12 * 3600:
+        return f'{int(sec // 3600)}시간 전'
+    if sec < 24 * 3600:
+        return t.strftime('%H:%M')
+    if t.year == now.year:
+        return t.strftime('%m.%d')
+    return t.strftime('%y.%m.%d')
+
+
+def _home_date(dt):
+    """홈 표시용 날짜 (커뮤니티 목록과 같은 규칙)"""
+    return format_post_time(dt)
 
 
 @app.route('/api/home_summary')
@@ -781,15 +804,9 @@ def _community_list(cur):
             utc_time = post['created_at'].replace(tzinfo=pytz.UTC)
             post['created_at'] = utc_time.astimezone(kst)
 
-    # 날짜 포맷 처리 (댓글 수·이미지/영상 여부는 위 쿼리에서 이미 계산됨)
-    today = datetime.now(kst).date()
-
+    # 날짜 표시 (방금 / N분 전 / N시간 전 / 시:분 / 월.일)
     for post in posts:
-        post_date = post['created_at'].date()
-        if post_date == today:
-            post['display_date'] = post['created_at'].strftime('%H:%M')
-        else:
-            post['display_date'] = post['created_at'].strftime('%m-%d')
+        post['display_date'] = format_post_time(post['created_at'])
         post['ip_display'] = format_ip_display(post.get('author_ip'))
 
     # 공지 목록 (검색 중이 아닐 때만, 최신순, 가벼운 컬럼만)
