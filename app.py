@@ -640,9 +640,32 @@ def display_author(name):
     return ANON_NAME if is_anon_name(name) else name
 
 
+def _ip_prefix(ip):
+    """IP 앞 두 자리 (예: 118.235.x.x -> 118.235). IPv6는 앞 두 블록"""
+    if not ip:
+        return None
+    sep = ':' if ':' in ip else '.'
+    parts = ip.split(sep)
+    return sep.join(parts[:2]) if len(parts) >= 2 else ip
+
+
+def _is_anon_op(post, c):
+    """비회원 글의 글쓴이 댓글인지
+    - 같은 IP이거나
+    - 글 비밀번호와 댓글 비밀번호가 같고 IP 앞 두 자리도 같으면 (휴대폰 데이터처럼 IP 뒷자리가 바뀌는 경우)
+    """
+    if c.get('user_id'):
+        return False
+    c_ip, p_ip = c.get('author_ip'), post.get('author_ip')
+    if c_ip and p_ip and c_ip == p_ip:
+        return True
+    same_pw = bool(c.get('password_hash')) and c.get('password_hash') == post.get('password_hash')
+    return same_pw and _ip_prefix(c_ip) is not None and _ip_prefix(c_ip) == _ip_prefix(p_ip)
+
+
 def label_comment_authors(post, comments):
     """댓글 작성자 표시 정리
-    - 글쓴이 본인 댓글: is_op=True (회원 글은 회원 ID, 비회원 글은 같은 IP로 판단)
+    - 글쓴이 본인 댓글: is_op=True (회원 글은 회원 ID, 비회원 글은 같은 IP 또는 같은 비밀번호+IP 앞 두 자리)
     - 기본 이름(큐붕이/익명) 비회원: 글 안에서 처음 댓글 단 순서대로 큐붕이1, 큐붕이2 ... (같은 IP는 같은 번호)
     - 번호는 삭제된 댓글까지 포함해 매겨서, 삭제돼도 다른 사람 번호가 바뀌지 않음
     """
@@ -651,8 +674,7 @@ def label_comment_authors(post, comments):
         if post.get('user_id'):
             c['is_op'] = bool(c.get('user_id')) and c.get('user_id') == post.get('user_id')
         else:
-            c['is_op'] = (not c.get('user_id') and bool(c.get('author_ip'))
-                          and c.get('author_ip') == post.get('author_ip'))
+            c['is_op'] = _is_anon_op(post, c)
 
         if not c.get('user_id') and is_anon_name(c.get('author')) and not c['is_op']:
             key = c.get('author_ip') or c.get('ip_hash') or f"c{c.get('id')}"
