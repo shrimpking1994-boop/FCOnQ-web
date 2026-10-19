@@ -640,32 +640,25 @@ def display_author(name):
     return ANON_NAME if is_anon_name(name) else name
 
 
-def _ip_prefix(ip):
-    """IP 앞 두 자리 (예: 118.235.x.x -> 118.235). IPv6는 앞 두 블록"""
-    if not ip:
-        return None
-    sep = ':' if ':' in ip else '.'
-    parts = ip.split(sep)
-    return sep.join(parts[:2]) if len(parts) >= 2 else ip
-
-
 def _is_anon_op(post, c):
-    """비회원 글의 글쓴이 댓글인지
-    - 같은 IP이거나
-    - 글 비밀번호와 댓글 비밀번호가 같고 IP 앞 두 자리도 같으면 (휴대폰 데이터처럼 IP 뒷자리가 바뀌는 경우)
+    """비회원 글의 글쓴이 댓글인지 (하나라도 맞으면 글쓴이)
+    1) 댓글 작성 시 확인해서 저장한 값 (같은 브라우저로 쓴 경우 등) - comments.is_op
+    2) 글 비밀번호와 댓글 비밀번호가 같음 (비밀번호 = 글 수정·삭제 권한이므로 글 주인으로 인정)
+    3) 같은 IP
     """
     if c.get('user_id'):
         return False
-    c_ip, p_ip = c.get('author_ip'), post.get('author_ip')
-    if c_ip and p_ip and c_ip == p_ip:
+    if c.get('is_op'):
         return True
-    same_pw = bool(c.get('password_hash')) and c.get('password_hash') == post.get('password_hash')
-    return same_pw and _ip_prefix(c_ip) is not None and _ip_prefix(c_ip) == _ip_prefix(p_ip)
+    if c.get('password_hash') and c.get('password_hash') == post.get('password_hash'):
+        return True
+    c_ip, p_ip = c.get('author_ip'), post.get('author_ip')
+    return bool(c_ip and p_ip and c_ip == p_ip)
 
 
 def label_comment_authors(post, comments):
     """댓글 작성자 표시 정리
-    - 글쓴이 본인 댓글: is_op=True (회원 글은 회원 ID, 비회원 글은 같은 IP 또는 같은 비밀번호+IP 앞 두 자리)
+    - 글쓴이 본인 댓글: is_op=True (회원 글은 회원 ID, 비회원 글은 같은 브라우저/같은 비밀번호/같은 IP)
     - 기본 이름(큐붕이/익명) 비회원: 글 안에서 처음 댓글 단 순서대로 큐붕이1, 큐붕이2 ... (같은 IP는 같은 번호)
     - 번호는 삭제된 댓글까지 포함해 매겨서, 삭제돼도 다른 사람 번호가 바뀌지 않음
     """
@@ -933,8 +926,16 @@ def community_write():
             cur.execute("""
                 INSERT INTO community.posts (category, title, content, author, author_ip, password_hash, user_id, created_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
             """, (category, title, content, author, author_ip,  password_hash, user_id, datetime.now(pytz.UTC)))
+            new_id = cur.fetchone()['id']
             conn.commit()
+
+            # 비회원: 이 브라우저에 '내가 쓴 글' 기록 (댓글 달 때 글쓴이 표시용, 최근 50개)
+            if not user_id:
+                my_posts = [pid for pid in session.get('my_posts', []) if pid != new_id]
+                session['my_posts'] = (my_posts + [new_id])[-50:]
+                session.permanent = True
         except Exception:
             conn.rollback()
             raise
@@ -1083,12 +1084,26 @@ def add_comment(post_id):
             ip_hash = hash_ip(request.remote_addr)
             author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
         
+        # 글쓴이 댓글인지 판단 (회원: 회원 ID / 비회원: 같은 브라우저·같은 비밀번호·같은 IP)
+        cur.execute("SELECT user_id, author_ip, password_hash FROM community.posts WHERE id = %s", (post_id,))
+        target = cur.fetchone()
+        if not target:
+            return "게시글을 찾을 수 없습니다", 404
+        if user_id:
+            is_op = bool(target['user_id']) and target['user_id'] == user_id
+        elif target['user_id']:
+            is_op = False
+        else:
+            is_op = (post_id in session.get('my_posts', [])
+                     or (password_hash is not None and password_hash == target['password_hash'])
+                     or bool(author_ip and author_ip == target['author_ip']))
+
         # 댓글 삽입
         cur.execute("""
             INSERT INTO community.comments 
-            (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, datetime.now(pytz.UTC)))
+            (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, created_at, is_op)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, datetime.now(pytz.UTC), is_op))
         
         conn.commit()
         return redirect(url_for('community_post', post_id=post_id))
