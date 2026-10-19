@@ -262,26 +262,91 @@
             min-height: 500px;
         }
 
-        /* 푸터 */
+        /* ===== 푸터 ===== */
         .main-footer {
-            background: transparent;
-            color: var(--text-secondary);
-            padding: 30px 0;
             margin-top: auto;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .footer-credits {
-            text-align: center;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            opacity: 0.95;
-        }
-
-        .footer-copyright {
-            text-align: center;
+            padding: 36px 0 28px;
+            background: #f3f4fa;
+            border-top: 1px solid #e3e5ec;
+            color: var(--text-secondary);
             font-size: 0.85rem;
-            opacity: 0.85;
+        }
+
+        [data-theme="dark"] .main-footer {
+            background: #111214;
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .ft-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .ft-brand {
+            max-width: 420px;
+        }
+
+        .ft-logo {
+            height: 26px;
+            width: auto;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .ft-copy {
+            margin: 0 0 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .ft-notice {
+            margin: 0;
+            font-size: 0.75rem;
+            line-height: 1.65;
+            color: var(--text-muted);
+            word-break: keep-all;
+        }
+
+        .ft-cols {
+            display: flex;
+            gap: 56px;
+        }
+
+        .ft-col h4 {
+            margin: 0 0 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.02em;
+        }
+
+        .ft-col ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .ft-col li {
+            margin-bottom: 8px;
+        }
+
+        .ft-col a,
+        .ft-policy a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .ft-col a:hover,
+        .ft-policy a:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        /* 모바일용 정책 링크 줄 (PC에서는 숨김) */
+        .ft-policy {
+            display: none;
         }
 
         .easter-egg {
@@ -507,11 +572,31 @@
                 border-radius: 10px;
             }
 
-            /* 푸터 */
-            .footer-credits,
-            .footer-copyright {
-                font-size: 0.75rem;
-                padding: 0 10px;
+            /* 푸터: 모바일은 로고 + 정책 링크 + 저작권만 */
+            .main-footer {
+                padding: 24px 16px 20px;
+                font-size: 0.78rem;
+            }
+
+
+            .ft-cols {
+                display: none;
+            }
+
+            .ft-logo {
+                height: 20px;
+                margin-bottom: 8px;
+            }
+
+            .ft-notice {
+                font-size: 0.7rem;
+            }
+
+            .ft-policy {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px 14px;
+                margin-top: 14px;
             }
 
             .container {
@@ -962,17 +1047,52 @@
 
     <footer class="main-footer">
         <div class="container">
-            <div class="footer-credits">
-                Designed by <strong>새우왕</strong>
+            <div class="ft-top">
+                <div class="ft-brand">
+                    <img src="{{ url_for('static', filename='fconq_title_logo5.png') }}" alt="FCOnQ" class="ft-logo">
+                    {% set ft_year = current_year | default(2026) %}
+                    <p class="ft-copy">© 2025{% if ft_year > 2025 %}-{{ ft_year }}{% endif %} FCOnQ. All Rights
+                        Reserved.</p>
+                    <p class="ft-notice">FCOnQ는 넥슨(NEXON) 및 EA의 공식 페이지가 아닙니다. 게임 데이터는 NEXON Open API를 기반으로 하며, 게임 관련
+                        이미지와 상표의 권리는 각 권리자에게 있습니다.</p>
+                </div>
+                <div class="ft-cols">
+                    <div class="ft-col">
+                        <h4>서비스</h4>
+                        <ul>
+                            <li><a href="/search">선수 DB</a></li>
+                            <li><a href="/tierlist">티어리스트</a></li>
+                            <li><a href="/squad_maker">스쿼드 메이커</a></li>
+                            <li><a href="/community">커뮤니티</a></li>
+                            <li><a href="/utility">유틸리티</a></li>
+                        </ul>
+                    </div>
+                    <div class="ft-col">
+                        <h4>정보</h4>
+                        <ul>
+                            <li><a href="/community?category=%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8">업데이트 소식</a></li>
+                            <li><a href="mailto:shrimpking1994@gmail.com">문의하기</a></li>
+                        </ul>
+                    </div>
+                    <div class="ft-col">
+                        <h4>정책</h4>
+                        <ul>
+                            <li><a href="/terms">이용약관</a></li>
+                            <li><a href="/privacy"><strong>개인정보처리방침</strong></a></li>
+                            <li><a href="/delete-account">계정 삭제 요청</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="footer-credits">
-                문의 - shrimpking1994@gmail.com |
-                <a href="/privacy" style="color: var(--text-muted);">개인정보처리방침</a> |
-                <a href="/delete-account" style="color: var(--text-muted);">계정 삭제 요청</a>
-            </div>
-            <div class="footer-copyright">
-                © 2025 FCOnQ. Data based on NEXON Open API. All Rights Reserved.
-            </div>
+
+            <!-- 모바일 전용 링크 줄 -->
+            <nav class="ft-policy">
+                <a href="/terms">이용약관</a>
+                <a href="/privacy"><strong>개인정보처리방침</strong></a>
+                <a href="/delete-account">계정 삭제</a>
+                <a href="mailto:shrimpking1994@gmail.com">문의하기</a>
+            </nav>
+
         </div>
     </footer>
 

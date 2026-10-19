@@ -101,6 +101,16 @@ def assetlinks():
 def privacy():
     return render_template('privacy.html')
 
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+
+@app.context_processor
+def inject_current_year():
+    """모든 페이지에서 쓸 수 있는 현재 연도 (푸터 저작권 표시용)"""
+    return {'current_year': datetime.now(pytz.timezone('Asia/Seoul')).year}
+
 @app.route('/delete-account')
 def delete_account():
     return render_template('delete_account.html')
