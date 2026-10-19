@@ -987,6 +987,24 @@
         display: flex;
         flex-direction: column;
         gap: 6px;
+        /* 스크롤바가 카드 박스를 가리지 않게: 얇은 스크롤바 + 오른쪽 여백 */
+        padding-right: 8px;
+        margin-right: -8px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
+    }
+
+    .sm-modal-results::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sm-modal-results::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sm-modal-results::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.4);
+        border-radius: 4px;
     }
 
     .sm-modal-empty {
@@ -1043,6 +1061,27 @@
         font-size: 0.75rem;
         color: var(--text-muted);
         margin-top: 2px;
+    }
+
+    /* 신규 특성 아이콘 (이름·정보 오른쪽) */
+    .sm-result-traits {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+
+    .sm-result-traits img {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+    }
+
+    @media (max-width: 768px) {
+        .sm-result-traits img {
+            width: 26px;
+            height: 26px;
+        }
     }
 
     .sm-result-ovr {
@@ -2575,6 +2614,68 @@
         renderModalResults(cards);
     }
 
+    // 특성 아이콘 (넥슨 공식, 카드 상세 페이지와 동일)
+    const TRAIT_ICON_BASE = 'https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/';
+    const TRAIT_ICONS = {
+        "아크로바틱 피니셔": 'trait_icon_50.png',
+        "크로스 포쳐": 'trait_icon_51.png',
+        "라인 브레이커": 'trait_icon_52.png',
+        "와일드 태클러": 'trait_icon_53.png',
+        "체이서": 'trait_icon_54.png',
+        "2개의 심장": 'trait_icon_55.png',
+        "파이터": 'trait_icon_56.png',
+        "GK 빠른 반응": 'trait_icon_57.png',
+        "선호 포지션 고집": 'trait_icon_00.png',
+        "장거리 스로잉": 'trait_icon_01.png',
+        "파울 유도 선호": 'trait_icon_03.png',
+        "유리몸": 'trait_icon_04.png',
+        "강철몸": 'trait_icon_05.png',
+        "주발 선호": 'trait_icon_06.png',
+        "슬라이딩 태클 선호": 'trait_icon_07.png',
+        "개인 플레이 선호": 'trait_icon_09.png',
+        "트러블 메이커": 'trait_icon_11.png',
+        "얼리 크로스 선호": 'trait_icon_12.png',
+        "예리한 감아차기": 'trait_icon_13.png',
+        "화려한 개인기": 'trait_icon_14.png',
+        "긴 패스 선호": 'trait_icon_15.png',
+        "중거리 슛 선호": 'trait_icon_16.png',
+        "스피드 드리블러": 'trait_icon_17.png',
+        "플레이 메이커": 'trait_icon_18.png',
+        "GK 공격 가담": 'trait_icon_19.png',
+        "GK 능숙한 펀칭": 'trait_icon_20.png',
+        "GK 멀리 던지기": 'trait_icon_21.png',
+        "파워 헤더": 'trait_icon_22.png',
+        "GK 침착한 1:1 수비": 'trait_icon_23.png',
+        "초 장거리 스로인": 'trait_icon_24.png',
+        "아웃사이드 슈팅/크로스": 'trait_icon_25.png',
+        "패스 마스터": 'trait_icon_27.png',
+        "승부욕": 'trait_icon_28.png',
+        "화려한 걷어내기": 'trait_icon_29.png',
+        "칩슛 선호": 'trait_icon_41.png',
+        "테크니컬 드리블러": 'trait_icon_42.png',
+        "스위퍼 키퍼": 'trait_icon_43.png',
+        "GK 소극적 크로스 수비": 'trait_icon_48.png',
+        "GK 적극적 크로스 수비": 'trait_icon_49.png',
+        "스피드스터": 'trait_icon_63.png',
+        "타이탄": 'trait_icon_64.png',
+        "커맨더": 'trait_icon_59.png',
+        "블로커": 'trait_icon_62.png',
+        "GK 공중볼 장악": 'trait_icon_60.png',
+        "트릭스터": 'trait_icon_65.png',
+        "레이저 슈터": 'trait_icon_66.png',
+        "프레데터": 'trait_icon_67.png',
+        "GK 데드아이": 'trait_icon_68.png'
+    };
+
+    // 검색 목록용 신규 특성 아이콘 (신규 특성이 없으면 빈 문자열)
+    function newTraitIconsHtml(c) {
+        const list = (c.new_traits || []).filter(t => TRAIT_ICONS[t]);
+        if (!list.length) return '';
+        return `<div class="sm-result-traits">${list.map(t =>
+            `<img src="${TRAIT_ICON_BASE + TRAIT_ICONS[t]}" alt="${t}" title="${t}" loading="lazy">`
+        ).join('')}</div>`;
+    }
+
     function renderModalResults(cards) {
         const container = document.getElementById('modal-results');
         if (!cards.length) {
@@ -2590,6 +2691,7 @@
                     <div class="sm-result-name">${c.player_name}</div>
                     <div class="sm-result-meta">${c.season_name} · ${c.position} · 급여 ${c.salary}</div>
                 </div>
+                ${newTraitIconsHtml(c)}
                 <div class="sm-result-ovr">${c.overall}</div>
             </div>
         `).join('');
@@ -2688,6 +2790,7 @@
                     <div class="sm-result-name">${c.player_name}</div>
                     <div class="sm-result-meta">${c.season_name} · ${c.position} · 급여 ${c.salary}</div>
                 </div>
+                ${newTraitIconsHtml(c)}
                 <div class="sm-result-ovr">${c.overall}</div>
             </div>
         `).join('');

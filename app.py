@@ -3362,7 +3362,28 @@ def user_squad_delete():
     return jsonify({'success': True})
 
 
-@app.route('/api/squad_search')
+_new_trait_cache = {'names': None, 'time': None}
+
+
+def get_new_trait_names(cur):
+    """신규 특성 이름 목록 (10분간 재사용)"""
+    now = datetime.now()
+    if _new_trait_cache['names'] is not None and (now - _new_trait_cache['time']).total_seconds() < 600:
+        return _new_trait_cache['names']
+    cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
+    names = set(r['trait_name'] for r in cur.fetchall())
+    _new_trait_cache['names'], _new_trait_cache['time'] = names, now
+    return names
+
+
+def add_new_traits(cur, cards):
+    """카드 목록에 신규 특성만 골라 new_traits 로 추가 (스쿼드 메이커 검색 목록 아이콘용)"""
+    names = get_new_trait_names(cur)
+    for c in cards:
+        c['new_traits'] = [t for t in (c.get('traits') or []) if t in names]
+    return cards
+
+
 @app.route('/api/squad_search')
 def squad_search():
     """스쿼드 메이커 선수 검색 API"""
@@ -3390,7 +3411,7 @@ def squad_search():
             LIMIT 100
         """
         cur.execute(query, (f"%{term}%",))
-        cards = [dict(row) for row in cur.fetchall()]
+        cards = add_new_traits(cur, [dict(row) for row in cur.fetchall()])
         
         cur.close()
     finally:
@@ -3420,7 +3441,7 @@ def squad_search_by_pid():
             FROM player_cards
             WHERE spid = ANY(%s)
         """, (spids,))
-        cards = [dict(row) for row in cur.fetchall()]
+        cards = add_new_traits(cur, [dict(row) for row in cur.fetchall()])
         cur.close()
         conn.close()
         return jsonify(cards)
@@ -3444,7 +3465,7 @@ def squad_search_by_pid():
         WHERE RIGHT(spid::text, 6) = %s
         ORDER BY overall DESC
     """, (pid,))
-    cards = [dict(row) for row in cur.fetchall()]
+    cards = add_new_traits(cur, [dict(row) for row in cur.fetchall()])
     cur.close()
     conn.close()
     return jsonify(cards)
