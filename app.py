@@ -814,8 +814,10 @@ def _board_conditions(bp, is_admin):
     if not is_admin:
         conditions.append("is_deleted = false")
 
-    # 공지는 목록 위 '접는 공지 띠'로 따로 보여주므로 일반 목록에서는 제외
-    conditions.append("COALESCE(is_notice, false) = false")
+    # 공지: 전체글·인기글에서는 목록 위 '접는 공지 띠'로만 보여주고 목록에서는 제외
+    #       카테고리 탭(업데이트 등)에서는 원래 카테고리 목록에도 그대로 표시 (공지 띠에도 함께 노출)
+    if not bp['category']:
+        conditions.append("COALESCE(is_notice, false) = false")
 
     return conditions, params
 
