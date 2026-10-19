@@ -626,6 +626,41 @@ def home_squads():
 
 # ── 커뮤니티 글 HTML 정화 ─────────────────────────────────────
 # 에디터(Quill)가 만드는 태그만 허용하고, 스크립트·이벤트 속성·외부 iframe 등은 제거
+ANON_NAME = '큐붕이'  # 비로그인 사용자 기본 이름
+_ANON_ALIASES = {'', '익명', ANON_NAME}  # 예전 기본 이름 '익명'도 큐붕이로 취급
+
+
+def is_anon_name(name):
+    return (name or '').strip() in _ANON_ALIASES
+
+
+@app.template_filter('display_author')
+def display_author(name):
+    """화면 표시용 이름: 예전 '익명'은 큐붕이로 보여줌 (DB는 그대로)"""
+    return ANON_NAME if is_anon_name(name) else name
+
+
+def label_comment_authors(post, comments):
+    """댓글 작성자 표시 정리
+    - 글쓴이 본인 댓글: is_op=True (회원 글은 회원 ID, 비회원 글은 같은 IP로 판단)
+    - 기본 이름(큐붕이/익명) 비회원: 글 안에서 처음 댓글 단 순서대로 큐붕이1, 큐붕이2 ... (같은 IP는 같은 번호)
+    - 번호는 삭제된 댓글까지 포함해 매겨서, 삭제돼도 다른 사람 번호가 바뀌지 않음
+    """
+    numbers = {}
+    for c in sorted(comments, key=lambda x: (x.get('created_at') is None, x.get('created_at'), x.get('id'))):
+        if post.get('user_id'):
+            c['is_op'] = bool(c.get('user_id')) and c.get('user_id') == post.get('user_id')
+        else:
+            c['is_op'] = (not c.get('user_id') and bool(c.get('author_ip'))
+                          and c.get('author_ip') == post.get('author_ip'))
+
+        if not c.get('user_id') and is_anon_name(c.get('author')) and not c['is_op']:
+            key = c.get('author_ip') or c.get('ip_hash') or f"c{c.get('id')}"
+            if key not in numbers:
+                numbers[key] = len(numbers) + 1
+            c['display_name'] = f'{ANON_NAME}{numbers[key]}'
+        else:
+            c['display_name'] = display_author(c.get('author'))
 COMMUNITY_CATEGORIES = ['잡담', '꿀팁', '스쿼드', '선수 후기', '전술', '강화/득템', '감독모드', '미니 페이스온', '명장면']
 _POST_ALLOWED_TAGS = {'p', 'br', 'span', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'del',
                       'h1', 'h2', 'h3', 'blockquote', 'pre', 'code', 'ol', 'ul', 'li',
@@ -722,6 +757,9 @@ def _board_conditions(bp, is_admin):
                 search_conditions.append("""id IN (SELECT post_id FROM community.comments
                                                WHERE REPLACE(content, ' ', '') ILIKE %s)""")
                 params.append(like)
+            elif search_type == 'author' and is_anon_name(kw):
+                search_conditions.append("REPLACE(author, ' ', '') IN ('익명', %s)")
+                params.append(ANON_NAME)
             elif search_type in columns:
                 cols = columns[search_type]
                 search_conditions.append('(' + ' OR '.join(f'{c} ILIKE %s' for c in cols) + ')')
@@ -861,7 +899,7 @@ def community_write():
             user_id = session.get('user_id')  # 작성자 ID 저장
         else:
             # 비로그인 상태: 폼 데이터 사용
-            author = request.form.get('author', '익명')
+            author = (request.form.get('author') or '').strip()[:100] or ANON_NAME
             password = request.form.get('password', '')
             author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
             password_hash = hash_password(password) if password else None
@@ -963,6 +1001,9 @@ def _community_post(conn, cur, post_id):
     
     for comment in comments:
         comment['ip_display'] = format_ip_display(comment.get('author_ip'))
+
+    # 큐붕이 번호 / 글쓴이 표시
+    label_comment_authors(post, comments)
     
     # 본문 정화 (예전 글 포함, 허용된 HTML만 출력)
     post['content'] = clean_post_html(post.get('content'))
@@ -1009,7 +1050,7 @@ def add_comment(post_id):
             author_ip = None
         else:
             # 비로그인 유저
-            author = request.form.get('author', '익명').strip()
+            author = (request.form.get('author') or '').strip()[:100] or ANON_NAME
             password = request.form.get('password', '').strip()
             
             if not password:
@@ -1875,7 +1916,7 @@ def write_player_review(spid):
             ip_hash = None
             author_ip = None
         else:
-            author = request.form.get('author', '익명').strip()
+            author = (request.form.get('author') or '').strip()[:100] or ANON_NAME
             password = request.form.get('password', '').strip()
             
             if not password:

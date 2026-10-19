@@ -1504,7 +1504,7 @@
                 <div class="rv-form-row">
                     <div class="rv-field">
                         <label>작성자 <span class="rv-req">*</span></label>
-                        <input type="text" name="author" value="익명" required maxlength="100" class="rv-input">
+                        <input type="text" name="author" value="큐붕이" required maxlength="100" class="rv-input">
                     </div>
                     <div class="rv-field">
                         <label>비밀번호 <span class="rv-req">*</span></label>
@@ -1559,7 +1559,7 @@
                         {% if review.is_deleted and session.get('user_role') == 'admin' %}
                         <span class="rv-badge-del">삭제됨</span>
                         {% endif %}
-                        <span class="rv-name">{{ review.author }}</span>
+                        <span class="rv-name">{{ review.author | display_author }}</span>
                         <span class="rv-ip">{{ review.ip_display }}</span>
                         {% if review.rating %}<span class="rv-rating">⭐ {{ review.rating }}/10</span>{% endif %}
                     </div>
@@ -1598,7 +1598,7 @@
                         {% if not session.get('user_id') %}
                         <div class="rv-form-row">
                             <div class="rv-field">
-                                <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
+                                <input type="text" name="author" value="큐붕이" required maxlength="100" placeholder="작성자"
                                     class="rv-input">
                             </div>
                             <div class="rv-field">
@@ -1628,7 +1628,7 @@
                             {% if reply.is_deleted and session.get('user_role') == 'admin' %}
                             <span class="rv-badge-del">삭제됨</span>
                             {% endif %}
-                            <span class="rv-name">{{ reply.author }}</span>
+                            <span class="rv-name">{{ reply.author | display_author }}</span>
                             <span class="rv-ip">{{ reply.ip_display }}</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 4px;">

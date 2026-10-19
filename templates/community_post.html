@@ -37,8 +37,8 @@
                 {{ post.title }}
             </h1>
             <div class="pv-meta">
-                <span class="pv-author">{{ post.author }}{% if post.ip_display %} <span class="pv-ip">{{ post.ip_display
-                        }}</span>{% endif %}</span>
+                <span class="pv-author">{{ post.author | display_author }}{% if post.ip_display %} <span
+                        class="pv-ip">{{ post.ip_display }}</span>{% endif %}</span>
                 <span class="pv-dot">·</span>
                 <span>{{ post.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
                 <span class="pv-stats">
@@ -89,11 +89,12 @@
         <div class="pv-cmt-list">
             {% for comment in comments %}
             {% if not comment.parent_comment_id %}
-            <div class="pv-cmt {% if comment.is_deleted %}is-deleted{% endif %}">
+            <div class="pv-cmt {% if comment.is_deleted %}is-deleted{% endif %} {% if comment.is_op %}is-op{% endif %}">
                 <div class="pv-cmt-head">
                     <div class="pv-cmt-who">
                         {% if comment.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
-                        <strong>{{ comment.author }}</strong>
+                        <strong>{{ comment.display_name }}</strong>
+                        {% if comment.is_op %}<span class="pv-op">글쓴이</span>{% endif %}
                         {% if comment.ip_display %}<span class="pv-ip">{{ comment.ip_display }}</span>{% endif %}
                         <span class="pv-cmt-date">{{ comment.created_at.strftime('%m.%d %H:%M') }}</span>
                     </div>
@@ -117,7 +118,7 @@
                         <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
                         {% if not session.get('user_id') %}
                         <div class="pv-form-row">
-                            <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
+                            <input type="text" name="author" value="큐붕이" required maxlength="100" placeholder="작성자"
                                 class="pv-input pv-input-sm">
                             <input type="password" name="password" required maxlength="50" placeholder="비밀번호"
                                 class="pv-input pv-input-sm">
@@ -134,12 +135,14 @@
 
             {% for reply in comments %}
             {% if reply.parent_comment_id == comment.id %}
-            <div class="pv-cmt pv-reply {% if reply.is_deleted %}is-deleted{% endif %}">
+            <div
+                class="pv-cmt pv-reply {% if reply.is_deleted %}is-deleted{% endif %} {% if reply.is_op %}is-op{% endif %}">
                 <div class="pv-cmt-head">
                     <div class="pv-cmt-who">
                         <span class="pv-reply-mark">ㄴ</span>
                         {% if reply.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
-                        <strong>{{ reply.author }}</strong>
+                        <strong>{{ reply.display_name }}</strong>
+                        {% if reply.is_op %}<span class="pv-op">글쓴이</span>{% endif %}
                         {% if reply.ip_display %}<span class="pv-ip">{{ reply.ip_display }}</span>{% endif %}
                         <span class="pv-cmt-date">{{ reply.created_at.strftime('%m.%d %H:%M') }}</span>
                     </div>
@@ -169,7 +172,7 @@
         <form method="POST" action="/community/comment/{{ post.id }}" class="pv-form pv-cmt-form">
             {% if not session.get('user_id') %}
             <div class="pv-form-row">
-                <input type="text" name="author" value="익명" required maxlength="100" placeholder="작성자"
+                <input type="text" name="author" value="큐붕이" required maxlength="100" placeholder="작성자"
                     class="pv-input pv-input-sm">
                 <input type="password" name="password" required maxlength="50" placeholder="비밀번호 (삭제 시 필요)"
                     class="pv-input pv-input-sm">
@@ -693,6 +696,34 @@
         padding-left: 50px;
     }
 
+    /* 글쓴이 댓글 */
+    .pv-op {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #fff;
+        background: var(--pv-accent);
+        border-radius: 4px;
+        padding: 1px 6px;
+    }
+
+    .pv-cmt.is-op {
+        box-shadow: inset 3px 0 0 var(--pv-accent);
+        background: rgba(99, 102, 241, 0.07);
+        margin-left: -28px;
+        margin-right: -28px;
+        padding-left: 28px;
+        padding-right: 28px;
+    }
+
+    .pv-cmt.pv-reply.is-op {
+        padding-left: 50px;
+    }
+
+    .pv-cmt.is-op .pv-cmt-who strong {
+        color: var(--pv-accent);
+    }
+
     .pv-reply-mark {
         color: var(--text-muted);
         margin-right: 2px;
@@ -862,6 +893,17 @@
             margin: 0 -14px;
             padding-left: 30px;
             padding-right: 14px;
+        }
+
+        .pv-cmt.is-op {
+            margin-left: -14px;
+            margin-right: -14px;
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+
+        .pv-cmt.pv-reply.is-op {
+            padding-left: 30px;
         }
 
         .pv-input-sm {

@@ -104,8 +104,8 @@
                     {% if post.has_image %}<span class="cm-ico" title="이미지">🖼️</span>{% endif %}
                     {% if post.has_video %}<span class="cm-ico" title="영상">▶️</span>{% endif %}
                 </span>
-                <span class="cm-author">{{ post.author }}{% if post.ip_display %} <span class="cm-ip">{{ post.ip_display
-                        }}</span>{% endif %}</span>
+                <span class="cm-author">{{ post.author | display_author }}{% if post.ip_display %} <span
+                        class="cm-ip">{{ post.ip_display }}</span>{% endif %}</span>
                 <span class="cm-date">{{ post.display_date }}</span>
                 <span class="cm-views-n"><span class="cm-m">조회 </span>{{ post.views }}</span>
                 <span class="cm-likes"><span class="cm-m">추천 </span>{{ post.likes }}</span>
