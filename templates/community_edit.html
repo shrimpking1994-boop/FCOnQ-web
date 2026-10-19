@@ -1,47 +1,38 @@
 {% extends "index.html" %}
 
-{% block title %}글쓰기 | 엪씨온큐 커뮤니티{% endblock %}
+{% block title %}글 수정 | 엪씨온큐 커뮤니티{% endblock %}
 
 {% block content %}
 <div class="pw-wrap">
-    <h1 class="pw-heading">✏️ 글쓰기</h1>
+    <h1 class="pw-heading">✏️ 글 수정</h1>
 
-    <form method="POST" action="/community/write" id="postForm" class="pw-card">
+    <form method="POST" action="/community/post/{{ post.id }}/edit" id="postForm" class="pw-card">
 
         <!-- 카테고리 + 제목 -->
         <div class="pw-row">
             <select name="category" required class="pw-field pw-category">
                 <option value="">카테고리 선택</option>
                 {% if session.get('user_role') == 'admin' %}
-                <option value="업데이트">🛠️ 업데이트</option>
+                <option value="업데이트" {% if post.category=='업데이트' %}selected{% endif %}>🛠️ 업데이트</option>
                 {% endif %}
                 {% for c in ['잡담', '꿀팁', '스쿼드', '선수 후기', '전술', '강화/득템', '감독모드', '미니 페이스온', '명장면'] %}
-                <option value="{{ c }}" {% if request.args.get('category')==c %}selected{% endif %}>{{ c }}</option>
+                <option value="{{ c }}" {% if post.category==c %}selected{% endif %}>{{ c }}</option>
                 {% endfor %}
             </select>
-            <input type="text" name="title" required maxlength="200" placeholder="제목을 입력하세요" class="pw-field pw-title">
+            <input type="text" name="title" required maxlength="200" value="{{ post.title }}" placeholder="제목을 입력하세요"
+                class="pw-field pw-title">
         </div>
 
-        <!-- 작성자 -->
-        {% if not session.get('user_id') %}
-        <div class="pw-row pw-guest">
-            <input type="text" name="author" value="익명" required maxlength="100" placeholder="닉네임" class="pw-field">
-            <input type="password" name="password" required maxlength="50" placeholder="비밀번호" class="pw-field">
-            <span class="pw-guest-note">비밀번호는 글 수정·삭제할 때 필요해요</span>
-        </div>
-        {% else %}
-        <div class="pw-author-fixed">작성자 <strong>{{ session.get('user_name', '익명') }}</strong></div>
-        {% endif %}
-
-        <!-- 본문 -->
+        <!-- 본문 (기존 내용은 아래 숨김 칸에서 불러옴) -->
+        <textarea id="initialContent" hidden>{{ post.content }}</textarea>
         <div class="pw-editor-box">
             <div id="editor"></div>
         </div>
         <input type="hidden" name="content" id="content">
 
         <div class="pw-actions">
-            <a href="/community" class="pw-btn">취소</a>
-            <button type="submit" class="pw-btn pw-submit">등록</button>
+            <a href="/community/post/{{ post.id }}" class="pw-btn">취소</a>
+            <button type="submit" class="pw-btn pw-submit">수정 완료</button>
         </div>
     </form>
 </div>

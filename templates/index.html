@@ -344,6 +344,14 @@
             text-decoration: underline;
         }
 
+        /* 앱(또는 홈 화면 추가)으로 실행 중이면 앱 설치 링크 숨김 */
+        @media (display-mode: standalone),
+        (display-mode: fullscreen) {
+            .ft-app-link {
+                display: none !important;
+            }
+        }
+
         /* 모바일용 정책 링크 줄 (PC에서는 숨김) */
         .ft-policy {
             display: none;
@@ -1058,8 +1066,8 @@
                     {% set ft_year = current_year | default(2026) %}
                     <p class="ft-copy">© 2025{% if ft_year > 2025 %}-{{ ft_year }}{% endif %} FCOnQ. All Rights
                         Reserved.</p>
-                    <p class="ft-notice">FCOnQ는 넥슨(NEXON) 및 EA의 공식 사이트가 아닙니다. 게임 데이터는 NEXON Open API를 기반으로 하며, 게임 관련
-                        이미지와 상표의 권리는 각 소유주에게 있습니다.</p>
+                    <p class="ft-notice">FCOnQ는 넥슨(NEXON) 및 EA와 관련 없는 팬 사이트입니다. 게임 데이터는 NEXON Open API를 기반으로 하며, 게임 관련
+                        이미지와 상표의 권리는 각 권리자에게 있습니다.</p>
                 </div>
                 <div class="ft-cols">
                     <div class="ft-col">
@@ -1077,6 +1085,10 @@
                         <ul>
                             <li><a href="/community?category=%EC%97%85%EB%8D%B0%EC%9D%B4%ED%8A%B8">업데이트 소식</a></li>
                             <li><a href="mailto:shrimpking1994@gmail.com">문의하기</a></li>
+                            <li class="ft-app-link"><a
+                                    href="https://play.google.com/store/apps/details?id=com.fconq.twa&hl=ko"
+                                    target="_blank" rel="noopener">안드로이드 앱 다운로드</a></li>
+                            <li class="ft-app-link"><a href="/community/post/591">아이폰 홈 화면 추가</a></li>
                         </ul>
                     </div>
                     <div class="ft-col">
@@ -1096,6 +1108,9 @@
                 <a href="/privacy"><strong>개인정보처리방침</strong></a>
                 <a href="/delete-account">계정 삭제</a>
                 <a href="mailto:shrimpking1994@gmail.com">문의하기</a>
+                <a class="ft-app-link" href="https://play.google.com/store/apps/details?id=com.fconq.twa&hl=ko"
+                    target="_blank" rel="noopener">안드로이드 앱</a>
+                <a class="ft-app-link" href="/community/post/591">아이폰 홈 화면 추가</a>
             </nav>
 
         </div>
