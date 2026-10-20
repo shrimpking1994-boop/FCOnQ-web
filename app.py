@@ -106,6 +106,22 @@ def privacy():
 def ads_txt():
     return ("google.com, pub-7405651133449844, DIRECT, f08c47fec0942fa0\n",
             200, {'Content-Type': 'text/plain; charset=utf-8'})
+    
+@app.route('/robots.txt')
+def robots_txt():
+    """검색엔진 안내 파일: 전체 허용 + 검색에 나올 필요 없는 페이지만 제외 + 사이트맵 위치"""
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /login",
+        "Disallow: /logout",
+        "Disallow: /test",
+        "Disallow: /community/write",
+        "Disallow: /community/post/*/edit",
+        "",
+        "Sitemap: https://fconq.com/sitemap.xml",
+    ]
+    return ("\n".join(lines) + "\n", 200, {'Content-Type': 'text/plain; charset=utf-8'})    
 
 @app.route('/terms')
 def terms():
