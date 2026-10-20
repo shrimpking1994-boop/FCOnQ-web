@@ -101,6 +101,12 @@ def assetlinks():
 def privacy():
     return render_template('privacy.html')
 
+
+@app.route('/ads.txt')
+def ads_txt():
+    return ("google.com, pub-7405651133449844, DIRECT, f08c47fec0942fa0\n",
+            200, {'Content-Type': 'text/plain; charset=utf-8'})
+
 @app.route('/terms')
 def terms():
     return render_template('terms.html')
