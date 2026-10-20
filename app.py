@@ -125,56 +125,113 @@ def delete_account():
 def service_worker():
     return app.send_static_file('service_worker.js'), 200, {'Content-Type': 'application/javascript'}
 
+# ── 사이트맵 (검색엔진용 페이지 목록) ─────────────────────────────
+# sitemap.xml 은 목차(인덱스)이고, 실제 주소는 여러 파일로 나눠서 제공
+#   /sitemap-pages.xml       : 주요 페이지
+#   /sitemap-cards-1.xml ... : 선수 카드 (파일당 SITEMAP_CARD_CHUNK 개, 구글 제한 5만 개)
+#   /sitemap-community.xml   : 커뮤니티 글
+SITE_URL = 'https://fconq.com'
+SITEMAP_CARD_CHUNK = 40000
+SITEMAP_PAGES = ['/', '/search', '/tierlist', '/squad_maker', '/community', '/utility',
+                 '/fee_calculator', '/miniface_search', '/teamcolor_search', '/terms', '/privacy']
+_sitemap_cache = {}   # {이름: (만든 시각, xml)}
+
+
+def _sitemap_cached(name, builder, hours=6):
+    """사이트맵은 몇 시간에 한 번만 새로 만들고 그 사이에는 저장해 둔 것을 돌려줌 (DB 부담 줄이기)"""
+    from flask import Response
+    now = datetime.now()
+    hit = _sitemap_cache.get(name)
+    if hit and (now - hit[0]).total_seconds() < hours * 3600:
+        xml = hit[1]
+    else:
+        xml = builder()
+        _sitemap_cache[name] = (now, xml)
+    return Response(xml, mimetype='application/xml')
+
+
+def _urlset(entries):
+    """entries: [(경로, lastmod 날짜 또는 None)]"""
+    out = ['<?xml version="1.0" encoding="UTF-8"?>',
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for path, lastmod in entries:
+        out.append(f'<url><loc>{SITE_URL}{path}</loc>'
+                   + (f'<lastmod>{lastmod.strftime("%Y-%m-%d")}</lastmod>' if lastmod else '')
+                   + '</url>')
+    out.append('</urlset>')
+    return '\n'.join(out)
+
+
+def _card_count():
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) AS n FROM player_cards")
+        return cur.fetchone()['n']
+    finally:
+        conn.close()
+
+
 @app.route('/sitemap.xml')
 def sitemap():
-    """동적 sitemap 생성"""
-    from flask import Response
-    from datetime import datetime
-    
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    # 모든 선수 카드 spid 가져오기
-    cur.execute("SELECT spid FROM player_cards ORDER BY spid")
-    cards = cur.fetchall()
-    
-    cur.close()
-    conn.close()
-    
-    # XML 생성
-    xml = ['<?xml version="1.0" encoding="UTF-8"?>']
-    xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
-    
-    # 메인 페이지들
-    xml.append('  <url>')
-    xml.append('    <loc>https://fconq.com/</loc>')
-    xml.append('    <changefreq>daily</changefreq>')
-    xml.append('    <priority>1.0</priority>')
-    xml.append('  </url>')
-    
-    xml.append('  <url>')
-    xml.append('    <loc>https://fconq.com/search</loc>')
-    xml.append('    <changefreq>daily</changefreq>')
-    xml.append('    <priority>0.9</priority>')
-    xml.append('  </url>')
-    
-    xml.append('  <url>')
-    xml.append('    <loc>https://fconq.com/community</loc>')
-    xml.append('    <changefreq>daily</changefreq>')
-    xml.append('    <priority>0.8</priority>')
-    xml.append('  </url>')
-    
-    # 모든 선수 카드 페이지
-    for card in cards:
-        xml.append('  <url>')
-        xml.append(f'    <loc>https://fconq.com/card/{card["spid"]}</loc>')
-        xml.append('    <changefreq>weekly</changefreq>')
-        xml.append('    <priority>0.7</priority>')
-        xml.append('  </url>')
-    
-    xml.append('</urlset>')
-    
-    return Response('\n'.join(xml), mimetype='application/xml')
+    """사이트맵 목차"""
+    def build():
+        chunks = max((_card_count() + SITEMAP_CARD_CHUNK - 1) // SITEMAP_CARD_CHUNK, 1)
+        today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%d')
+        files = ['/sitemap-pages.xml'] + [f'/sitemap-cards-{i}.xml' for i in range(1, chunks + 1)] \
+                + ['/sitemap-community.xml']
+        out = ['<?xml version="1.0" encoding="UTF-8"?>',
+               '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+        for f in files:
+            out.append(f'<sitemap><loc>{SITE_URL}{f}</loc><lastmod>{today}</lastmod></sitemap>')
+        out.append('</sitemapindex>')
+        return '\n'.join(out)
+    return _sitemap_cached('index', build)
+
+
+@app.route('/sitemap-pages.xml')
+def sitemap_pages():
+    """주요 페이지"""
+    return _sitemap_cached('pages', lambda: _urlset([(p, None) for p in SITEMAP_PAGES]))
+
+
+@app.route('/sitemap-cards-<int:num>.xml')
+def sitemap_cards(num):
+    """선수 카드 페이지 (묶음 번호별)"""
+    if num < 1:
+        return "Not Found", 404
+
+    def build():
+        conn = get_db_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT spid FROM player_cards ORDER BY spid LIMIT %s OFFSET %s",
+                        (SITEMAP_CARD_CHUNK, (num - 1) * SITEMAP_CARD_CHUNK))
+            rows = cur.fetchall()
+        finally:
+            conn.close()
+        return _urlset([(f"/card/{r['spid']}", None) for r in rows])
+    return _sitemap_cached(f'cards-{num}', build)
+
+
+@app.route('/sitemap-community.xml')
+def sitemap_community():
+    """커뮤니티 글 (삭제된 글 제외, 최근 글 위주 최대 4만 개)"""
+    def build():
+        conn = get_db_connection()
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT id, created_at FROM community.posts
+                WHERE is_deleted = false
+                ORDER BY id DESC
+                LIMIT 40000
+            """)
+            rows = cur.fetchall()
+        finally:
+            conn.close()
+        return _urlset([(f"/community/post/{r['id']}", r['created_at']) for r in rows])
+    return _sitemap_cached('community', build)
 
 
 # 시즌 정렬 순서 (공식 홈페이지 기준)
