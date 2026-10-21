@@ -2430,12 +2430,19 @@ def tierlist():
     tc_param = request.args.get('tc', '')
     tab_param = request.args.get('tab', '')
 
+        # 카톡 공유 문구: 공유한 탭/팀컬러에 따라 다르게
     if tab_param == 'card' and tc_param:
-        og_title = f"FCOnQ - {tc_param} 선수 티어리스트"
-        og_description = f"{tc_param} 팀컬러 포지션별 추천 선수를 확인해보세요!"
+        og_title = f"FCOnQ : {tc_param} 선수 티어리스트"
+        og_description = "포지션별 랭커 사용률 순위"
+    elif tab_param == 'trait':
+        og_title = "FCOnQ : 신규 특성 티어리스트"
+        og_description = "포지션별 신규 특성 사용률 순위"
+    elif tab_param == 'price':
+        og_title = "FCOnQ : 시세 티어리스트"
+        og_description = "급등 · 급락 카드 순위"
     else:
-        og_title = "FCOnQ - FC온라인 전문 선수 DB 및 커뮤니티"
-        og_description = "8만개 이상의 선수 카드 정보와 시세를 확인하고, FC온라인 유저들과 소통하세요!"
+        og_title = "FCOnQ : FC온라인 티어리스트"
+        og_description = "팀컬러 · 선수 · 신규 특성 · 시세 순위"
     
     return render_template('tierlist.html', 
                          available_dates=available_dates,
@@ -3373,11 +3380,11 @@ def squad_maker():
     share_param = request.args.get('share', '')
     is_logged_in = 'user_id' in session
     if share_param:
-        og_title = "FCOnQ - 스쿼드 공유"
+        og_title = "FCOnQ : 공유된 스쿼드"
         og_description = "공유된 FC온라인 스쿼드를 확인해보세요!"
     else:
-        og_title = "FCOnQ - FC온라인 전문 선수 DB 및 커뮤니티"
-        og_description = "8만개 이상의 선수 카드 정보와 시세를 확인하고, FC온라인 유저들과 소통하세요!"
+        og_title = "FCOnQ : FC온라인 스쿼드 메이커"
+        og_description = "픽률 자동 완성 · 랭커 스쿼드 · 구단주 검색 · 팀컬러 계산"
 
     conn = get_db_connection()
     try:

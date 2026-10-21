@@ -1,25 +1,27 @@
 {% extends "index.html" %}
 
-{% block title %}엪씨온큐 | 선수 DB{% endblock %}
+{% block title %}FC온라인 선수 DB · 선수 검색 · 스탯 · 시세 | FCOnQ{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="가장 쉽고 빠른 FC온라인 선수 DB!">
+<meta name="description" content="FC온라인(피파4) 선수 카드를 이름, 시즌, 포지션, 팀컬러, 급여, 오버롤, 신규 특성으로 빠르게 검색하고 스탯·시세·후기까지 한 번에 확인하세요.">
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FCOnQ">
-<meta property="og:title" content="FC온라인 선수 DB - FCOnQ">
-<meta property="og:description" content="가장 쉽고 빠른 FC온라인 선수 DB!">
-<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:title" content="FCOnQ : FC온라인 선수 DB">
+<meta property="og:description" content="선수 검색 · 스탯 · 시세 · 팀컬러 · 고유 특성">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://fconq.com/search">
 {% endblock %}
 
 {% block twitter_tags %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="FC온라인 선수 DB - FCOnQ">
-<meta name="twitter:description" content="가장 쉽고 빠른 FC온라인 선수 DB!">
-<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta name="twitter:title" content="FCOnQ : FC온라인 선수 DB">
+<meta name="twitter:description" content="선수 검색 · 스탯 · 시세 · 팀컬러 · 고유 특성">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
 {% endblock %}
 
 {% block content %}
@@ -1298,7 +1300,7 @@
 
 <!-- ❌ 제목 삭제 -->
 <!-- ❌ 다크모드 버튼 삭제 -->
-
+<h1 class="visually-hidden">FC온라인 선수 DB 검색</h1>
 <form action="/results" method="GET" id="searchForm">
     <!-- 탭 UI -->
     <div class="db-tab-wrapper">
