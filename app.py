@@ -50,7 +50,8 @@ DB_CONFIG = {
     "database": os.getenv('DB_NAME'),
     "user": os.getenv('DB_USER'),
     "password": os.getenv('DB_PASSWORD'),
-    "connect_timeout": 10
+    "connect_timeout": 10,
+    "options": "-c statement_timeout=20000"
 }
 
 # IP 해싱 함수
@@ -3821,7 +3822,7 @@ def nexon_get(path, params):
     """넥슨 오픈 API 호출"""
     url = f"{NEXON_API_BASE}{path}?{urllib.parse.urlencode(params)}"
     req = urllib.request.Request(url, headers={'x-nxopen-api-key': NEXON_API_KEY})
-    with urllib.request.urlopen(req, timeout=10) as res:
+    with urllib.request.urlopen(req, timeout=4) as res:
         return json.loads(res.read().decode('utf-8'))
 
 
@@ -3852,7 +3853,7 @@ def owner_squad():
     # 2) 최근 공식경기 목록
     try:
         match_ids = nexon_get('/user/match', {
-            'ouid': ouid, 'matchtype': OFFICIAL_MATCH_TYPE, 'offset': 0, 'limit': 5
+            'ouid': ouid, 'matchtype': OFFICIAL_MATCH_TYPE, 'offset': 0, 'limit': 3
         })
     except Exception:
         return jsonify({'success': False, 'message': '넥슨 서버 응답이 없습니다. 잠시 후 다시 시도해주세요.'}), 502
