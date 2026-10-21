@@ -3,7 +3,8 @@ FC온라인 선수 카드 웹 애플리케이션
 Flask + PostgreSQL
 """
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, Response, abort
+import base64
 from functools import wraps
 from authlib.integrations.flask_client import OAuth
 import os
@@ -1081,6 +1082,36 @@ def community_post(post_id):
         return _community_post(conn, cur, post_id)
     finally:
         conn.close()
+        
+def first_post_image(content):
+    """본문에서 첫 번째 사진 주소 찾기"""
+    m = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', content or '')
+    return m.group(1) if m else None
+
+
+@app.route('/community/post/<int:post_id>/image')
+def community_post_image(post_id):
+    """본문 첫 사진을 이미지 파일로 내보내기 (카톡 미리보기용)"""
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT content FROM community.posts WHERE id = %s AND is_deleted = false", (post_id,))
+        row = cur.fetchone()
+        cur.close()
+    finally:
+        conn.close()
+    src = first_post_image(row['content']) if row else None
+    if not src or not src.startswith('data:image/'):
+        abort(404)
+    header, _, data = src.partition(',')
+    mime = header[5:].split(';')[0]
+    try:
+        img = base64.b64decode(data)
+    except Exception:
+        abort(404)
+    resp = Response(img, mimetype=mime)
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp        
 
 
 def _community_post(conn, cur, post_id):
@@ -1145,6 +1176,14 @@ def _community_post(conn, cur, post_id):
     plain = re.sub(r'<[^>]+>', ' ', post['content'])
     plain = re.sub(r'\s+', ' ', plain).strip()
     post['summary'] = (plain[:120] + '…') if len(plain) > 120 else (plain or post['title'])
+    
+    
+    # 카톡 미리보기 이미지: 본문 첫 사진 (없으면 템플릿에서 fconq_og.png)
+    first_img = first_post_image(post['content'])
+    if first_img and first_img.startswith('data:image/'):
+        post['og_image'] = url_for('community_post_image', post_id=post['id'], _external=True)
+    else:
+        post['og_image'] = first_img
 
     # 수정/삭제 버튼 노출: 관리자, 비로그인 글(비밀번호로 확인), 로그인 글은 작성자 본인만
     post['can_manage'] = (is_admin or not post.get('user_id')

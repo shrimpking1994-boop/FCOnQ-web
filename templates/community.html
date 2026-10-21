@@ -1,27 +1,30 @@
 {% extends "index.html" %}
 
-{% block title %}엪씨온큐 | 커뮤니티{% endblock %}
+{% block title %}FC온라인 커뮤니티 · 자유게시판 · 꿀팁 · 스쿼드 · 선수 후기 | FCOnQ{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="FC온라인 커뮤니티 - 누구나 참여 가능한 자유 광장!">
+<meta name="description" content="FC온라인 유저들이 모여 꿀팁, 스쿼드, 선수 후기, 전술, 강화 · 득템 이야기를 나누는 커뮤니티. 로그인 없이 누구나 자유롭게 참여하세요.">
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FCOnQ">
-<meta property="og:title" content="FC온라인 커뮤니티 - FCOnQ">
-<meta property="og:description" content="누구나 참여 가능한 자유 광장!">
-<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:title" content="FCOnQ : FC온라인 커뮤니티">
+<meta property="og:description" content="꿀팁 · 스쿼드 · 선수 후기 · 전술 · 강화/득템">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://fconq.com/community">
 {% endblock %}
 
 {% block twitter_tags %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="FC온라인 커뮤니티 - FCOnQ">
-<meta name="twitter:description" content="누구나 참여 가능한 자유 광장!">
-<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta name="twitter:title" content="FCOnQ : FC온라인 커뮤니티">
+<meta name="twitter:description" content="꿀팁 · 스쿼드 · 선수 후기 · 전술 · 강화/득템">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
 {% endblock %}
 
 {% block content %}
+<h1 class="visually-hidden">FC온라인 커뮤니티</h1>
 {% include "_community_board.html" %}
 {% endblock %}

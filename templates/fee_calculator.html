@@ -1,25 +1,27 @@
 {% extends "index.html" %}
 
-{% block title %}엪씨온큐 | 수수료 계산기{% endblock %}
+{% block title %}FC온라인 수수료 계산기 · 이적시장 실수령액 계산 | FCOnQ{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="FC온라인 수수료 계산기 - 수수료 계산을 가장 쉽고 빠르게!">
+<meta name="description" content="FC온라인 이적시장 판매 수수료와 실수령 BP를 바로 계산하세요. PC방 · TOP Class 할인, 수수료 쿠폰, 여러 카드 합산까지 지원합니다.">
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FCOnQ">
-<meta property="og:title" content="FC온라인 수수료 계산기 - FCOnQ">
-<meta property="og:description" content="FC온라인 이적시장 수수료 계산을 가장 쉽고 빠르게!">
-<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:title" content="FCOnQ : FC온라인 수수료 계산기">
+<meta property="og:description" content="PC방 · TOP Class · 쿠폰 할인 · 실수령액 계산">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://fconq.com/fee_calculator">
 {% endblock %}
 
 {% block twitter_tags %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="FC온라인 수수료 계산기 - FCOnQ">
-<meta name="twitter:description" content="FC온라인 이적시장 수수료 계산을 가장 쉽고 빠르게!">
-<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta name="twitter:title" content="FCOnQ : FC온라인 수수료 계산기">
+<meta name="twitter:description" content="PC방 · TOP Class · 쿠폰 할인 · 실수령액 계산">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
 {% endblock %}
 
 {% block content %}
@@ -353,6 +355,7 @@
     }
 </style>
 
+<h1 class="visually-hidden">FC온라인 수수료 계산기</h1>
 <div class="calculator-container">
 
     <!-- 광고 배너 -->

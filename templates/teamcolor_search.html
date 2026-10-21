@@ -1,18 +1,28 @@
 {% extends "index.html" %}
 
-{% block title %}엪씨온큐 | 팀컬러 상세 검색{% endblock %}
+{% block title %}FC온라인 팀컬러 검색 · 케미 효과 · 특성 팀컬러 선수 목록 | FCOnQ{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="FC온라인 팀컬러 상세 검색 - 팀컬러 버프 효과 및 특성 팀컬러 대상 선수 확인">
+<meta name="description"
+    content="FC온라인 국가 · 클럽 · 특성 팀컬러의 단계별 케미 효과와 대상 선수, 시즌 정보를 한 번에 확인하세요. 원하는 능력치로 팀컬러를 찾을 수도 있어요.">
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FCOnQ">
-<meta property="og:title" content="팀컬러 상세 검색 - FCOnQ">
-<meta property="og:description" content="팀컬러 버프 효과 및 특성 팀컬러 대상 선수 확인">
-<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:title" content="FCOnQ : FC온라인 팀컬러 상세 검색">
+<meta property="og:description" content="케미 효과 · 특성 팀컬러 · 능력치별 검색">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://fconq.com/teamcolor_search">
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FCOnQ : FC온라인 팀컬러 상세 검색">
+<meta name="twitter:description" content="케미 효과 · 특성 팀컬러 · 능력치별 검색">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
 {% endblock %}
 
 {% block content %}
@@ -502,6 +512,7 @@
     }
 </style>
 
+<h1 class="visually-hidden">FC온라인 팀컬러 상세 검색</h1>
 <div class="tcs-container">
 
     <div class="tcs-tab-group">

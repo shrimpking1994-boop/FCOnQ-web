@@ -1,25 +1,28 @@
 {% extends "index.html" %}
 
-{% block title %}엪씨온큐 | 미니 페이스온 검색{% endblock %}
+{% block title %}FC온라인 미니 페이스온 검색 · 시즌별 미페 모아보기 | FCOnQ{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="FC온라인 미니 페이스온 검색 - 원하는 선수의 미니 페이스온을 가장 쉽고 빠르게!">
+<meta name="description"
+    content="FC온라인 선수 이름만 입력하면 시즌별 미니 페이스온(미페)을 한눈에 확인할 수 있어요. 음바페, 홀란 등 원하는 선수의 미페를 쉽고 빠르게 찾아보세요.">
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FCOnQ">
-<meta property="og:title" content="FC온라인 페이스온 검색 - FCOnQ">
-<meta property="og:description" content="FC온라인 페이스온 검색을 가장 쉽고 빠르게!">
-<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:title" content="FCOnQ : FC온라인 미니 페이스온 검색">
+<meta property="og:description" content="선수별 · 시즌별 미니 페이스온 모아보기">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://fconq.com/miniface_search">
 {% endblock %}
 
 {% block twitter_tags %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="FC온라인 페이스온 검색 - FCOnQ">
-<meta name="twitter:description" content="FC온라인 페이스온 검색을 가장 쉽고 빠르게!">
-<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta name="twitter:title" content="FCOnQ : FC온라인 미니 페이스온 검색">
+<meta name="twitter:description" content="선수별 · 시즌별 미니 페이스온 모아보기">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
 {% endblock %}
 
 {% block content %}
@@ -163,6 +166,7 @@
     }
 </style>
 
+<h1 class="visually-hidden">FC온라인 미니 페이스온 검색</h1>
 <div class="miniface-container">
 
     <!-- 검색 영역 -->

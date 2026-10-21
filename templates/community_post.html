@@ -1,6 +1,6 @@
 {% extends "index.html" %}
 
-{% block title %}{{ post.title }} | 엪씨온큐 커뮤니티{% endblock %}
+{% block title %}{{ post.title }} | FCOnQ 커뮤니티{% endblock %}
 
 {% block meta_description %}
 <meta name="description" content="{{ post.summary }}">
@@ -9,17 +9,17 @@
 {% block og_tags %}
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="FCOnQ">
-<meta property="og:title" content="{{ post.title }} - FCOnQ 커뮤니티">
+<meta property="og:title" content="{{ post.title }}">
 <meta property="og:description" content="{{ post.summary }}">
-<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:image" content="{{ post.og_image or url_for('static', filename='fconq_og.png', _external=True) }}">
 <meta property="og:url" content="https://fconq.com/community/post/{{ post.id }}">
 {% endblock %}
 
 {% block twitter_tags %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ post.title }} - FCOnQ 커뮤니티">
+<meta name="twitter:title" content="{{ post.title }}">
 <meta name="twitter:description" content="{{ post.summary }}">
-<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta name="twitter:image" content="{{ post.og_image or url_for('static', filename='fconq_og.png', _external=True) }}">
 {% endblock %}
 
 {% block content %}

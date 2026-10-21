@@ -1,25 +1,27 @@
 {% extends "index.html" %}
 
-{% block title %}엪씨온큐 | 유틸리티{% endblock %}
+{% block title %}FC온라인 유틸리티 · 팀컬러 검색 · 미니 페이스온 · 수수료 계산기 | FCOnQ{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="FC온라인 유틸리티 - 페이스온 검색, 수수료 계산기 등 편리한 도구 모음">
+<meta name="description" content="FC온라인 팀컬러 상세 검색, 시즌별 미니 페이스온 검색, 이적시장 수수료 계산기 등 편리한 도구를 한곳에서 이용해보세요.">
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FCOnQ">
-<meta property="og:title" content="FC온라인 유틸리티 - FCOnQ">
-<meta property="og:description" content="페이스온 검색, 수수료 계산기 등 편리한 도구 모음">
-<meta property="og:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta property="og:title" content="FCOnQ : FC온라인 유틸리티">
+<meta property="og:description" content="팀컬러 검색 · 미니 페이스온 · 수수료 계산기">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://fconq.com/utility">
 {% endblock %}
 
 {% block twitter_tags %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="FC온라인 유틸리티 - FCOnQ">
-<meta name="twitter:description" content="페이스온 검색, 수수료 계산기 등 편리한 도구 모음">
-<meta name="twitter:image" content="{{ url_for('static', filename='fconq_logo.png', _external=True) }}">
+<meta name="twitter:title" content="FCOnQ : FC온라인 유틸리티">
+<meta name="twitter:description" content="팀컬러 검색 · 미니 페이스온 · 수수료 계산기">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
 {% endblock %}
 
 {% block content %}
@@ -112,6 +114,7 @@
     }
 </style>
 
+<h1 class="visually-hidden">FC온라인 유틸리티</h1>
 <div class="utility-container">
 
     <div class="utility-grid">
