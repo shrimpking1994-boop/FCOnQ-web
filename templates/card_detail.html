@@ -925,7 +925,7 @@
         }
 
         .detailed-column .stat-item span {
-            font-size: 12px !important;
+            font-size: 14px !important;
         }
 
 
@@ -1322,8 +1322,8 @@
                     class="detailed-column"
                     style="padding: 0 10px; {% if i >= 7 and i < 14 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 14 and i < 21 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 21 and i < 28 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% elif i >= 28 %}border-left: 1px solid rgba(222, 226, 230, 0.5);{% endif %}">
                     <div class="stat-item" style="display: flex; justify-content: space-between; padding: 8px 12px;">
-                        <span style="font-size: 14px;">{{ detailed_order[i] }}</span>
-                        <span class="stat-value" style="font-size: 14px;">
+                        <span style="font-size: 15px; font-weight: 500;">{{ detailed_order[i] }}</span>
+                        <span class="stat-value" style="font-size: 15px;">
                             {{ card.stats_info.detailed_stats[detailed_order[i]] }}
                         </span>
                     </div>
