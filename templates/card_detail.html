@@ -11,7 +11,9 @@
 <meta property="og:site_name" content="FCOnQ">
 <meta property="og:title" content="{{ og_title }}">
 <meta property="og:description" content="{{ og_description }}">
-<meta property="og:image" content="{{ card['image_info']['action_image'] }}">
+{% set ii = card['image_info'] or {} %}
+<meta property="og:image"
+    content="{{ ii.get('action_image') or ii.get('mini_faceon_high') or ii.get('mini_faceon') or url_for('static', filename='fconq_logo.png', _external=True) }}">
 <meta property="og:url" content="https://fconq.com/card/{{ card['spid'] }}">
 {% endblock %}
 
@@ -19,7 +21,9 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="{{ og_title }}">
 <meta name="twitter:description" content="{{ og_description }}">
-<meta name="twitter:image" content="{{ card['image_info']['action_image'] }}">
+{% set ii = card['image_info'] or {} %}
+<meta name="twitter:image"
+    content="{{ ii.get('action_image') or ii.get('mini_faceon_high') or ii.get('mini_faceon') or url_for('static', filename='fconq_logo.png', _external=True) }}">
 {% endblock %}
 
 {% block content %}

@@ -1903,7 +1903,7 @@ def card_detail(spid):
     seo_description = (f"FC온라인 : {card_label}의 능력치, 최신 시세, 팀컬러, 유저 후기 등 "
                        f"상세 정보를 쉽고 간편하게 확인해보세요.")
     og_title = f"FCOnQ : {card_label} 상세 DB 정보"
-    og_description = "fconq.com"
+    og_description = "스탯 · 시세 · 팀컬러 · 특성 팀컬러 · 후기"
     
     return render_template('card_detail.html', card=card, 
                                                position_order=POSITION_ORDER,
