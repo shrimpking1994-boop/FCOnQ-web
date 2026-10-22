@@ -314,9 +314,15 @@
         border-top: 1px solid rgba(255, 152, 0, 0.2);
     }
 
-    .cm-notice-first:hover .cm-notice-title,
-    .cm-notice-item:hover .cm-notice-title {
-        text-decoration: underline;
+    /* 공지 호버: 글씨 색은 그대로, 배경만 살짝 진하게 */
+    .cm-notice-first:hover,
+    .cm-notice-item:hover {
+        color: var(--text-primary);
+    }
+
+    .cm-notice-head:hover,
+    .cm-notice-item:hover {
+        background: rgba(255, 152, 0, 0.1);
     }
 
     .cm-notice-badge {
@@ -451,6 +457,7 @@
         color: var(--text-primary);
         text-decoration: none;
         font-size: 0.9rem;
+        overflow: hidden;
     }
 
     .cm-list.is-admin .cm-link {
