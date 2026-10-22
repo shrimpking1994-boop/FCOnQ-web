@@ -1939,7 +1939,7 @@ def card_detail(spid):
     position = card['stats_info']['main_overall']['card_position'] if card else ''
     # ── 검색 결과 / 카톡 공유용 문구 ──
     card_label = f"{season_name}-{player_name}"
-    seo_title = f"{card_label} 스탯 · 시세 · 후기 | FCOnQ"
+    seo_title = f"{card_label} - FCOnQ"
     seo_description = (f"FC온라인 : {card_label}의 능력치, 최신 시세, 팀컬러, 유저 후기 등 "
                        f"상세 정보를 쉽고 간편하게 확인해보세요.")
     og_title = f"FCOnQ : {card_label} 상세 DB 정보"
