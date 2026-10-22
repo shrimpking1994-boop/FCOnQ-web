@@ -574,6 +574,20 @@
         display: block;
     }
 
+    /* 애드센스: 평소엔 흔적 없이, 광고가 채워졌을 때만 박스 표시 */
+    .tl-adsense {
+        padding: 0;
+        border: none;
+        margin-top: -10px;
+        text-align: center;
+    }
+
+    .tl-adsense:has(ins[data-ad-status="filled"]) {
+        padding: 10px;
+        border: 2px solid var(--border-color);
+        margin-top: 0;
+    }
+
     .tl-adsense:has(ins[data-ad-status="unfilled"]) {
         display: none;
     }
@@ -1897,7 +1911,7 @@
                 }
                 if (idx === 19) {
                     html += `
-                    <div class="teamcolor-row tl-adsense" style="padding:10px; text-align:center;">
+                    <div class="teamcolor-row tl-adsense">
                         <ins class="adsbygoogle"
                             style="display:block"
                             data-ad-client="ca-pub-7405651133449844"
