@@ -472,8 +472,7 @@ _home_cache = {'data': None, 'time': None}
 
 def format_post_time(dt):
     """커뮤니티 글 시간 표시
-    - 1분 미만: 방금 / 1시간 미만: N분 전 / 12시간 미만: N시간 전
-    - 12~24시간: 시:분 (예: 12:38)
+    - 1분 미만: 방금 / 1시간 미만: N분 전 / 24시간 미만: N시간 전
     - 24시간 이후: 월.일 (예: 10.13), 작년 이전 글은 연도 포함 (예: 25.12.30)
     """
     if not dt:
@@ -487,10 +486,8 @@ def format_post_time(dt):
         return '방금'
     if sec < 3600:
         return f'{int(sec // 60)}분 전'
-    if sec < 12 * 3600:
-        return f'{int(sec // 3600)}시간 전'
     if sec < 24 * 3600:
-        return t.strftime('%H:%M')
+        return f'{int(sec // 3600)}시간 전'
     if t.year == now.year:
         return t.strftime('%m.%d')
     return t.strftime('%y.%m.%d')
