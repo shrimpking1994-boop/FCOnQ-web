@@ -651,6 +651,14 @@ def home_squads():
     if isinstance(squad_data, str):
         squad_data = json.loads(squad_data)
     logos = row['logos'] or {}
+    # PS 작업: 같은 날짜의 위치 보정 결과 (없으면 A1 배치 그대로)
+    pos_all = {}
+    try:
+        cur.execute("SELECT data FROM ranker_positions WHERE crawl_date = %s", (row['crawl_date'],))
+        pr = cur.fetchone()
+        pos_all = (pr['data'] if pr else None) or {}
+    except Exception:
+        conn.rollback()
 
     # 팀컬러 구분 없이 전체 랭커를 순위순으로
     rankers = []
@@ -669,10 +677,12 @@ def home_squads():
                 # 미완성 스쿼드 제외: 선수가 11명 미만이거나, 강화 단계가 기준 미만인 카드가 있으면 건너뜀
                 if len(squad) < 11 or any((s.get('buildup') or 0) < HOME_SQUAD_MIN_BUILDUP for s in squad):
                     continue
+                pos_map = pos_all.get(r.get('nickname', '')) or {}
                 picked.append({
                     'rank': rank, 'nickname': r.get('nickname', ''),
                     'teamcolor': tc, 'logo': logos.get(tc, ''), 'value': v,
-                    'squad': [{'p': s.get('position'), 'spid': s.get('spid'), 'b': s.get('buildup') or 0}
+                    'squad': [{'p': pos_map.get(str(s.get('spid')), s.get('position')),
+                               'spid': s.get('spid'), 'b': s.get('buildup') or 0}
                               for s in r.get('squad', [])]
                 })
                 if len(picked) >= 20:
@@ -3301,30 +3311,48 @@ def ranker_squad_list():
 
 @app.route('/api/ranker_squad_detail')
 def ranker_squad_detail():
-    """특정 랭커 스쿼드 상세 정보 반환"""
+    """특정 랭커 스쿼드 상세 정보 반환 (최근 공식경기 위치가 있으면 그 위치로 재배치)"""
     teamcolor = request.args.get('teamcolor', '').strip()
     rank = request.args.get('rank', 0, type=int)
     if not teamcolor or not rank:
         return jsonify({'success': False}), 400
 
     conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT squad_full_data->%s AS tc_data
-        FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC, id DESC
-        LIMIT 1
-    """, (teamcolor,))
-    result = cur.fetchone()
-    cur.close()
-    conn.close()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT crawl_date, squad_full_data->%s AS tc_data
+            FROM card_tierlist_rankings
+            ORDER BY crawl_date DESC, id DESC
+            LIMIT 1
+        """, (teamcolor,))
+        result = cur.fetchone()
 
-    if not result or not result['tc_data']:
-        return jsonify({'success': False}), 404
+        if not result or not result['tc_data']:
+            return jsonify({'success': False}), 404
 
-    ranker = next((r for r in result['tc_data'] if r['rank'] == rank), None)
-    if not ranker:
-        return jsonify({'success': False}), 404
+        ranker = next((r for r in result['tc_data'] if r['rank'] == rank), None)
+        if not ranker:
+            return jsonify({'success': False}), 404
+
+        # PS 작업: 같은 날짜의 위치 보정 결과가 있으면 위치만 바꿔서 내보냄
+        pos_map = None
+        try:
+            cur.execute("SELECT data->%s AS pos FROM ranker_positions WHERE crawl_date = %s",
+                        (ranker.get('nickname', ''), result['crawl_date']))
+            row = cur.fetchone()
+            pos_map = row['pos'] if row else None
+        except Exception:
+            conn.rollback()   # 위치 테이블에 문제가 있어도 기존 A1 배치로 정상 동작
+
+        if pos_map:
+            ranker = dict(ranker)
+            ranker['squad'] = [{**c, 'position': pos_map.get(str(c['spid']), c['position'])}
+                               for c in ranker.get('squad', [])]
+
+        cur.close()
+    finally:
+        conn.close()
 
     return jsonify({'success': True, 'data': ranker})
 
