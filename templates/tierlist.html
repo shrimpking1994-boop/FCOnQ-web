@@ -592,6 +592,24 @@
         display: none;
     }
 
+    /* 광고 크기 고정: PC 728x90 / 모바일 320x100 */
+    .tl-ad-unit {
+        display: inline-block;
+        width: 728px;
+        height: 90px;
+    }
+
+    @media (max-width: 800px) {
+        .tl-ad-unit {
+            width: 320px;
+            height: 100px;
+        }
+
+        .tl-adsense:has(ins[data-ad-status="filled"]) {
+            padding: 6px 0;
+        }
+    }
+
     .position-section {
         margin-bottom: 20px;
     }
@@ -1912,12 +1930,9 @@
                 if (idx === 19) {
                     html += `
                     <div class="teamcolor-row tl-adsense">
-                        <ins class="adsbygoogle"
-                            style="display:block"
+                        <ins class="adsbygoogle tl-ad-unit"
                             data-ad-client="ca-pub-7405651133449844"
-                            data-ad-slot="1478138088"
-                            data-ad-format="horizontal"
-                            data-full-width-responsive="true"></ins>
+                            data-ad-slot="1478138088"></ins>
                     </div>`;
                 }
             });
