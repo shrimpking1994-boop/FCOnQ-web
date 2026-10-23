@@ -3727,9 +3727,55 @@
             checkbox.checked = true;
             item.classList.add('selected');
         }
+        updateRankerFooter();
+    }
+
+
+    // 상위 N명이 정확히 선택된 상태인지
+    function isTopRankersSelected() {
+        const n = Math.min(RANKER_MAX_SELECT, rankerListData.length);
+        if (n === 0 || rankerSelectedKeys.size !== n) return false;
+        for (let i = 0; i < n; i++) {
+            if (!rankerSelectedKeys.has(i)) return false;
+        }
+        return true;
+    }
+
+    // 체크 표시 켜기/끄기
+    function setRankerChecked(i, on) {
+        const checkbox = document.getElementById(`ranker-check-${i}`);
+        const item = document.getElementById(`ranker-item-${i}`);
+        if (checkbox) checkbox.checked = on;
+        if (item) item.classList.toggle('selected', on);
+    }
+
+    // 하단 버튼 글자 갱신
+    function updateRankerFooter() {
         const btn = document.getElementById('ranker-confirm-btn');
-        btn.textContent = `선택 완료 (${rankerSelectedKeys.size}/${RANKER_MAX_SELECT})`;
-        btn.disabled = rankerSelectedKeys.size === 0;
+        if (btn) {
+            btn.textContent = `선택 완료 (${rankerSelectedKeys.size}/${RANKER_MAX_SELECT})`;
+            btn.disabled = rankerSelectedKeys.size === 0;
+        }
+        const topBtn = document.getElementById('ranker-top-btn');
+        if (topBtn) {
+            const n = Math.min(RANKER_MAX_SELECT, rankerListData.length);
+            topBtn.textContent = isTopRankersSelected() ? '선택 해제' : `상위 ${n}명 선택`;
+        }
+    }
+
+    // 상위 10명 선택 / 선택 해제 (토글)
+    function selectTopRankers() {
+        const wasTop = isTopRankersSelected();
+        rankerSelectedKeys.forEach(i => setRankerChecked(i, false));
+        rankerSelectedKeys = new Set();
+        if (!wasTop) {
+            const n = Math.min(RANKER_MAX_SELECT, rankerListData.length);
+            for (let i = 0; i < n; i++) {
+                rankerSelectedKeys.add(i);
+                setRankerChecked(i, true);
+            }
+        }
+        updateRankerFooter();
     }
 
     function parseSquadValue(str) {
@@ -3781,11 +3827,18 @@
 
         content.innerHTML = itemsHtml;
 
+        const topCount = Math.min(RANKER_MAX_SELECT, data.data.length);
         footer.style.display = 'block';
         footer.innerHTML = `
-        <button class="sm-ranker-search-btn" id="ranker-confirm-btn" style="width:100%;" onclick="confirmRankerQueue()" disabled>
-            선택 완료 (0/${RANKER_MAX_SELECT})
-        </button>`;
+        <div style="display:flex; gap:8px;">
+            <button class="sm-ranker-search-btn" id="ranker-top-btn" onclick="selectTopRankers()"
+                style="flex:1; background:var(--bg-main); color:var(--text-primary); border:1px solid var(--border-color);">
+                상위 ${topCount}명 선택
+            </button>
+            <button class="sm-ranker-search-btn" id="ranker-confirm-btn" style="flex:1;" onclick="confirmRankerQueue()" disabled>
+                선택 완료 (0/${RANKER_MAX_SELECT})
+            </button>
+        </div>`;
     }
 
     function confirmRankerQueue() {

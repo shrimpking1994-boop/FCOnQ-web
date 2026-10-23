@@ -623,6 +623,11 @@ HOME_SQUAD_BUCKETS = [
 HOME_SQUAD_MIN_BUILDUP = 8   # 이 강화 단계 미만 카드가 하나라도 있으면 홈에 표시하지 않음
 _home_squad_cache = {'data': None, 'time': None}
 
+def is_complete_squad(r):
+    """완성된 스쿼드인지 (선수 11명 이상 + 모든 카드가 기준 강화 단계 이상)"""
+    squad = r.get('squad') or []
+    return len(squad) >= 11 and all((s.get('buildup') or 0) >= HOME_SQUAD_MIN_BUILDUP for s in squad)
+
 
 @app.route('/api/home_squads')
 def home_squads():
@@ -3360,6 +3365,8 @@ def ranker_squad_list_all():
         filtered = rankers
         if max_val > 0:
             filtered = [r for r in filtered if min_val <= r.get('squad_value', 0) <= max_val]
+        # 미완성 스쿼드(팀갈 중 등) 제외: 홈 화면과 같은 기준
+        filtered = [r for r in filtered if is_complete_squad(r)]
 
         # 팀컬러 내 nickname 중복 제거 (rank 낮은 것 우선)
         seen = {}
