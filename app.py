@@ -2414,29 +2414,48 @@ def auth_status():
         return jsonify({'logged_in': False})
     
 
+# 선수 이름 자동완성용 목록 (시즌 많은 순), 10분간 메모리에 저장
+_player_names_cache = {'names': [], 'time': None}
+
+
+def get_all_player_names():
+    """전체 선수 이름을 (원래 이름, 소문자 이름) 목록으로 반환. DB는 10분에 1번만 조회"""
+    now = datetime.now()
+    c = _player_names_cache
+    if c['names'] and c['time'] and (now - c['time']).total_seconds() < 600:
+        return c['names']
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT player_name, COUNT(*) AS card_count
+            FROM player_cards
+            WHERE player_name IS NOT NULL
+            GROUP BY player_name
+            ORDER BY card_count DESC, player_name
+        """)
+        names = [(row['player_name'], row['player_name'].lower()) for row in cur.fetchall()]
+        cur.close()
+    finally:
+        conn.close()
+    c['names'] = names
+    c['time'] = now
+    return names
+
+
 @app.route('/api/player_names')
 def get_player_names():
-    """선수 이름 리스트 반환 (자동완성용, 시즌 개수 포함)"""
-    term = request.args.get('q', '')  # 검색어 파라미터
-    
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    cur.execute("""
-        SELECT player_name, COUNT(*) AS card_count
-        FROM player_cards
-        WHERE player_name ILIKE %s
-        GROUP BY player_name
-        ORDER BY card_count DESC, player_name
-        LIMIT 1000
-    """, (f"%{term}%",))
-    
-    players = [{"name": row['player_name'], "count": row['card_count']} for row in cur.fetchall()]
-    
-    cur.close()
-    conn.close()
-    
-    return jsonify(players)
+    """선수 이름 자동완성: 검색어가 들어간 이름 상위 10개 (시즌 많은 순)"""
+    term = request.args.get('q', '').strip().lower()
+    if len(term) < 2:
+        return jsonify([])
+    result = []
+    for name, lower in get_all_player_names():
+        if term in lower:
+            result.append({'name': name})
+            if len(result) >= 10:
+                break
+    return jsonify(result)
 
 
 @app.route('/tierlist')

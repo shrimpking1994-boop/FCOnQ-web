@@ -985,14 +985,9 @@
         const form = document.getElementById('homeSearchForm');
         const input = document.getElementById('homeSearchInput');
         const list = document.getElementById('homeAutocomplete');
-        let playerNames = [];
         let focusIdx = -1;
-
-        // 자동완성용 선수 이름 (선수 DB와 같은 데이터)
-        fetch('/api/player_names')
-            .then(res => res.json())
-            .then(data => { playerNames = data; })
-            .catch(() => { });
+        let acTimer = null;
+        let acSeq = 0;
 
         function goSearch(name) {
             const value = (name || '').trim();
@@ -1018,20 +1013,30 @@
 
         input.addEventListener('input', function () {
             const value = this.value.trim();
-            if (playerNames.length === 0 || value.length < 2) {
+            clearTimeout(acTimer);
+            if (value.length < 2) {
                 closeList();
                 return;
             }
-            const filtered = playerNames.filter(p => p.name.includes(value)).slice(0, 10);
-            if (filtered.length === 0) {
-                closeList();
-                return;
-            }
-            list.innerHTML = filtered.map(p =>
-                `<div class="home-autocomplete-item" data-name="${p.name.replace(/"/g, '&quot;')}">${p.name}</div>`
-            ).join('');
-            list.style.display = 'block';
-            focusIdx = -1;
+            // 입력이 잠깐 멈추면 서버에서 상위 10개만 받아옴
+            acTimer = setTimeout(() => {
+                const seq = ++acSeq;
+                fetch('/api/player_names?q=' + encodeURIComponent(value))
+                    .then(res => res.json())
+                    .then(filtered => {
+                        if (seq !== acSeq) return;  // 더 최근 입력이 있으면 무시
+                        if (input.value.trim().length < 2 || !filtered.length) {
+                            closeList();
+                            return;
+                        }
+                        list.innerHTML = filtered.map(p =>
+                            `<div class="home-autocomplete-item" data-name="${p.name.replace(/"/g, '&quot;')}">${p.name}</div>`
+                        ).join('');
+                        list.style.display = 'block';
+                        focusIdx = -1;
+                    })
+                    .catch(() => { });
+            }, 150);
         });
 
         // 자동완성 항목 클릭 → 바로 검색
