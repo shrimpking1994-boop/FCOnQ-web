@@ -6,3 +6,4 @@ python-dotenv==1.0.0
 gunicorn==21.2.0
 pytz
 nh3
+certifi>=2026.10.19
