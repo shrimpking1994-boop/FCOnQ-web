@@ -600,9 +600,12 @@
 
     /* 광고 크기 고정: PC 728x90 / 모바일 320x100 */
     .tl-ad-unit {
-        display: inline-block;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         width: 728px;
         height: 90px;
+        margin: 0 auto;
     }
 
     @media (max-width: 800px) {
