@@ -592,6 +592,12 @@
         display: none;
     }
 
+
+    /* 광고 칸은 각진 모서리로 콘텐츠와 구분 */
+    .teamcolor-row.tl-ad {
+        border-radius: 0;
+    }
+
     /* 광고 크기 고정: PC 728x90 / 모바일 320x100 */
     .tl-ad-unit {
         display: inline-block;
@@ -1919,7 +1925,7 @@
 
                 if (idx === 9) {
                     html += `
-                    <a class="teamcolor-row" href="https://jjangdaenak.com/" target="_blank" rel="noopener nofollow sponsored"
+                        <a class="teamcolor-row tl-ad" href="https://jjangdaenak.com/" target="_blank" rel="noopener nofollow sponsored"
                         onclick="gtag('event', 'ad_click', { 'ad_name': 'jjangdaenak', 'placement': 'tierlist_card' });"
                         style="text-decoration:none; display:block; background: rgba(255,184,0,0.06); border-color: rgba(255,184,0,0.3);">
                         <div class="teamcolor-header">
@@ -1929,7 +1935,7 @@
                 }
                 if (idx === 19) {
                     html += `
-                    <div class="teamcolor-row tl-adsense">
+                    <div class="teamcolor-row tl-adsense tl-ad">
                         <ins class="adsbygoogle tl-ad-unit"
                             data-ad-client="ca-pub-7405651133449844"
                             data-ad-slot="1478138088"></ins>
