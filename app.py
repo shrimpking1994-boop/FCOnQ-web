@@ -1813,6 +1813,10 @@ def compare_cards(spid1, spid2):
     
     cards = cur.fetchall()
 
+    # 같은 카드끼리 비교: DB에서 1장만 나오므로 복사해서 양쪽에 사용
+    if spid1 == spid2 and len(cards) == 1:
+        cards = [cards[0], dict(cards[0])]
+
     if len(cards) != 2:
         cur.close()
         conn.close()
