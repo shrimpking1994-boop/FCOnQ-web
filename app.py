@@ -615,7 +615,8 @@ HOME_SQUAD_BUCKETS = [
     (10e8, 30e8, '~30억'),
     (30e8, 50e8, '~50억'),
     (50e8, 100e8, '~100억'),
-    (100e8, None, '100억+'),
+    (100e8, 300e8, '~300억'),
+    (300e8, None, '300억+'),
 ]
 HOME_SQUAD_MIN_BUILDUP = 8   # 이 강화 단계 미만 카드가 하나라도 있으면 홈에 표시하지 않음
 _home_squad_cache = {'data': None, 'time': None}
