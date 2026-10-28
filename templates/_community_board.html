@@ -73,15 +73,6 @@
 
     <!-- 글 목록 -->
     <div class="cm-list {% if is_admin %}is-admin{% endif %}">
-        <div class="cm-head">
-            {% if is_admin %}<span></span>{% endif %}
-            <span>탭</span>
-            <span class="cm-head-title">제목</span>
-            <span>글쓴이</span>
-            <span>날짜</span>
-            <span>조회</span>
-            <span>추천</span>
-        </div>
 
         {% if posts %}
         {% for post in posts %}
@@ -95,20 +86,28 @@
             </span>
             {% endif %}
             <a href="/community/post/{{ post.id }}{% if board_qs %}?{{ board_qs }}{% endif %}" class="cm-link">
-                <span class="cm-cat-cell">{% if post.category == '미니 페이스온' %}미페{% else %}{{ post.category }}{% endif
-                    %}</span>
-                <span class="cm-title">
-                    {% if post.is_deleted and is_admin %}<span class="cm-deleted">삭제됨</span>{% endif %}
-                    <span class="cm-title-text">{{ post.title }}</span>
-                    {% if post.comment_count > 0 %}<span class="cm-cmt">[{{ post.comment_count }}]</span>{% endif %}
-                    {% if post.has_image %}<span class="cm-ico" title="이미지">🖼️</span>{% endif %}
-                    {% if post.has_video %}<span class="cm-ico" title="영상">▶️</span>{% endif %}
+                {% if post.has_image and not post.is_deleted %}
+                <img class="cm-thumb" src="/community/post/{{ post.id }}/image" alt="" loading="lazy"
+                    onerror="this.remove()">
+                {% endif %}
+                <span class="cm-body">
+                    <span class="cm-title">
+                        <span class="cm-cat-cell">{% if post.category == '미니 페이스온' %}미페{% else %}{{ post.category }}{%
+                            endif %}</span>
+                        {% if post.is_deleted and is_admin %}<span class="cm-deleted">삭제됨</span>{% endif %}
+                        <span class="cm-title-text">{{ post.title }}</span>
+                        {% if post.comment_count > 0 %}<span class="cm-cmt">[{{ post.comment_count }}]</span>{% endif %}
+                        {% if post.has_video %}<span class="cm-ico" title="영상">▶️</span>{% endif %}
+                    </span>
+                    {% if post.preview %}<span class="cm-preview">{{ post.preview }}</span>{% endif %}
+                    <span class="cm-meta">
+                        <span class="cm-author">{{ post.author | display_author }}{% if post.ip_display %} <span
+                                class="cm-ip">{{ post.ip_display }}</span>{% endif %}</span>
+                        <span class="cm-date">{{ post.display_date }}</span>
+                        <span>조회 {{ post.views }}</span>
+                        <span>추천 {{ post.likes }}</span>
+                    </span>
                 </span>
-                <span class="cm-author">{{ post.author | display_author }}{% if post.ip_display %} <span
-                        class="cm-ip">{{ post.ip_display }}</span>{% endif %}</span>
-                <span class="cm-date">{{ post.display_date }}</span>
-                <span class="cm-views-n"><span class="cm-m">조회 </span>{{ post.views }}</span>
-                <span class="cm-likes"><span class="cm-m">추천 </span>{{ post.likes }}</span>
             </a>
         </div>
         {% endfor %}
@@ -380,39 +379,12 @@
         font-size: 0.8rem;
     }
 
-    /* 글 목록 (PC: 표 형태) */
+    /* 글 목록 (반 카드형: 썸네일 + 제목 + 미리보기 + 정보) */
     .cm-list {
-        --cm-cols: 80px minmax(0, 1fr) 150px 64px 56px 56px;
         background: var(--card-bg);
         border-radius: 10px;
         overflow: hidden;
         border: 1px solid var(--line);
-    }
-
-    .cm-head,
-    .cm-link {
-        display: grid;
-        grid-template-columns: var(--cm-cols);
-        align-items: center;
-        column-gap: 10px;
-    }
-
-    .cm-list.is-admin .cm-head {
-        grid-template-columns: 32px var(--cm-cols);
-    }
-
-    .cm-head {
-        padding: 10px 14px;
-        background: var(--secondary-bg);
-        border-bottom: 1px solid var(--line);
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-        text-align: center;
-    }
-
-    .cm-head-title {
-        text-align: left;
     }
 
     .cm-row {
@@ -441,7 +413,6 @@
 
     .cm-row.is-current .cm-title-text {
         color: var(--cm-accent, #6366f1);
-        font-weight: 700;
     }
 
     .cm-check {
@@ -453,11 +424,12 @@
     .cm-link {
         flex: 1;
         min-width: 0;
-        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 16px;
         color: var(--text-primary);
         text-decoration: none;
-        font-size: 0.9rem;
-        overflow: hidden;
     }
 
     .cm-list.is-admin .cm-link {
@@ -472,31 +444,47 @@
         color: var(--text-secondary);
     }
 
-    .cm-cat-cell,
-    .cm-author,
-    .cm-date,
-    .cm-views-n,
-    .cm-likes {
-        text-align: center;
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .cm-thumb {
+        width: 120px;
+        height: 80px;
+        flex-shrink: 0;
+        object-fit: cover;
+        border-radius: 8px;
+        background: var(--secondary-bg);
+        border: 1px solid var(--line);
+    }
+
+    .cm-body {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
     }
 
     .cm-title {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         min-width: 0;
+        font-size: 1rem;
+    }
+
+    .cm-cat-cell {
+        flex-shrink: 0;
+        padding: 1px 8px;
+        border-radius: 4px;
+        background: rgba(99, 102, 241, 0.15);
+        color: var(--cm-accent);
+        font-size: 0.75rem;
+        font-weight: 700;
     }
 
     .cm-title-text {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-weight: 500;
+        font-weight: 700;
     }
 
     .cm-cmt {
@@ -511,6 +499,38 @@
         font-size: 0.8rem;
     }
 
+    /* 본문 미리보기: 두 줄까지, 긴 링크도 칸 안에서 줄바꿈 */
+    .cm-preview {
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+    }
+
+    .cm-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+    }
+
+    .cm-meta>span+span::before {
+        content: '·';
+        margin: 0 6px;
+    }
+
+    .cm-author {
+        max-width: 45%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .cm-ip {
         color: var(--text-muted);
         font-size: 0.8em;
@@ -523,10 +543,6 @@
         padding: 1px 6px;
         border-radius: 4px;
         font-size: 0.7rem;
-    }
-
-    .cm-m {
-        display: none;
     }
 
     .cm-empty {
@@ -689,55 +705,28 @@
             font-size: 0.82rem;
         }
 
-        .cm-head {
-            display: none;
+        /* 글 한 개: 왼쪽 썸네일 + 오른쪽 글 */
+        .cm-link {
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
         }
 
-        /* 글 한 개 = 두 줄 */
-        .cm-link {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            padding: 9px 12px;
-            column-gap: 0;
-            row-gap: 3px;
+        .cm-thumb {
+            width: 72px;
+            height: 72px;
         }
 
         .cm-title {
-            order: 1;
-            width: 100%;
             font-size: 0.93rem;
         }
 
-        .cm-title-text {
-            font-weight: 600;
+        .cm-preview {
+            font-size: 0.8rem;
         }
 
-        .cm-cat-cell,
-        .cm-author,
-        .cm-date,
-        .cm-views-n,
-        .cm-likes {
-            order: 2;
+        .cm-meta {
             font-size: 0.72rem;
-            color: var(--text-muted);
-            text-align: left;
-        }
-
-        .cm-author {
-            max-width: 45%;
-        }
-
-        .cm-cat-cell::after,
-        .cm-author::after,
-        .cm-date::after,
-        .cm-views-n::after {
-            content: '·';
-            margin: 0 5px;
-        }
-
-        .cm-m {
-            display: inline;
         }
 
         .cm-check {

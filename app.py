@@ -957,7 +957,7 @@ def build_board(cur, args, anchor_post=None, with_notices=True):
 
     # 목록 (본문 전체는 가져오지 않음: 사진이 본문에 들어 있어 글당 수백 KB)
     cur.execute("""
-        SELECT id, category, title, author, author_ip, created_at, views, likes,
+        SELECT id, category, title, preview, author, author_ip, created_at, views, likes,
                is_notice, is_deleted,
                (POSITION('<img' IN content) > 0) AS has_image,
                (POSITION('<iframe' IN content) > 0
@@ -1048,10 +1048,10 @@ def community_write():
         try:
             cur = conn.cursor()
             cur.execute("""
-                INSERT INTO community.posts (category, title, content, author, author_ip, password_hash, user_id, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO community.posts (category, title, content, preview, author, author_ip, password_hash, user_id, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
-            """, (category, title, content, author, author_ip,  password_hash, user_id, datetime.now(pytz.UTC)))
+            """, (category, title, content, make_post_preview(content), author, author_ip, password_hash, user_id, datetime.now(pytz.UTC)))
             new_id = cur.fetchone()['id']
             conn.commit()
 
@@ -1096,6 +1096,14 @@ def community_post(post_id):
     finally:
         conn.close()
         
+def make_post_preview(content, length=150):
+    """목록용 미리보기: 태그·사진 빼고 본문 앞부분만"""
+    import html as html_lib
+    text = re.sub(r'<(style|script)[^>]*>.*?</\1>', ' ', content or '', flags=re.I | re.S)
+    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r'\s+', ' ', html_lib.unescape(text)).strip()
+    return text[:length]        
+        
 def first_post_image(content):
     """본문에서 첫 번째 사진 주소 찾기"""
     m = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', content or '')
@@ -1114,6 +1122,8 @@ def community_post_image(post_id):
     finally:
         conn.close()
     src = first_post_image(row['content']) if row else None
+    if src and src.startswith(('http://', 'https://')):
+        return redirect(src)
     if not src or not src.startswith('data:image/'):
         abort(404)
     header, _, data = src.partition(',')
@@ -1608,9 +1618,9 @@ def edit_post_submit(post_id):
         # 게시글 수정
         cur.execute("""
             UPDATE community.posts 
-            SET category = %s, title = %s, content = %s 
+            SET category = %s, title = %s, content = %s, preview = %s 
             WHERE id = %s
-        """, (category, title, content, post_id))
+        """, (category, title, content, make_post_preview(content), post_id))
         
         conn.commit()
         session.pop('edit_auth', None)  # 수정 완료 후 허가 해제
