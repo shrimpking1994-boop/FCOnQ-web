@@ -502,14 +502,12 @@
 
     /* 본문 미리보기: 두 줄까지, 긴 링크도 칸 안에서 줄바꿈 */
     .cm-preview {
-        color: var(--text-secondary);
-        font-size: 0.88rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
         line-height: 1.5;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        white-space: nowrap;
         overflow: hidden;
-        overflow-wrap: anywhere;
+        text-overflow: ellipsis;
     }
 
     .cm-meta {
