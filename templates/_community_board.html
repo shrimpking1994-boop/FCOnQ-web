@@ -99,7 +99,8 @@
                         {% if post.comment_count > 0 %}<span class="cm-cmt">[{{ post.comment_count }}]</span>{% endif %}
                         {% if post.has_video %}<span class="cm-ico" title="영상">▶️</span>{% endif %}
                     </span>
-                    {% if post.preview %}<span class="cm-preview">{{ post.preview }}</span>{% endif %}
+                    {% if post.preview and post.preview != post.title and not is_update %}<span class="cm-preview">{{
+                        post.preview }}</span>{% endif %}
                     <span class="cm-meta">
                         <span class="cm-author">{{ post.author | display_author }}{% if post.ip_display %} <span
                                 class="cm-ip">{{ post.ip_display }}</span>{% endif %}</span>
