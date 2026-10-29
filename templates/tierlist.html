@@ -1998,7 +1998,7 @@
                 }
             });
 
-            await preloadImages(teamcolors.slice(0, 8).map(tc => teamLogos[tc] || (data._logos || {})[tc]), 150);
+            preloadImages(teamcolors.slice(0, 8).map(tc => teamLogos[tc] || (data._logos || {})[tc]), 150);
             wrap.innerHTML = html;
             // 목록 등장 효과 (탭을 바꿀 때마다 다시 재생)
             wrap.classList.remove('tl-animate');
