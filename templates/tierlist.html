@@ -574,6 +574,34 @@
         display: block;
     }
 
+    /* 목록 등장: 위에서부터 차례로 살짝 떠오르며 */
+    @keyframes tlFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .card-tierlist-wrap.tl-animate .teamcolor-row {
+        animation: tlFadeUp 0.26s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+        animation-delay: calc(var(--i, 0) * 20ms);
+    }
+
+    .card-tierlist-wrap.tl-animate .teamcolor-row.tl-ad {
+        animation-delay: 200ms;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .card-tierlist-wrap.tl-animate .teamcolor-row {
+            animation: none;
+        }
+    }
+
     /* 애드센스: 평소엔 흔적 없이, 광고가 채워졌을 때만 박스 표시 */
     .tl-adsense {
         padding: 0;
@@ -1916,7 +1944,7 @@
 `;
 
                 html += `
-                    <div class="teamcolor-row" id="tcrow-${idx}">
+                    <div class="teamcolor-row" id="tcrow-${idx}" style="--i:${Math.min(idx, 10)}">
                         <div class="teamcolor-header" onclick="toggleTeamcolor(${idx})">
                             <span class="teamcolor-rank">${idx + 1}${changeHtml(tc)}</span>
                             ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
@@ -1948,6 +1976,9 @@
             });
 
             wrap.innerHTML = html;
+            wrap.classList.remove('tl-animate');
+            void wrap.offsetWidth;
+            wrap.classList.add('tl-animate');
             wrap.querySelectorAll('ins.adsbygoogle:not([data-adsbygoogle-status])').forEach(() => {
                 try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
             });
