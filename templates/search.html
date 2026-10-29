@@ -1291,6 +1291,29 @@
             height: 42px;
         }
     }
+
+    @keyframes dbFadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(8px)
+        }
+
+        to {
+            opacity: 1;
+            transform: none
+        }
+    }
+
+    .db-animate .player-card {
+        animation: dbFadeUp .32s cubic-bezier(.22, .61, .36, 1) backwards;
+        animation-delay: calc(var(--i, 0)*30ms);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .db-animate .player-card {
+            animation: none
+        }
+    }
 </style>
 
 <!-- Select2 CSS -->
@@ -1703,7 +1726,7 @@
                 const res = await fetch('/api/search_results?' + params.toString());
                 const data = await res.json();
 
-                renderResults(data);
+                renderResults(data, true);
                 sessionStorage.setItem('searchResultsData', JSON.stringify(data));
             });
         }
@@ -2207,7 +2230,7 @@
         return 'var(--text-secondary)';
     }
 
-    function renderResults(data) {
+    function renderResults(data, animate = false) {
         const container = document.getElementById('section-results');
 
         const teamcolorInfoMsg = data.teamcolor_info ? `
@@ -2227,7 +2250,7 @@
             ${data.is_limited ? `총 ${data.total_count}개 중 상위 200개만 표시됩니다.` : `총 ${data.total_count}개의 결과값입니다.`}
         </div>`;
 
-        const cards = data.cards.map(card => {
+        const cards = data.cards.map((card, idx) => {
             const positions = (card.preferred_positions || []).map(p =>
                 `<span style="font-size:20px;">
                 <strong style="color:${getPosColor(p.position)};">${p.position}</strong>
@@ -2275,7 +2298,7 @@
                 : '';
 
             return `
-        <div class="player-card" onclick="location.href='/card/${card.spid}'">
+        <div class="player-card" style="--i:${Math.min(idx, 15)}" onclick="location.href='/card/${card.spid}'">
             <div class="card-row">
                 ${imageHtml}
                 <div class="player-info">
@@ -2317,6 +2340,8 @@
         }).join('');
 
         container.innerHTML = teamcolorInfoMsg + limitMsg + cards;
+        container.classList.remove('db-animate');
+        if (animate) { void container.offsetWidth; container.classList.add('db-animate'); }
     }
 </script>
 

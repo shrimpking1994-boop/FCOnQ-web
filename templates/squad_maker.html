@@ -1741,6 +1741,28 @@
             font-size: 0.95rem;
         }
     }
+
+    @keyframes smPop {
+        from {
+            opacity: 0;
+            transform: scale(.95)
+        }
+
+        to {
+            opacity: 1;
+            transform: none
+        }
+    }
+
+    .sm-pop {
+        animation: smPop .25s cubic-bezier(.22, .61, .36, 1) both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .sm-pop {
+            animation: none
+        }
+    }
 </style>
 
 <h1 class="visually-hidden">FC온라인 스쿼드 메이커</h1>
@@ -3006,6 +3028,15 @@
         });
     }
 
+    // 가격 한꺼번에 조회 → 위(공격)에서 아래(GK) 순서로 차례 배치
+    async function placeCardsInOrder(entries) {
+        await Promise.all(entries.map(([, c]) => fetchCardPrice(c)));
+        const P = p => slotPositions[p] || { top: 999, left: 999 };
+        entries.sort((a, b) => (P(a[0]).top - P(b[0]).top) || (P(a[0]).left - P(b[0]).left));
+        entries.forEach(([pos, card]) => { squadData[pos] = card; });
+        entries.forEach(([pos, card], i) => setTimeout(() => renderSlotCard(pos, card), i * 40));
+    }
+
     function renderSlotCard(pos, card) {
         const slotEl = document.getElementById(`slot-${pos}`);
         if (!slotEl) return;
@@ -3037,13 +3068,16 @@
             .map(t => `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" loading="lazy" style="width:${newTraitIconSize}px;height:${newTraitIconSize}px;object-fit:contain;">`)
             .join('');
 
+
+        const isNewCard = !slotEl.querySelector('[data-ghost-ovr]') || slotEl.dataset.spid !== String(card.spid);
+        slotEl.dataset.spid = card.spid;
         slotEl.style.background = 'transparent';
         slotEl.style.border = 'none';
         slotEl.style.overflow = 'visible';
         slotEl.style.width = slotW + 'px';
         slotEl.style.height = slotH + 'px';
         slotEl.innerHTML = `
-        <div style="position:relative; width:${slotW}px; text-align:center;">
+        <div class="${isNewCard ? 'sm-pop' : ''}" style="position:relative; width:${slotW}px; text-align:center;">
 
             <!-- OVR + 포지션 (왼쪽) -->
             <div style="position:absolute; left:${ovrLeft}px; top:4px; text-align:center; line-height:1.3;">
@@ -3570,14 +3604,14 @@
         const cardMap = {};
         cardList.forEach(c => { cardMap[String(c.spid)] = c; });
 
+        const entries = [];
         for (const [pos, tierCard] of Object.entries(assignments)) {
             const full = cardMap[String(tierCard.spid)];
             if (!full) continue;
             full.boost = tierCard.buildup;
-            await fetchCardPrice(full);
-            squadData[pos] = full;
-            renderSlotCard(pos, full);
+            entries.push([pos, full]);
         }
+        await placeCardsInOrder(entries);
         updateSummary();
         updateTeamColor();
     }
@@ -3944,16 +3978,16 @@
         positions.forEach(pos => createSlotElement(pos));
 
         // 카드 배치
+        const entries = [];
         for (const slotCard of squad) {
             const pos = slotCard.position;
             if (!POS_COORDS[pos]) continue;
             const full = cardMap[String(slotCard.spid)];
             if (!full) continue;
             full.boost = slotCard.buildup;
-            await fetchCardPrice(full);
-            squadData[pos] = full;
-            renderSlotCard(pos, full);
+            entries.push([pos, full]);
         }
+        await placeCardsInOrder(entries);
         updateSummary();
         updateTeamColor();
     }
@@ -4020,15 +4054,15 @@
         positions.forEach(pos => createSlotElement(pos));
 
         // 카드 배치 (가격은 동시에 조회해서 빠르게)
-        await Promise.all(squad.map(async slotCard => {
+        const entries = [];
+        squad.forEach(slotCard => {
             const pos = slotCard.position;
             const full = cardMap[String(slotCard.spid)];
             if (!POS_COORDS[pos] || !full) return;
             full.boost = slotCard.buildup;
-            await fetchCardPrice(full);
-            squadData[pos] = full;
-            renderSlotCard(pos, full);
-        }));
+            entries.push([pos, full]);
+        });
+        await placeCardsInOrder(entries);
         updateSummary();
     }
 
