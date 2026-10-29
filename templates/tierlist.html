@@ -1861,6 +1861,13 @@
     });
 
     // 카드 티어리스트 불러오기
+    // 이미지 미리 받기 (최대 maxMs까지만 기다림)
+    function preloadImages(urls, maxMs = 400) {
+        const loads = urls.filter(Boolean).map(u => new Promise(r => {
+            const im = new Image(); im.onload = im.onerror = r; im.src = u;
+        }));
+        return Promise.race([Promise.all(loads), new Promise(r => setTimeout(r, maxMs))]);
+    }
     async function loadCardTierlist() {
         const wrap = document.getElementById('cardTierlistWrap');
         if (wrap.dataset.loaded === 'true') return;
@@ -1963,7 +1970,7 @@
                     <div class="teamcolor-row" id="tcrow-${idx}" style="--i:${Math.min(idx, 15)}">
                         <div class="teamcolor-header" onclick="toggleTeamcolor(${idx})">
                             <span class="teamcolor-rank">${idx + 1}${changeHtml(tc)}</span>
-                            ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
+                            ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" onerror="this.style.display='none'">` : ''}
                             <span class="teamcolor-name" data-tc="${tc}">${tc}${usageHtml}</span>
                             <button class="tc-share-btn" onclick="copyTcLink(event, '${encodeURIComponent(tc)}')">🔗</button>
                             <span class="teamcolor-arrow">▼</span>
@@ -1991,6 +1998,7 @@
                 }
             });
 
+            await preloadImages(teamcolors.slice(0, 16).map(tc => teamLogos[tc] || (data._logos || {})[tc]));
             wrap.innerHTML = html;
             // 목록 등장 효과 (탭을 바꿀 때마다 다시 재생)
             wrap.classList.remove('tl-animate');
