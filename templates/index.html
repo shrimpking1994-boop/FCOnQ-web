@@ -14,7 +14,7 @@
     <link rel="shortcut icon" href="https://fconq.com/static/favicon.ico">
     <link rel="manifest" href="https://fconq.com/static/site.webmanifest">
     <meta name="theme-color" content="#111111">
-    <meta name="color-scheme" content="only light">
+    <meta name="color-scheme" content="dark light">
 
     <!-- SEO 메타 태그 -->
     {% block meta_description %}
@@ -94,6 +94,21 @@
     </script>
 
     <style>
+        /* 휴대폰 다크모드가 사이트 색을 덧칠하지 않도록: 자체 다크모드 지원을 알림 */
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+        }
+
+        :root[data-theme="light"] {
+            color-scheme: only light;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --supports-dark: 1;
+            }
+        }
+
         body {
             min-height: 100vh;
             display: flex;
