@@ -1687,6 +1687,12 @@
 
         document.getElementById('teamColor').value = teamColorValue;
         setTimeout(() => updateStats(), 100);
+        // 추세가 그래프도 넘어온 강화단계로 미리 선택
+        const trendBtn = document.querySelector(`.trend-strong-btn[data-strong="${buildup}"]`);
+        if (trendBtn) {
+            document.querySelectorAll('.trend-strong-btn').forEach(b => b.classList.remove('active'));
+            trendBtn.classList.add('active');
+        }
     }
 
     const boostParam = urlParams.get('boost');
