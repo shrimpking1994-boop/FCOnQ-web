@@ -599,12 +599,12 @@
     }
 
     .card-tierlist-wrap.tl-animate .teamcolor-row {
-        animation: tlFadeUp 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
-        animation-delay: calc(var(--i, 0) * 30ms);
+        animation: tlFadeUp 0.26s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+        animation-delay: calc(var(--i, 0) * 20ms);
     }
 
     .card-tierlist-wrap.tl-animate .teamcolor-row.tl-ad {
-        animation-delay: 300ms;
+        animation-delay: 200ms;
     }
 
     /* 기기에서 '동작 줄이기'를 켠 경우 효과 끄기 */
@@ -1967,7 +1967,7 @@
 `;
 
                 html += `
-                    <div class="teamcolor-row" id="tcrow-${idx}" style="--i:${Math.min(idx, 15)}">
+                    <div class="teamcolor-row" id="tcrow-${idx}" style="--i:${Math.min(idx, 10)}">
                         <div class="teamcolor-header" onclick="toggleTeamcolor(${idx})">
                             <span class="teamcolor-rank">${idx + 1}${changeHtml(tc)}</span>
                             ${logoUrl ? `<img class="teamcolor-logo" src="${logoUrl}" onerror="this.style.display='none'">` : ''}
@@ -1998,7 +1998,7 @@
                 }
             });
 
-            await preloadImages(teamcolors.slice(0, 16).map(tc => teamLogos[tc] || (data._logos || {})[tc]));
+            await preloadImages(teamcolors.slice(0, 8).map(tc => teamLogos[tc] || (data._logos || {})[tc]), 150);
             wrap.innerHTML = html;
             // 목록 등장 효과 (탭을 바꿀 때마다 다시 재생)
             wrap.classList.remove('tl-animate');
