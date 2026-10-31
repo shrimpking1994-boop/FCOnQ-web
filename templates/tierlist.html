@@ -1402,6 +1402,10 @@
                 <h3 class="loading-pulse">✨ 신규 특성 정보를 불러오는 중이에요.</h3>
             </div>
         </div>
+        <div class="teamcolor-row tl-adsense tl-ad" style="margin-top:20px">
+            <ins class="adsbygoogle tl-ad-unit" data-ad-client="ca-pub-7405651133449844"
+                data-ad-slot="1720213024"></ins>
+        </div>
     </div>
 
     <!-- 시세 탭 콘텐츠 -->
@@ -2034,6 +2038,9 @@
     async function loadNewTraitStats() {
         if (newTraitData) {
             renderNewTraitStats();
+            document.querySelectorAll('#tab-trait ins.adsbygoogle:not([data-adsbygoogle-status])').forEach(() => {
+                try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
+            });
             return;
         }
         const wrap = document.getElementById('newTraitWrap');
@@ -2048,6 +2055,9 @@
                 prevDate ? `📅 ${prevDate} → ${curDate} 기준` : `📅 ${curDate} 기준`;
             renderNtPosTabs();
             renderNewTraitStats();
+            document.querySelectorAll('#tab-trait ins.adsbygoogle:not([data-adsbygoogle-status])').forEach(() => {
+                try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
+            });
         } catch (e) {
             wrap.innerHTML = `<div class="empty-state"><h3>신규 특성 정보를 불러오지 못했어요.</h3></div>`;
         }
