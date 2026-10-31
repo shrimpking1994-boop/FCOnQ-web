@@ -1,6 +1,6 @@
 {% extends "index.html" %}
 
-{% block title %}FCOnQ - 스쿼드 메이커{% endblock %}
+{% block title %}스쿼드 메이커 - FC온라인 - FCOnQ{% endblock %}
 
 {% block meta_description %}
 <meta name="description" content="FC온라인 스쿼드를 쉽고 빠르게 만들어보세요. 픽률 자동 완성, 랭커 스쿼드 조회, 구단주명 검색, 팀컬러 · 급여 · 구단가치 자동 계산까지.">
@@ -1742,6 +1742,60 @@
         }
     }
 
+    /* 페이지 소개 글 (검색엔진용, 차분하게) */
+    .sm-about {
+        margin: 24px 0 10px;
+        padding: 18px 20px;
+        border-top: 1px solid var(--border-color);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        line-height: 1.7;
+    }
+
+    .sm-about h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        margin: 0 0 8px;
+    }
+
+    .sm-about h3 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        margin: 18px 0 6px;
+    }
+
+    .sm-about p {
+        margin: 0;
+    }
+
+    .sm-about ul {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    .sm-about li {
+        margin-bottom: 4px;
+    }
+
+    .sm-about dt {
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-top: 8px;
+    }
+
+    .sm-about dd {
+        margin: 2px 0 0;
+    }
+
+    @media (max-width: 768px) {
+        .sm-about {
+            padding: 14px 6px;
+            font-size: 0.8rem;
+        }
+    }
+
     @keyframes smPop {
         from {
             opacity: 0;
@@ -1938,6 +1992,33 @@
             </div>
         </div>
     </div>
+
+
+    <!-- 페이지 소개 (검색엔진용) -->
+    <section class="sm-about">
+        <h2>FC온라인 스쿼드 메이커</h2>
+        <p>FCOnQ 스쿼드 메이커는 FC온라인(피파4) 스쿼드를 쉽고 빠르게 짜볼 수 있는 도구입니다. 랭커 1만 명의 데이터를 바탕으로 한 픽률 자동 완성과 상위 랭커의 실제 스쿼드를 불러오는 랭커
+            스쿼드 조회로 클릭 몇 번이면 스쿼드가 완성되고, 오버롤·급여·구단가치·팀컬러 효과도 자동으로 계산됩니다.</p>
+
+        <h3>주요 기능</h3>
+        <ul>
+            <li><strong>픽률 자동 완성</strong> — 랭커 1만 명의 실제 스쿼드를 분석해, 팀컬러별 포지션 사용률 순위대로 스쿼드를 한 번에 채워줍니다.</li>
+            <li><strong>랭커 스쿼드 조회</strong> — 원하는 팀컬러와 구단가치 범위를 정하면 상위 랭커의 실제 스쿼드를 그대로 불러옵니다.</li>
+            <li><strong>구단주명 검색</strong> — 구단주명을 입력하면 최근 공식경기에서 사용한 라인업을 불러옵니다.</li>
+            <li><strong>자동 계산</strong> — 총 급여(최대 315), 총 구단가치, 강화·소속·특성 팀컬러 효과를 실시간으로 보여줍니다.</li>
+            <li><strong>저장·공유</strong> — 만든 스쿼드를 저장하고, 링크로 친구에게 공유할 수 있습니다. 비로그인으로도 가능합니다.</li>
+        </ul>
+
+        <h3>자주 묻는 질문</h3>
+        <dl>
+            <dt>Q. FC모바일 스쿼드도 만들 수 있나요?</dt>
+            <dd>FCOnQ 스쿼드 메이커는 FC온라인 전용입니다.</dd>
+            <dt>Q. 선수 가격과 랭커 데이터는 언제 갱신되나요?</dt>
+            <dd>시세와 랭커 스쿼드 데이터는 매일 갱신됩니다.</dd>
+            <dt>Q. 모바일에서도 사용할 수 있나요?</dt>
+            <dd>PC와 모바일 모두 사용할 수 있으며, 안드로이드 앱도 있습니다.</dd>
+        </dl>
+    </section>
 </div>
 
 <!-- 포메이션 선택 모달 -->
