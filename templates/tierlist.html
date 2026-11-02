@@ -1260,6 +1260,390 @@
             font-size: 0.8rem;
         }
     }
+
+    /* ===== 비교 모드 ===== */
+    .cmp-toggle {
+        margin-right: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: none;
+        border: none;
+        padding: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .cmp-switch {
+        position: relative;
+        width: 34px;
+        height: 20px;
+        border-radius: 999px;
+        background: var(--border-color);
+        transition: background 0.2s;
+    }
+
+    .cmp-switch::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.2s;
+    }
+
+    .cmp-toggle.on {
+        color: var(--text-primary);
+    }
+
+    .cmp-toggle.on .cmp-switch {
+        background: var(--primary-color);
+    }
+
+    .cmp-toggle.on .cmp-switch::after {
+        transform: translateX(14px);
+    }
+
+    /* 티어리스트 카드 위 표시: 카드 전체를 보라색 박스로 감싸고, 사진 위에 색을 덮어 배지를 크게 */
+    .card-item.cmp-in {
+        position: relative;
+        border-radius: 8px;
+        background: rgba(110, 124, 255, 0.18);
+        box-shadow: 0 0 0 2px rgba(124, 140, 255, 0.75);
+    }
+
+    .card-item.cmp-picked {
+        background: rgba(110, 124, 255, 0.32);
+        box-shadow: 0 0 0 3px #7c8cff, 0 0 14px rgba(124, 140, 255, 0.65);
+    }
+
+    .card-item.cmp-in .card-img-wrap::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 6px;
+        background: rgba(40, 48, 150, 0.35);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .card-item.cmp-picked .card-img-wrap::after {
+        background: rgba(40, 48, 150, 0.45);
+    }
+
+    .cmp-pick-badge {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #6e7cff;
+        border: 2px solid #fff;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+        z-index: 3;
+    }
+
+    .cmp-pick-badge.check {
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
+        background: rgba(110, 124, 255, 0.85);
+    }
+
+    @media (max-width: 480px) {
+        .cmp-pick-badge {
+            width: 26px;
+            height: 26px;
+            font-size: 0.85rem;
+        }
+
+        .cmp-pick-badge.check {
+            width: 22px;
+            height: 22px;
+            font-size: 0.75rem;
+        }
+    }
+
+    /* 하단 바 */
+    .cmp-bar {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1001;
+        background: var(--bg-main);
+        border-top: 2px solid var(--primary-color);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+        padding: 10px 16px;
+    }
+
+    .cmp-bar.show {
+        display: block;
+    }
+
+    body.cmp-open .content-wrapper {
+        padding-bottom: 170px;
+    }
+
+    .cmp-guide {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    .cmp-bar-inner {
+        max-width: 980px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+    }
+
+    .cmp-slots {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    /* 후보 바구니: PC는 비교 칸 좌우에 3장씩, 모바일은 아래 한 줄 */
+    .cmp-basket {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 252px;
+        box-sizing: border-box;
+    }
+
+    .cmp-basket.left {
+        justify-content: flex-end;
+        padding-right: 20px;
+        border-right: 1px solid var(--border-color);
+    }
+
+    .cmp-basket.right {
+        justify-content: flex-start;
+        padding-left: 20px;
+        border-left: 1px solid var(--border-color);
+    }
+
+    .cmp-basket.all {
+        display: none;
+    }
+
+    .cmp-chip {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        flex-shrink: 0;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        cursor: pointer;
+    }
+
+    .cmp-chip.slotted {
+        border-color: var(--primary-color);
+        opacity: 0.45;
+    }
+
+    .cmp-chip img.cmp-face {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    .cmp-chip .card-buildup {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+
+    .cmp-chip .cmp-season,
+    .cmp-slot .cmp-season {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 20px;
+        z-index: 1;
+    }
+
+    .cmp-chip-num {
+        position: absolute;
+        top: -7px;
+        left: -7px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cmp-x {
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: #dc3545;
+        color: #fff;
+        font-size: 11px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 2;
+    }
+
+    /* 비교 칸 */
+    .cmp-slot-wrap {
+        width: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .cmp-slot {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        border: 2px dashed var(--border-color);
+        border-radius: 10px;
+        background: var(--bg-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-weight: 700;
+    }
+
+    .cmp-slot.filled {
+        border-style: solid;
+        border-color: var(--primary-color);
+        cursor: pointer;
+    }
+
+    .cmp-slot .cmp-face {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .cmp-slot-name {
+        width: 100%;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cmp-go {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 10px;
+        background: var(--border-color);
+        color: var(--text-secondary);
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .cmp-go.ready {
+        background: var(--primary-color);
+        color: #fff;
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .cmp-bar {
+            bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+            padding: 8px 10px;
+        }
+
+        body.cmp-open .content-wrapper {
+            padding-bottom: 230px;
+        }
+
+        /* 모바일: 비교 칸 위, 후보 바구니 아래 한 줄 */
+        .cmp-bar-inner {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .cmp-basket.left,
+        .cmp-basket.right {
+            display: none;
+        }
+
+        .cmp-basket.all {
+            display: flex;
+            justify-content: center;
+            width: auto;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            gap: 10px;
+        }
+
+        .cmp-basket.all:empty {
+            display: none;
+        }
+
+        .cmp-chip {
+            width: 46px;
+            height: 46px;
+        }
+
+        .cmp-chip .cmp-season {
+            height: 14px;
+        }
+
+        .cmp-chip .card-buildup {
+            font-size: 0.55rem;
+            padding: 0 3px;
+        }
+
+        .cmp-slot .cmp-season {
+            height: 16px;
+        }
+
+        .cmp-slot {
+            width: 56px;
+            height: 56px;
+        }
+
+        .cmp-slot-wrap {
+            width: 64px;
+        }
+    }
 </style>
 
 <h1 class="visually-hidden">FC온라인 티어리스트</h1>
@@ -1325,6 +1709,9 @@
         </div>
 
         <div class="card-info-line">
+            <button type="button" class="cmp-toggle" id="cmpToggle" onclick="toggleCompareMode()">
+                비교 모드<span class="cmp-switch"></span>
+            </button>
             <span id="cardInfoDate">📅 기준일 확인 중</span>
             <button class="card-info-btn" onclick="toggleCardInfo()" aria-label="설명 보기">i</button>
         </div>
@@ -1467,6 +1854,7 @@
 
         // 현재 탭 저장
         localStorage.setItem('lastTab', tab);
+        if (typeof cmpRefresh === 'function') cmpRefresh();
 
         // GA: 탭 클릭 기록
         if (typeof gtag === 'function') {
@@ -1980,6 +2368,7 @@
             });
 
             wrap.innerHTML = html;
+            if (typeof cmpRefresh === 'function') cmpRefresh();
             wrap.classList.remove('tl-animate');
             void wrap.offsetWidth;
             wrap.classList.add('tl-animate');
@@ -2524,6 +2913,211 @@
             });
         }
     });
+</script>
+
+<div class="cmp-bar" id="cmpBar">
+    <div class="cmp-guide" id="cmpGuide"></div>
+    <div class="cmp-bar-inner">
+        <div class="cmp-basket left" id="cmpBasketL"></div>
+        <div class="cmp-slots" id="cmpSlots"></div>
+        <div class="cmp-basket right" id="cmpBasketR"></div>
+        <div class="cmp-basket all" id="cmpBasketAll"></div>
+    </div>
+</div>
+
+<script>
+    // ===== 비교 모드 =====
+    const CMP_MAX = 6;          // 후보 바구니 최대 장수
+    let compareMode = false;
+    const CMP_STORE = 'tierlistCompareBasket';   // 후보 바구니 저장 이름 (선수 DB 바구니와 별도)
+    let cmpBasket = [];         // 후보 카드 (최대 6장)
+    try {
+        const saved = JSON.parse(localStorage.getItem(CMP_STORE) || '[]');
+        if (Array.isArray(saved)) cmpBasket = saved.slice(0, CMP_MAX);
+    } catch (e) { }
+    let cmpSlots = [null, null];  // 비교 칸 1·2 (후보 카드의 key)
+
+    function toggleCompareMode() {
+        compareMode = !compareMode;
+        document.getElementById('cmpToggle').classList.toggle('on', compareMode);
+        cmpRefresh();
+        if (typeof gtag === 'function') {
+            gtag('event', 'tierlist_compare_mode', { state: compareMode ? 'on' : 'off' });
+        }
+    }
+
+    // 카드 이미지의 클릭 주소에서 spid, 강화 단계 읽기
+    function cmpParse(face) {
+        const s = face.getAttribute('onclick') || '';
+        const spid = (s.match(/card\/(\d+)/) || [])[1];
+        const buildup = (s.match(/buildup=(\d+)/) || [])[1];
+        return spid ? { spid, buildup: parseInt(buildup) || 1 } : null;
+    }
+
+    function cmpBuClass(b) {
+        return b === 1 ? 'bu-1' : b <= 4 ? 'bu-bronze' : b <= 7 ? 'bu-silver' : b <= 10 ? 'bu-gold' : 'bu-purple';
+    }
+
+    function cmpFind(key) {
+        return cmpBasket.find(p => p.key === key);
+    }
+
+    // 빈 비교 칸에 넣기 (둘 다 차 있으면 2번 교체)
+    function cmpToSlot(key) {
+        if (cmpSlots.includes(key)) return;
+        if (!cmpSlots[0]) cmpSlots[0] = key;
+        else if (!cmpSlots[1]) cmpSlots[1] = key;
+        else cmpSlots[1] = key;
+    }
+
+    // 비교 모드일 때 카드 클릭 = 상세 페이지 대신 후보 담기/빼기
+    document.addEventListener('click', function (e) {
+        if (!compareMode) return;
+        const face = e.target.closest('#cardTierlistWrap .card-face');
+        if (!face) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const info = cmpParse(face);
+        if (!info) return;
+        const key = info.spid + '_' + info.buildup;
+
+        if (cmpFind(key)) {
+            cmpDrop(key);   // 이미 담긴 카드면 빼기
+        } else if (cmpBasket.length >= CMP_MAX) {
+            showToast(`후보는 최대 ${CMP_MAX}장까지 담을 수 있어요`);
+        } else {
+            const item = face.closest('.card-item');
+            const season = item.querySelector('.card-season-badge');
+            cmpBasket.push({
+                key, spid: info.spid, buildup: info.buildup,
+                name: item.querySelector('.card-name')?.textContent || '',
+                face: face.src, season: season ? season.src : ''
+            });
+            if (!cmpSlots[0] || !cmpSlots[1]) cmpToSlot(key);   // 비교 칸이 비어 있으면 바로 넣기
+        }
+
+        const tip = document.getElementById('card-hover-tooltip');
+        if (tip) tip.style.display = 'none';
+        cmpRefresh();
+    }, true);
+
+    // 후보에서 완전히 빼기 (× 버튼)
+    function cmpDrop(key) {
+        cmpBasket = cmpBasket.filter(p => p.key !== key);
+        cmpSlots = cmpSlots.map(k => k === key ? null : k);
+        cmpRefresh();
+    }
+
+    // 후보 카드 누르기: 비교 칸에 있으면 빼고, 없으면 넣기
+    function cmpChipTap(key) {
+        const i = cmpSlots.indexOf(key);
+        if (i !== -1) cmpSlots[i] = null;
+        else cmpToSlot(key);
+        cmpRefresh();
+    }
+
+    // 비교 칸 누르기: 칸만 비우기 (후보에는 남음)
+    function cmpUnslot(i) {
+        cmpSlots[i] = null;
+        cmpRefresh();
+    }
+
+    // 후보 바구니 저장 (선수 DB처럼 바구니만 저장, 비교 칸 1·2는 저장 안 함)
+    function cmpSave() {
+        try { localStorage.setItem(CMP_STORE, JSON.stringify(cmpBasket)); } catch (e) { }
+    }
+
+    // 저장된 후보가 있으면 비교 모드를 켠 상태로 시작
+    document.addEventListener('DOMContentLoaded', function () {
+        if (cmpBasket.length) {
+            compareMode = true;
+            document.getElementById('cmpToggle').classList.add('on');
+        }
+        cmpRefresh();
+    });
+
+    // 카드 위 표시 + 하단 바 다시 그리기
+    function cmpRefresh() {
+        cmpSave();
+        document.querySelectorAll('#cardTierlistWrap .card-item').forEach(item => {
+            item.classList.remove('cmp-in', 'cmp-picked');
+            item.querySelector('.cmp-pick-badge')?.remove();
+            if (!compareMode) return;
+            const face = item.querySelector('.card-face');
+            const info = face && cmpParse(face);
+            if (!info) return;
+            const key = info.spid + '_' + info.buildup;
+            if (!cmpFind(key)) return;
+            const n = cmpSlots.indexOf(key);
+            item.classList.add('cmp-in');
+            if (n !== -1) item.classList.add('cmp-picked');
+            item.querySelector('.card-img-wrap').insertAdjacentHTML('beforeend',
+                n !== -1 ? `<span class="cmp-pick-badge">${n + 1}</span>` : '<span class="cmp-pick-badge check">✓</span>');
+        });
+
+        const show = compareMode && document.getElementById('tab-card').classList.contains('active');
+        document.getElementById('cmpBar').classList.toggle('show', show);
+        document.body.classList.toggle('cmp-open', show);
+        if (!show) return;
+
+        const ready = cmpSlots[0] && cmpSlots[1];
+        document.getElementById('cmpGuide').textContent =
+            cmpBasket.length === 0 ? `비교할 카드를 선택하세요 (후보 최대 ${CMP_MAX}장)`
+                : ready ? `후보 ${cmpBasket.length}/${CMP_MAX} · 비교하기를 눌러주세요`
+                    : `후보 ${cmpBasket.length}/${CMP_MAX} · 후보를 눌러 비교 칸에 넣어주세요`;
+
+        // 후보 바구니 (PC: 왼쪽·오른쪽 번갈아, 가운데부터 채움 / 모바일: 한 줄)
+        const chip = p => {
+            const n = cmpSlots.indexOf(p.key);
+            return `
+                <div class="cmp-chip ${n !== -1 ? 'slotted' : ''}" onclick="cmpChipTap('${p.key}')" title="${p.name}">
+                    <img class="cmp-face" src="${p.face}">
+                    ${p.season ? `<img class="cmp-season" src="${p.season}">` : ''}
+                    <span class="card-buildup ${cmpBuClass(p.buildup)}">+${p.buildup}</span>
+                    ${n !== -1 ? `<span class="cmp-chip-num">${n + 1}</span>` : ''}
+                    <button type="button" class="cmp-x" onclick="event.stopPropagation(); cmpDrop('${p.key}')">×</button>
+                </div>`;
+        };
+        const leftSide = cmpBasket.filter((_, i) => i % 2 === 0);
+        const rightSide = cmpBasket.filter((_, i) => i % 2 === 1);
+        document.getElementById('cmpBasketL').innerHTML = leftSide.slice().reverse().map(chip).join('');
+        document.getElementById('cmpBasketR').innerHTML = rightSide.map(chip).join('');
+        document.getElementById('cmpBasketAll').innerHTML = cmpBasket.map(chip).join('');
+
+        // 비교 칸
+        const slot = i => {
+            const p = cmpSlots[i] && cmpFind(cmpSlots[i]);
+            if (!p) {
+                return `<div class="cmp-slot-wrap"><div class="cmp-slot">${i + 1}</div><span class="cmp-slot-name">&nbsp;</span></div>`;
+            }
+            return `
+                <div class="cmp-slot-wrap">
+                    <div class="cmp-slot filled" onclick="cmpUnslot(${i})" title="눌러서 칸 비우기">
+                        <img class="cmp-face" src="${p.face}">
+                        ${p.season ? `<img class="cmp-season" src="${p.season}">` : ''}
+                        <span class="card-buildup ${cmpBuClass(p.buildup)}">+${p.buildup}</span>
+                    </div>
+                    <span class="cmp-slot-name" title="${p.name}">${p.name}</span>
+                </div>`;
+        };
+
+        document.getElementById('cmpSlots').innerHTML =
+            slot(0) +
+            `<button type="button" class="cmp-go ${ready ? 'ready' : ''}" onclick="cmpOpen()">비교하기</button>` +
+            slot(1);
+    }
+
+    // 비교 페이지 열기 (강화 + 적응도 Lv.5 + 팀컬러 자동)
+    function cmpOpen() {
+        const a = cmpSlots[0] && cmpFind(cmpSlots[0]);
+        const b = cmpSlots[1] && cmpFind(cmpSlots[1]);
+        if (!a || !b) return;
+        const tc = lv => lv >= 8 ? 8 : (lv >= 5 ? 7 : 6);
+        window.open(`/compare/${a.spid}/${b.spid}?b1=${a.buildup}&a1=5&tc1=${tc(a.buildup)}`
+            + `&b2=${b.buildup}&a2=5&tc2=${tc(b.buildup)}`, '_blank');
+        if (typeof gtag === 'function') gtag('event', 'tierlist_compare_open');
+    }
 </script>
 
 <div id="card-hover-tooltip"></div>
