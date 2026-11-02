@@ -1407,6 +1407,37 @@
         margin-bottom: 8px;
     }
 
+    /* 안내 문구 줄 + 오른쪽 끝 비우기 버튼 */
+    .cmp-guide-row {
+        position: relative;
+        max-width: 980px;
+        margin: 0 auto 8px;
+    }
+
+    .cmp-guide-row .cmp-guide {
+        margin-bottom: 0;
+        padding: 0 64px;
+    }
+
+    .cmp-clear {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 3px 10px;
+        border: 1px solid rgba(220, 53, 69, 0.6);
+        border-radius: 6px;
+        background: transparent;
+        color: #ff6b6b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .cmp-clear:hover {
+        background: rgba(220, 53, 69, 0.12);
+    }
+
     .cmp-bar-inner {
         max-width: 980px;
         margin: 0 auto;
@@ -2917,6 +2948,10 @@
 
 <div class="cmp-bar" id="cmpBar">
     <div class="cmp-guide" id="cmpGuide"></div>
+    <div class="cmp-guide-row">
+        <div class="cmp-guide" id="cmpGuide"></div>
+        <button type="button" class="cmp-clear" id="cmpClear" onclick="cmpClearAll()">비우기</button>
+    </div>
     <div class="cmp-bar-inner">
         <div class="cmp-basket left" id="cmpBasketL"></div>
         <div class="cmp-slots" id="cmpSlots"></div>
@@ -2940,6 +2975,7 @@
     function toggleCompareMode() {
         compareMode = !compareMode;
         document.getElementById('cmpToggle').classList.toggle('on', compareMode);
+        try { localStorage.setItem('tierlistCompareMode', compareMode ? 'on' : 'off'); } catch (e) { }
         cmpRefresh();
         if (typeof gtag === 'function') {
             gtag('event', 'tierlist_compare_mode', { state: compareMode ? 'on' : 'off' });
@@ -3017,6 +3053,15 @@
         cmpRefresh();
     }
 
+    // 후보 바구니 전체 비우기
+    function cmpClearAll() {
+        if (!cmpBasket.length) return;
+        if (!confirm('후보에 담긴 카드를 모두 비울까요?')) return;
+        cmpBasket = [];
+        cmpSlots = [null, null];
+        cmpRefresh();
+    }
+
     // 비교 칸 누르기: 칸만 비우기 (후보에는 남음)
     function cmpUnslot(i) {
         cmpSlots[i] = null;
@@ -3028,9 +3073,11 @@
         try { localStorage.setItem(CMP_STORE, JSON.stringify(cmpBasket)); } catch (e) { }
     }
 
-    // 저장된 후보가 있으면 비교 모드를 켠 상태로 시작
+    // 마지막으로 켜고 끈 상태 그대로 시작 (기록이 없으면 후보가 있을 때만 켜기)
     document.addEventListener('DOMContentLoaded', function () {
-        if (cmpBasket.length) {
+        let savedMode = null;
+        try { savedMode = localStorage.getItem('tierlistCompareMode'); } catch (e) { }
+        if (savedMode ? savedMode === 'on' : cmpBasket.length > 0) {
             compareMode = true;
             document.getElementById('cmpToggle').classList.add('on');
         }
@@ -3061,6 +3108,7 @@
         document.body.classList.toggle('cmp-open', show);
         if (!show) return;
 
+        document.getElementById('cmpClear').style.display = cmpBasket.length ? '' : 'none';
         const ready = cmpSlots[0] && cmpSlots[1];
         document.getElementById('cmpGuide').textContent =
             cmpBasket.length === 0 ? `비교할 카드를 선택하세요 (후보 최대 ${CMP_MAX}장)`

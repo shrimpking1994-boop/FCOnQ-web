@@ -75,23 +75,37 @@ class ComparisonBasket {
         const rightContainer = document.getElementById('basketRight');
         const countEl = document.getElementById('basketCount');
 
-        countEl.textContent = this.basket.length;
+        if (countEl) countEl.textContent = this.basket.length;
         document.getElementById('comparisonBar').style.display = this.basket.length > 0 ? 'block' : 'none';
+        const allContainer = document.getElementById('basketAll');
         leftContainer.innerHTML = '';
         rightContainer.innerHTML = '';
+        if (allContainer) allContainer.innerHTML = '';
 
-        this.basket.forEach((card, index) => {
-            const cardEl = this.createBasketCard(card);
+        // PC: 왼쪽·오른쪽 번갈아, 비교 칸 가까운 쪽부터 채움 (1번 왼쪽, 2번 오른쪽, 3번 왼쪽 ...)
+        const leftCards = this.basket.filter((_, i) => i % 2 === 0);
+        const rightCards = this.basket.filter((_, i) => i % 2 === 1);
+        leftCards.slice().reverse().forEach(card => leftContainer.appendChild(this.createBasketCard(card)));
+        rightCards.forEach(card => rightContainer.appendChild(this.createBasketCard(card)));
 
-            // 0~4번은 왼쪽, 5~9번은 오른쪽
-            if (index < 5) {
-                leftContainer.appendChild(cardEl);
-            } else {
-                rightContainer.appendChild(cardEl);
-            }
-        });
+        // 모바일: 담은 순서대로 한 묶음
+        if (allContainer) {
+            this.basket.forEach(card => allContainer.appendChild(this.createBasketCard(card)));
+        }
 
         this.updateClearButton();
+        this.updateGuide();
+    }
+
+    // 하단 바 안내 문구
+    updateGuide() {
+        const guide = document.getElementById('cmpGuide');
+        if (!guide) return;
+        const n = this.basket.length;
+        const ready = this.slots[1] && this.slots[2];
+        guide.textContent = ready
+            ? `후보 ${n}/10 · 비교!를 눌러주세요`
+            : `후보 ${n}/10 · 후보를 눌러 비교 칸에 넣어주세요`;
     }
 
     // 바구니 카드 HTML 생성
@@ -157,7 +171,7 @@ class ComparisonBasket {
         const card = this.slots[slotNum];
 
         if (!card) {
-            slotEl.innerHTML = '<span class="slot-placeholder">클릭/드래그</span>';
+            slotEl.innerHTML = '<span class="slot-placeholder">클릭/<br>드래그</span>';
             slotEl.classList.remove('filled');
             return;
         }
@@ -178,7 +192,7 @@ class ComparisonBasket {
             return;
         }
 
-        if (confirm('비교 바구니에 있는 카드들을 전부 삭제하겠습니까?')) {
+        if (confirm('후보에 담긴 카드를 모두 비울까요?')) {
             this.basket = [];
             this.clearSlot(1);
             this.clearSlot(2);
@@ -194,6 +208,7 @@ class ComparisonBasket {
         const clearBtn = document.getElementById('clearBasketBtn');
         if (clearBtn) {
             clearBtn.disabled = this.basket.length === 0;
+            clearBtn.style.display = this.basket.length ? '' : 'none';
         }
     }
 
@@ -255,6 +270,7 @@ class ComparisonBasket {
             vsBtn.classList.remove('compare-button');
             vsBtn.style.cursor = 'default';
         }
+        this.updateGuide();
     }
 
     // 비교 버튼 클릭 설정
