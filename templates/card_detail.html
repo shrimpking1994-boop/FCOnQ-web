@@ -990,6 +990,59 @@
             font-size: 18px !important;
         }
     }
+
+    /* 강화 선택 칸: 강화 단계 색으로 표시 (비교 페이지와 동일) */
+    #enhanceLevel.enh-1 {
+        background: #808080 !important;
+        color: #fff !important;
+        border-color: #808080 !important;
+        font-weight: 700;
+    }
+
+    #enhanceLevel.enh-bronze {
+        background: #CD7F32 !important;
+        color: #333 !important;
+        border-color: #CD7F32 !important;
+        font-weight: 700;
+    }
+
+    #enhanceLevel.enh-silver {
+        background: #C0C0C0 !important;
+        color: #333 !important;
+        border-color: #C0C0C0 !important;
+        font-weight: 700;
+    }
+
+    #enhanceLevel.enh-gold {
+        background: #FFD700 !important;
+        color: #333 !important;
+        border-color: #FFD700 !important;
+        font-weight: 700;
+    }
+
+    #enhanceLevel.enh-purple {
+        background: linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%) !important;
+        color: #333 !important;
+        border-color: #8b93cf !important;
+        font-weight: 700;
+    }
+
+    #enhanceLevel.enh-1+span {
+        color: #fff !important;
+    }
+
+    #enhanceLevel.enh-bronze+span,
+    #enhanceLevel.enh-silver+span,
+    #enhanceLevel.enh-gold+span,
+    #enhanceLevel.enh-purple+span {
+        color: #333 !important;
+    }
+
+    /* 펼쳤을 때 '강화' 항목은 기본 색 유지 */
+    #enhanceLevel option:not([class]) {
+        background: var(--bg-main);
+        color: var(--text-primary);
+    }
 </style>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -1771,7 +1824,18 @@
         });
     }
 
+    // 강화 선택 칸에 강화 단계 색 입히기
+    function paintEnhance() {
+        const sel = document.getElementById('enhanceLevel');
+        const lv = parseInt(sel.value);
+        sel.classList.remove('enh-1', 'enh-bronze', 'enh-silver', 'enh-gold', 'enh-purple');
+        if (lv > 0) {
+            sel.classList.add(lv === 1 ? 'enh-1' : lv <= 4 ? 'enh-bronze' : lv <= 7 ? 'enh-silver' : lv <= 10 ? 'enh-gold' : 'enh-purple');
+        }
+    }
+
     function updateStats() {
+        paintEnhance();
         const enhanceLevel = parseInt(document.getElementById('enhanceLevel').value);
         const adaptLevel = parseInt(document.getElementById('adaptLevel').value);
         const teamColor = parseInt(document.getElementById('teamColor').value);
