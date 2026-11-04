@@ -54,6 +54,10 @@
                 </button>
                 {% endif %}
                 <button type="button" onclick="sharePost()" class="pv-btn">📤 공유</button>
+                {% if is_admin and not post.user_id and post.author_ip %}
+                <button type="button" onclick="adminBanIp('post', {{ post.id }})" class="pv-btn pv-btn-danger">🚫 IP
+                    차단</button>
+                {% endif %}
                 {% if post.can_manage %}
                 <button type="button" onclick="editPost({{ post.id }})" class="pv-btn">수정</button>
                 <button type="button" onclick="deletePost({{ post.id }})" class="pv-btn pv-btn-danger">삭제</button>
@@ -106,6 +110,10 @@
                         {% if is_admin %}
                         <button type="button" class="pv-admin"
                             onclick="adminDeleteComment({{ comment.id }})">관리자삭제</button>
+                        {% if not comment.user_id and comment.author_ip %}
+                        <button type="button" class="pv-admin"
+                            onclick="adminBanIp('comment', {{ comment.id }})">IP차단</button>
+                        {% endif %}
                         {% endif %}
                     </div>
                     {% endif %}
@@ -153,6 +161,10 @@
                         {% if is_admin %}
                         <button type="button" class="pv-admin"
                             onclick="adminDeleteComment({{ reply.id }})">관리자삭제</button>
+                        {% if not reply.user_id and reply.author_ip %}
+                        <button type="button" class="pv-admin"
+                            onclick="adminBanIp('comment', {{ reply.id }})">IP차단</button>
+                        {% endif %}
                         {% endif %}
                     </div>
                     {% endif %}
@@ -320,6 +332,22 @@
                 else alert(data.message || '삭제 중 오류가 발생했습니다');
             })
             .catch(() => alert('삭제 중 오류가 발생했습니다'));
+    }
+
+    function adminBanIp(type, id) {
+        if (!confirm('이 작성자의 IP를 차단할까요?\n차단되면 비회원 글·댓글·후기를 쓸 수 없습니다.')) return;
+        const purge = confirm('이 IP로 작성된 글과 댓글도 전부 삭제할까요?\n(취소를 누르면 차단만 합니다)');
+        fetch('/admin/ban_ip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: type, id: id, purge: purge })
+        })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) location.reload();
+            })
+            .catch(() => alert('차단 중 오류가 발생했습니다'));
     }
 
     function toggleNotice(postId) {

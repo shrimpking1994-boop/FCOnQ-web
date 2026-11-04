@@ -95,6 +95,55 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+# ===== 비회원 도배 방지 + IP 차단 =====
+from collections import defaultdict, deque
+import time
+
+def get_client_ip():
+    """실제 접속자 IP (Cloudflare 헤더 우선, 없으면 X-Forwarded-For 첫 번째)"""
+    ip = request.headers.get('CF-Connecting-IP')
+    if not ip:
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0]
+    return (ip or '').strip()
+
+def is_ip_banned(ip):
+    if not ip:
+        return False
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT 1 FROM community.banned_ips WHERE ip = %s LIMIT 1", (ip,))
+        return cur.fetchone() is not None
+    finally:
+        conn.close()
+
+_WRITE_LOG = defaultdict(deque)
+WRITE_LIMITS = {'post': 2, 'comment': 3, 'review': 3}  # 1분당 최대 작성 수 (비회원)
+
+def is_rate_limited(ip, kind):
+    now = time.time()
+    q = _WRITE_LOG[(ip, kind)]
+    while q and now - q[0] > 60:
+        q.popleft()
+    if len(q) >= WRITE_LIMITS.get(kind, 3):
+        return True
+    q.append(now)
+    return False
+
+def anon_write_block(kind):
+    """비회원 작성 제한 확인: 막아야 하면 안내 응답, 아니면 None"""
+    if 'user_id' in session:
+        return None
+    ip = get_client_ip()
+    if is_ip_banned(ip):
+        msg = '작성이 제한된 사용자입니다.'
+    elif is_rate_limited(ip, kind):
+        msg = '너무 빠르게 작성하고 있어요. 잠시 후 다시 시도해주세요.'
+    else:
+        return None
+    return Response(f"<script>alert({json.dumps(msg)});history.back();</script>", mimetype='text/html')
+
 @app.route('/.well-known/assetlinks.json')
 def assetlinks():
     return app.send_static_file('.well-known/assetlinks.json')
@@ -1009,17 +1058,9 @@ def _community_list(cur):
 def community_write():
     """글쓰기"""
     if request.method == 'POST':
-        if 'user_id' not in session:
-             author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-             conn = get_db_connection()
-             cur = conn.cursor()
-             cur.execute("SELECT 1 FROM community.banned_ips WHERE ip = %s", (author_ip,))
-             if cur.fetchone():
-                 cur.close()
-                 conn.close()
-                 return redirect('/community')
-             cur.close()
-             conn.close()
+        blocked = anon_write_block('post')
+        if blocked:
+            return blocked
         category = request.form.get('category')
         is_admin = session.get('user_role') == 'admin'
         if category not in COMMUNITY_CATEGORIES and not (category == '업데이트' and is_admin):
@@ -1040,7 +1081,7 @@ def community_write():
             # 비로그인 상태: 폼 데이터 사용
             author = (request.form.get('author') or '').strip()[:100] or ANON_NAME
             password = request.form.get('password', '')
-            author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+            author_ip = get_client_ip()
             password_hash = hash_password(password) if password else None
             user_id = None
         
@@ -1225,6 +1266,9 @@ def _community_post(conn, cur, post_id):
 @app.route('/community/comment/<int:post_id>', methods=['POST'])
 def add_comment(post_id):
     """댓글 추가 (로그인/비로그인 모두 가능)"""
+    blocked = anon_write_block('comment')
+    if blocked:
+        return blocked
     conn = get_db_connection()
     cur = conn.cursor()
     
@@ -1254,7 +1298,7 @@ def add_comment(post_id):
             user_id = None
             password_hash = hash_password(password)
             ip_hash = hash_ip(request.remote_addr)
-            author_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+            author_ip = get_client_ip()
         
         # 글쓴이 댓글인지 판단 (회원: 회원 ID / 비회원: 같은 브라우저·같은 IP·같은 비밀번호+IP 앞 두 자리)
         cur.execute("SELECT user_id, author_ip, password_hash FROM community.posts WHERE id = %s", (post_id,))
@@ -1412,6 +1456,49 @@ def admin_delete_post(post_id):
         cur.close()
         conn.close()
 
+@app.route('/admin/ban_ip', methods=['POST'])
+@admin_required
+def admin_ban_ip():
+    """비회원 글/댓글 작성자 IP 차단 (+ 선택 시 그 IP의 글·댓글 일괄 삭제)"""
+    data = request.get_json(silent=True) or {}
+    table = {'post': 'community.posts', 'comment': 'community.comments'}.get(data.get('type'))
+    target_id = data.get('id')
+    purge = bool(data.get('purge'))
+    if not table or not target_id:
+        return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute(f"SELECT author_ip FROM {table} WHERE id = %s", (target_id,))
+        row = cur.fetchone()
+        ip = row['author_ip'] if row else None
+        if not ip:
+            return jsonify({'success': False, 'message': '회원 글이거나 IP 정보가 없습니다'}), 400
+
+        cur.execute("""
+            INSERT INTO community.banned_ips (ip)
+            SELECT %s WHERE NOT EXISTS (SELECT 1 FROM community.banned_ips WHERE ip = %s)
+        """, (ip, ip))
+
+        removed = 0
+        if purge:
+            for t in ('community.posts', 'community.comments'):
+                cur.execute(f"""
+                    UPDATE {t} SET is_deleted = true, deleted_at = CURRENT_TIMESTAMP, deleted_by = %s
+                    WHERE author_ip = %s AND is_deleted = false
+                """, (session.get('user_id'), ip))
+                removed += cur.rowcount
+
+        conn.commit()
+        msg = 'IP를 차단했습니다.' + (f' (글·댓글 {removed}개 삭제)' if purge else '')
+        return jsonify({'success': True, 'message': msg})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'오류가 발생했습니다: {str(e)}'}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 @app.route('/community/comment/<int:comment_id>/admin_delete', methods=['POST'])
 @admin_required
@@ -2115,6 +2202,9 @@ def player_review(spid):
 @app.route('/player_review/<spid>/write', methods=['POST'])
 def write_player_review(spid):
     """선수 후기 작성 (로그인/비로그인)"""
+    blocked = anon_write_block('review')
+    if blocked:
+        return blocked
     conn = get_db_connection()
     cur = conn.cursor()
     
@@ -2144,7 +2234,7 @@ def write_player_review(spid):
             user_id = None
             password_hash = hash_password(password)
             ip_hash = hash_ip(request.remote_addr)
-            author_ip = request.remote_addr
+            author_ip = get_client_ip()
         
         # 후기 삽입
         cur.execute("""
