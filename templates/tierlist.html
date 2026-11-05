@@ -2267,6 +2267,21 @@
         }
     });
 
+    // 선수 탭 광고: 20위 근처가 화면에 가까워질 때만 불러오기
+    let cardAdObserver = null;
+    function observeCardAd(wrap) {
+        if (cardAdObserver) cardAdObserver.disconnect();
+        const slot = wrap.querySelector('.tl-adsense[data-slot]');
+        if (!slot) return;
+        cardAdObserver = new IntersectionObserver(entries => {
+            if (!entries[0].isIntersecting) return;
+            cardAdObserver.disconnect();
+            slot.innerHTML = `<ins class="adsbygoogle tl-ad-unit" data-ad-client="ca-pub-7405651133449844" data-ad-slot="${slot.dataset.slot}"></ins>`;
+            try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
+        }, { rootMargin: '800px 0px' });
+        cardAdObserver.observe(slot);
+    }
+
     // 카드 티어리스트 불러오기
     async function loadCardTierlist() {
         const wrap = document.getElementById('cardTierlistWrap');
@@ -2389,12 +2404,7 @@
                     </a>`;
                 }
                 if (idx === 19) {
-                    html += `
-                    <div class="teamcolor-row tl-adsense tl-ad">
-                        <ins class="adsbygoogle tl-ad-unit"
-                            data-ad-client="ca-pub-7405651133449844"
-                            data-ad-slot="1478138088"></ins>
-                    </div>`;
+                    html += `<div class="teamcolor-row tl-adsense tl-ad" data-slot="1478138088"></div>`;
                 }
             });
 
@@ -2403,9 +2413,7 @@
             wrap.classList.remove('tl-animate');
             void wrap.offsetWidth;
             wrap.classList.add('tl-animate');
-            wrap.querySelectorAll('ins.adsbygoogle:not([data-adsbygoogle-status])').forEach(() => {
-                try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
-            });
+            observeCardAd(wrap);
             wrap.dataset.loaded = 'true';
             return true;
 
