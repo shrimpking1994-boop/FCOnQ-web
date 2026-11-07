@@ -1116,9 +1116,9 @@
         background: var(--bg-secondary);
         border-radius: 12px;
         padding: 20px;
-        width: 90%;
-        max-width: 420px;
-        max-height: 80vh;
+        width: 92%;
+        max-width: 520px;
+        max-height: 85vh;
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -2431,7 +2431,7 @@
 
         if (dragState.dragging) {
             if (dragState.ghost) { dragState.ghost.remove(); dragState.ghost = null; }
-            dragState.wrapper.style.opacity = '1';
+            dragState.wrapper.style.opacity = '';
 
             if (dragState.pos === 'GK') { dragState = null; return; }
 
@@ -2575,18 +2575,22 @@
         updateSummary();
     }
 
-    function openFormationPicker() {
-        const grid = document.getElementById('formation-grid');
-        grid.innerHTML = Object.entries(FORMATIONS).map(([key, f]) => {
+    // 포메이션 그림 카드 목록 (포메이션 선택창 · 픽률 자동 완성 1단계 공통)
+    function formationGridHtml(onPick) {
+        return Object.entries(FORMATIONS).map(([key, f]) => {
             const dots = f.positions.map(pos => {
                 const c = (f.coords && f.coords[pos]) || POS_COORDS[pos];
                 return `<span class="sm-fm-dot${pos === 'GK' ? ' gk' : ''}" style="top:${c.top}%; left:${c.left}%;"></span>`;
             }).join('');
-            return `<div class="sm-fm-item" onclick="pickFormation('${key}')">
+            return `<div class="sm-fm-item" onclick="${onPick}('${key}')">
                         <div class="sm-fm-pitch">${dots}</div>
                         <div class="sm-fm-name">${f.label}</div>
                     </div>`;
         }).join('');
+    }
+
+    function openFormationPicker() {
+        document.getElementById('formation-grid').innerHTML = formationGridHtml('pickFormation');
         document.getElementById('formation-overlay').classList.add('active');
     }
 
@@ -3585,9 +3589,8 @@
     function renderTierStep1() {
         document.getElementById('tier-step-title').textContent = '1/3 — 포메이션 선택';
         const content = document.getElementById('tier-content');
-        content.innerHTML = Object.entries(FORMATIONS).map(([key, f]) =>
-            `<div class="sm-tier-option" onclick="selectTierFormation('${key}')">${f.label}</div>`
-        ).join('');
+        content.innerHTML = `<div class="sm-fm-grid">${formationGridHtml('selectTierFormation')}</div>`;
+        content.scrollTop = 0;
     }
 
     async function selectTierFormation(fKey) {
