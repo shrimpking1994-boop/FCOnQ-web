@@ -2575,7 +2575,6 @@
         </div>
         <div class="sm-cap-actions">
             <button class="sm-cap-btn save" onclick="downloadCapture()">저장</button>
-            <button class="sm-cap-btn share" id="capture-share-btn" onclick="shareCapture()">공유</button>
         </div>
     </div>
 </div>
@@ -4168,10 +4167,6 @@
         const d = new Date();
         const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         document.getElementById('capture-name').value = `엪씨온큐 스쿼드 메이커 ${ymd}`;
-        // 휴대폰 공유 화면을 쓸 수 있을 때만 공유 버튼 표시
-        const file = new File([captureBlob], 'squad.png', { type: 'image/png' });
-        const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
-        document.getElementById('capture-share-btn').style.display = canShare ? '' : 'none';
         document.getElementById('capture-overlay').classList.add('active');
     }
 
@@ -4188,15 +4183,6 @@
         a.click();
         a.remove();
         if (typeof gtag === 'function') gtag('event', 'squad_capture_save');
-    }
-
-    async function shareCapture() {
-        if (!captureBlob) return;
-        const file = new File([captureBlob], captureFileName(), { type: 'image/png' });
-        try {
-            await navigator.share({ files: [file], title: '엪씨온큐 스쿼드', text: 'fconq.com 스쿼드 메이커' });
-            if (typeof gtag === 'function') gtag('event', 'squad_capture_share');
-        } catch (e) { /* 사용자가 공유를 취소한 경우 */ }
     }
 
     function showToast(msg) {
