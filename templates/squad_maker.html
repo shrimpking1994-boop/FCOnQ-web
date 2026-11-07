@@ -1794,6 +1794,316 @@
 
 
 
+    /* ===== 교체 선수 (서브 명단 7칸) ===== */
+    .sm-bench {
+        max-width: 640px;
+        margin: 0 auto 10px;
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sm-bench-label {
+        flex-shrink: 0;
+        width: 40px;
+        text-align: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        line-height: 1.3;
+        color: var(--text-muted);
+    }
+
+    .sm-bench-label .ico {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 2px;
+    }
+
+    .sm-bench-row {
+        flex: 1;
+        display: grid;
+        /* 교체는 서브: 폭은 그린필드 미페(68px)와 같고 정사각형이라 세로는 더 짧음. 남는 공간은 카드 사이 간격으로 */
+        grid-template-columns: repeat(7, minmax(0, 68px));
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .sm-bench-slot {
+        min-width: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+        transition: background 0.15s, outline-color 0.15s;
+        outline: 2px solid transparent;
+        outline-offset: 1px;
+    }
+
+    .sm-bench-empty {
+        aspect-ratio: 1 / 1;
+        border: 1.5px dashed var(--border-color);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+    }
+
+    .sm-bench-empty .plus {
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+
+    .sm-bench-empty .lbl {
+        margin-top: 3px;
+        font-size: 0.6rem;
+        font-weight: 700;
+    }
+
+    .sm-bench-slot:hover .sm-bench-empty {
+        background: var(--hover-bg);
+    }
+
+    .sm-bench-card {
+        text-align: center;
+    }
+
+    .sm-bench-face {
+        position: relative;
+        border-radius: 6px;
+        background: rgba(127, 127, 127, 0.12);
+        overflow: hidden;
+    }
+
+    /* 티어리스트 카드처럼 정사각형 */
+    .sm-bench-face img.face {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        object-position: top;
+    }
+
+    /* 미페 위 배지: 우상단 신규 특성 / 좌하단 급여·시즌 / 우하단 강화 (티어리스트 카드와 동일 배치) */
+    .sm-bench-trait {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        z-index: 1;
+    }
+
+    .sm-bench-trait img {
+        width: 20px;
+        height: 20px;
+        padding: 2px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.8);
+        object-fit: contain;
+    }
+
+    .sm-bench-salary {
+        position: absolute;
+        left: 0;
+        bottom: 18px;
+        width: 19px;
+        height: 21px;
+        clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+        background: var(--text-secondary);
+        color: var(--bg-main);
+        font-size: 0.65rem;
+        font-weight: 800;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+
+    .sm-bench-season {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 18px;
+        z-index: 1;
+    }
+
+    /* 강화 단계: 강화 색 배경 + 숫자 (그린필드와 같은 디자인) */
+    .sm-bench-boost {
+        position: absolute;
+        right: 1px;
+        bottom: 1px;
+        min-width: 18px;
+        padding: 0 3px;
+        border-radius: 3px;
+        color: #333;
+        font-size: 0.6rem;
+        font-weight: 800;
+        line-height: 14px;
+        text-align: center;
+        z-index: 1;
+    }
+
+    .sm-bench-name {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 3px;
+        min-width: 0;
+    }
+
+    .sm-bench-name span {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sm-bench-price {
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: #d4a017;
+        white-space: nowrap;
+    }
+
+    /* 끌어다 놓을 자리 표시 */
+    .sm-bench-slot.drop-hover {
+        outline-color: rgba(0, 220, 100, 0.8);
+        background: rgba(0, 220, 100, 0.12);
+    }
+
+    #field-rows [data-pos].drop-hover .sm-slot-card {
+        outline: 2px solid rgba(0, 255, 100, 0.8);
+        outline-offset: 3px;
+        border-radius: 8px;
+    }
+
+    /* 총 구단가치 i 안내 */
+    .sm-stat-price {
+        position: relative;
+    }
+
+    .sm-info-btn {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 17px;
+        height: 17px;
+        padding: 0;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+        background: none;
+        color: var(--text-muted);
+        font-size: 0.65rem;
+        font-weight: 700;
+        font-style: italic;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .sm-info-pop {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 50;
+        width: max-content;
+        max-width: 240px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        line-height: 1.5;
+        text-align: left;
+        word-break: keep-all;
+    }
+
+    .sm-info-pop.show {
+        display: block;
+    }
+
+    .sm-info-pop b {
+        color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+        .sm-bench {
+            padding: 8px;
+            gap: 6px;
+        }
+
+        .sm-bench-label {
+            width: 26px;
+            font-size: 0.58rem;
+        }
+
+        .sm-bench-label .ico {
+            font-size: 0.9rem;
+        }
+
+        .sm-bench-row {
+            /* 모바일: 폭은 그린필드 미페(40px)와 같은 정사각형 */
+            grid-template-columns: repeat(7, minmax(0, 40px));
+            gap: 4px;
+        }
+
+        .sm-bench-trait img {
+            width: 12px;
+            height: 12px;
+            padding: 1px;
+        }
+
+        .sm-bench-salary {
+            bottom: 11px;
+            width: 12px;
+            height: 13px;
+            font-size: 0.42rem;
+        }
+
+        .sm-bench-season {
+            height: 11px;
+        }
+
+        .sm-bench-boost {
+            min-width: 12px;
+            padding: 0 2px;
+            font-size: 0.45rem;
+            line-height: 10px;
+        }
+
+        .sm-bench-name span {
+            font-size: 0.52rem;
+        }
+
+        .sm-bench-price {
+            font-size: 0.5rem;
+        }
+
+        .sm-bench-empty .lbl {
+            font-size: 0.5rem;
+        }
+
+        .sm-info-btn {
+            top: 4px;
+            right: 4px;
+            width: 15px;
+            height: 15px;
+            font-size: 0.58rem;
+        }
+    }
+
     @keyframes smPop {
         from {
             opacity: 0;
@@ -1878,7 +2188,9 @@
             <div class="sm-stat-val"><span id="total-salary">0</span><span
                     style="font-size:0.85rem;color:var(--text-muted)">/315</span></div>
         </div>
-        <div class="sm-stat">
+        <div class="sm-stat sm-stat-price">
+            <button type="button" class="sm-info-btn" onclick="toggleValueInfo(event)" aria-label="구단가치 안내">i</button>
+            <div class="sm-info-pop" id="value-info-pop"></div>
             <div class="sm-stat-label">총 구단가치</div>
             <div class="sm-stat-val"><span id="total-price">—</span><span
                     style="font-size:0.85rem;color:var(--text-muted)"> BP</span></div>
@@ -1900,6 +2212,12 @@
 
         <div id="tc-corner-logos" class="sm-tc-logos"></div>
         <div id="tc-corner-name" class="sm-tc-name"></div>
+    </div>
+
+    <!-- 교체 선수 (서브 명단 7칸) -->
+    <div class="sm-bench" id="squad-bench">
+        <div class="sm-bench-label"><span class="ico">⇅</span>교체<br>선수</div>
+        <div class="sm-bench-row" id="bench-row"></div>
     </div>
 
     <!-- 강화단계 선택 팝업 -->
@@ -2229,6 +2547,236 @@
     let slotPositions = {};
     let currentFormation = '42211';
 
+    // ===== 교체 선수 (서브 명단 7칸) =====
+    // 급여·구단가치·팀컬러 계산은 그린필드(squadData)만 대상. 교체는 명단만 관리.
+    const BENCH_SIZE = 7;
+    let benchData = Array(BENCH_SIZE).fill(null);
+
+    function isBenchPos(pos) { return typeof pos === 'string' && pos.startsWith('SUB'); }
+    function benchIdx(pos) { return parseInt(pos.slice(3)) - 1; }
+    function getCard(pos) { return isBenchPos(pos) ? benchData[benchIdx(pos)] : squadData[pos]; }
+    function setCard(pos, card) {
+        if (isBenchPos(pos)) benchData[benchIdx(pos)] = card;
+        else squadData[pos] = card;
+    }
+    function posLabel(pos) { return isBenchPos(pos) ? `교체 ${benchIdx(pos) + 1}번` : `${pos} 포지션`; }
+
+    // 카드를 화면에 다시 그리기 (그린필드·교체 공통)
+    function renderAnyCard(pos) {
+        if (isBenchPos(pos)) { renderBenchSlot(benchIdx(pos)); return; }
+        const card = squadData[pos];
+        if (card) renderSlotCard(pos, card);
+        else resetSlotEmpty(pos);
+    }
+
+    // 같은 선수(시즌 무관) 중복 확인: 그린필드 + 교체 전체
+    function findDuplicatePos(spid, exceptPos) {
+        const pid = String(spid).slice(-6);
+        for (const [pos, c] of Object.entries(squadData)) {
+            if (c && pos !== exceptPos && String(c.spid).slice(-6) === pid) return pos;
+        }
+        for (let i = 0; i < BENCH_SIZE; i++) {
+            const pos = `SUB${i + 1}`;
+            const c = benchData[i];
+            if (c && pos !== exceptPos && String(c.spid).slice(-6) === pid) return pos;
+        }
+        return null;
+    }
+
+    function renderBench() {
+        const row = document.getElementById('bench-row');
+        if (!row) return;
+        row.innerHTML = Array.from({ length: BENCH_SIZE }, (_, i) =>
+            `<div class="sm-bench-slot" id="bench-${i}" data-bench="${i}"></div>`).join('');
+        for (let i = 0; i < BENCH_SIZE; i++) renderBenchSlot(i);
+    }
+
+    function renderBenchSlot(i, pop) {
+        const el = document.getElementById(`bench-${i}`);
+        if (!el) return;
+        const card = benchData[i];
+        if (!card) {
+            el.dataset.spid = '';
+            el.innerHTML = `<div class="sm-bench-empty"><span class="plus">+</span><span class="lbl">SUB</span></div>`;
+            return;
+        }
+        const isNew = pop !== false && el.dataset.spid !== String(card.spid);
+        el.dataset.spid = card.spid;
+        const boost = card.boost || 8;
+        const price = formatPrice(card['bp' + boost]);
+        const traitHtml = (card.traits || [])
+            .filter(t => NEW_TRAITS.includes(t) && TRAIT_MAP[t])
+            .map(t => `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" loading="lazy">`)
+            .join('');
+        el.innerHTML = `
+            <div class="sm-bench-card ${isNew ? 'sm-pop' : ''}">
+                <div class="sm-bench-face">
+                    <img class="face" src="${card.image}" loading="lazy"
+                         onerror="this.src='${card.image_high || card.image_fallback || ''}'; this.onerror=()=>this.src='https://ssl.nexon.com/s2/game/fc/mobile/squadMaker/default/d_player.png'">
+                    ${traitHtml ? `<div class="sm-bench-trait">${traitHtml}</div>` : ''}
+                    ${card.salary !== undefined && card.salary !== '' ? `<span class="sm-bench-salary">${card.salary}</span>` : ''}
+                    ${card.season_img ? `<img class="sm-bench-season" src="${card.season_img}" loading="lazy" onerror="this.style.display='none'">` : ''}
+                    <span class="sm-bench-boost" style="background:${BOOST_COLORS[boost]};">${boost}</span>
+                </div>
+                <div class="sm-bench-name">
+                    <span title="${card.player_name}">${card.player_name}</span>
+                </div>
+                ${price ? `<div class="sm-bench-price">${price} BP</div>` : ''}
+            </div>`;
+    }
+
+    // 그린필드에 새로 들어온 선수와 겹치는 교체 선수는 명단에서 제외
+    function dropBenchDuplicates() {
+        const fieldPids = new Set(Object.values(squadData).filter(c => c).map(c => String(c.spid).slice(-6)));
+        const removed = [];
+        benchData.forEach((c, i) => {
+            if (c && fieldPids.has(String(c.spid).slice(-6))) {
+                removed.push(c.player_name);
+                benchData[i] = null;
+                renderBenchSlot(i);
+            }
+        });
+        if (removed.length && typeof showToast === 'function') {
+            showToast(`교체 명단의 ${removed.join(', ')}은(는) 그린필드 선수와 겹쳐 제외했어요.`);
+        }
+    }
+
+    // 그린필드 ↔ 교체 맞바꾸기
+    function swapFieldBench(pos, i) {
+        const fieldCard = squadData[pos] || null;
+        const benchCard = benchData[i] || null;
+        squadData[pos] = benchCard;
+        benchData[i] = fieldCard;
+        renderAnyCard(pos);
+        renderBenchSlot(i);
+        updateSummary();
+    }
+
+    // 교체 ↔ 교체 순서 바꾸기
+    function swapBench(i, j) {
+        if (i === j) return;
+        [benchData[i], benchData[j]] = [benchData[j], benchData[i]];
+        renderBenchSlot(i, false);
+        renderBenchSlot(j, false);
+    }
+
+    // 손가락/마우스 아래의 교체 칸 번호 (없으면 null)
+    function benchSlotAt(x, y) {
+        const el = document.elementFromPoint(x, y)?.closest('[data-bench]');
+        return el ? Number(el.dataset.bench) : null;
+    }
+
+    function highlightBenchSlot(i) {
+        document.querySelectorAll('.sm-bench-slot.drop-hover').forEach(el => el.classList.remove('drop-hover'));
+        if (i !== null && i !== undefined) document.getElementById(`bench-${i}`)?.classList.add('drop-hover');
+    }
+
+    // 그린필드 위에서 가장 가까운 선수 칸 (필드 밖이면 null)
+    function fieldSlotAt(x, y) {
+        const rect = document.getElementById('squad-field').getBoundingClientRect();
+        if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return null;
+        let best = null, minD = Infinity;
+        document.querySelectorAll('#field-rows [data-pos]').forEach(w => {
+            const r = w.getBoundingClientRect();
+            const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
+            if (d < minD) { minD = d; best = w.dataset.pos; }
+        });
+        return best;
+    }
+
+    function highlightFieldSlot(pos) {
+        document.querySelectorAll('#field-rows .drop-hover').forEach(el => el.classList.remove('drop-hover'));
+        if (pos) document.getElementById(`wrapper-${pos}`)?.classList.add('drop-hover');
+    }
+
+    // 교체 칸에서 시작하는 끌기
+    let benchDrag = null;
+
+    function onBenchPointerDown(e) {
+        const slot = e.target.closest('[data-bench]');
+        if (!slot) return;
+        e.preventDefault();
+        const i = Number(slot.dataset.bench);
+        if (!benchData[i]) { openPlayerSearch('bench', `SUB${i + 1}`); return; }
+        benchDrag = { i, slot, startX: e.clientX, startY: e.clientY, startTime: Date.now(), dragging: false, ghost: null };
+        document.addEventListener('pointermove', onBenchDragMove);
+        document.addEventListener('pointerup', onBenchDragEnd);
+        document.addEventListener('pointercancel', onBenchDragEnd);
+    }
+
+    function onBenchDragMove(e) {
+        if (!benchDrag) return;
+        const dx = e.clientX - benchDrag.startX;
+        const dy = e.clientY - benchDrag.startY;
+        const threshold = e.pointerType === 'touch' ? 14 : 6;
+        if (!benchDrag.dragging && Math.hypot(dx, dy) > threshold) {
+            benchDrag.dragging = true;
+            const ghost = benchDrag.slot.cloneNode(true);
+            const w = benchDrag.slot.getBoundingClientRect().width;
+            ghost.removeAttribute('id');
+            ghost.removeAttribute('data-bench');
+            ghost.style.cssText = `position:fixed; z-index:9999; pointer-events:none; width:${w}px;
+                opacity:0.85; transform:translate(-50%,-50%) scale(1.05);
+                left:${e.clientX}px; top:${e.clientY}px;`;
+            document.body.appendChild(ghost);
+            benchDrag.ghost = ghost;
+            benchDrag.slot.style.opacity = '0.25';
+        }
+        if (benchDrag.dragging && benchDrag.ghost) {
+            benchDrag.ghost.style.left = e.clientX + 'px';
+            benchDrag.ghost.style.top = e.clientY + 'px';
+            const b = benchSlotAt(e.clientX, e.clientY);
+            highlightBenchSlot(b !== benchDrag.i ? b : null);
+            highlightFieldSlot(b === null ? fieldSlotAt(e.clientX, e.clientY) : null);
+        }
+    }
+
+    function onBenchDragEnd(e) {
+        document.removeEventListener('pointermove', onBenchDragMove);
+        document.removeEventListener('pointerup', onBenchDragEnd);
+        document.removeEventListener('pointercancel', onBenchDragEnd);
+        if (!benchDrag) return;
+        const { i } = benchDrag;
+        if (benchDrag.dragging) {
+            benchDrag.ghost?.remove();
+            benchDrag.slot.style.opacity = '';
+            highlightBenchSlot(null);
+            highlightFieldSlot(null);
+            if (e.type !== 'pointercancel') {
+                const b = benchSlotAt(e.clientX, e.clientY);
+                if (b !== null) swapBench(i, b);
+                else {
+                    const pos = fieldSlotAt(e.clientX, e.clientY);
+                    if (pos) swapFieldBench(pos, i);
+                }
+            }
+        } else {
+            const holdTime = Date.now() - benchDrag.startTime;
+            if (e.type !== 'pointercancel' && (e.pointerType !== 'touch' || holdTime < 500)) {
+                openPlayerSearch('bench', `SUB${i + 1}`);
+            }
+        }
+        benchDrag = null;
+    }
+
+    // 총 구단가치 i 안내
+    function toggleValueInfo(e) {
+        e.stopPropagation();
+        const pop = document.getElementById('value-info-pop');
+        if (pop.classList.contains('show')) { pop.classList.remove('show'); return; }
+        const sumOf = list => list.reduce((s, p) => s + (p ? (parseInt(p['bp' + (p.boost || 8)]) || 0) : 0), 0);
+        const fieldSum = sumOf(Object.values(squadData));
+        const benchSum = sumOf(benchData);
+        const total = fieldSum + benchSum;
+        pop.innerHTML = '그린필드 위 <b>선발 11명</b>의 구단가치예요. 교체 선수는 포함하지 않아요.'
+            + (benchSum > 0 ? `<br>교체 포함 시 <b>${formatPrice(total)} BP</b>` : '');
+        pop.classList.add('show');
+    }
+
+    document.addEventListener('pointerdown', e => {
+        if (!e.target.closest('.sm-stat-price')) document.getElementById('value-info-pop')?.classList.remove('show');
+    });
+
     function renderFormation(fKey) {
         currentFormation = fKey;
         const f = FORMATIONS[fKey];
@@ -2322,6 +2870,7 @@
 
     function initDragAndDrop() {
         document.getElementById('field-rows').addEventListener('pointerdown', onDragStart);
+        document.getElementById('bench-row').addEventListener('pointerdown', onBenchPointerDown);
     }
 
     function updateZoneHighlight(pos) {
@@ -2396,6 +2945,11 @@
             dragState.ghost.style.left = e.clientX + 'px';
             dragState.ghost.style.top = e.clientY + 'px';
 
+            // 교체 칸 위에 있으면 교체 칸만 표시
+            const benchHover = benchSlotAt(e.clientX, e.clientY);
+            highlightBenchSlot(benchHover);
+            if (benchHover !== null) { clearZoneHighlight(); return; }
+
             const field = document.getElementById('squad-field');
             const rect = field.getBoundingClientRect();
             const pctX = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
@@ -2432,6 +2986,11 @@
         if (dragState.dragging) {
             if (dragState.ghost) { dragState.ghost.remove(); dragState.ghost = null; }
             dragState.wrapper.style.opacity = '';
+
+            // 교체 칸에 놓으면 그린필드 ↔ 교체 맞바꾸기 (GK 포함)
+            const benchDrop = e.type !== 'pointercancel' ? benchSlotAt(e.clientX, e.clientY) : null;
+            highlightBenchSlot(null);
+            if (benchDrop !== null) { swapFieldBench(dragState.pos, benchDrop); dragState = null; return; }
 
             if (dragState.pos === 'GK') { dragState = null; return; }
 
@@ -2610,11 +3169,11 @@
 
     function openPlayerSearch(type, pos) {
         // 카드가 있으면 정보 수정창, 없으면 검색창
-        if (squadData[pos]) {
+        if (getCard(pos)) {
             openEditModal(pos);
         } else {
             currentSearchPos = pos;
-            document.getElementById('modal-title').textContent = `선수 선택 — ${pos}`;
+            document.getElementById('modal-title').textContent = `선수 선택 — ${isBenchPos(pos) ? '교체 ' + (benchIdx(pos) + 1) : pos}`;
             document.getElementById('modal-search-input').value = '';
             document.getElementById('modal-results').innerHTML = '<div class="sm-modal-empty">선수 이름을 입력하세요</div>';
             document.getElementById('player-modal').classList.add('active');
@@ -2624,8 +3183,8 @@
 
     function openEditModal(pos) {
         currentEditPos = pos;
-        const card = squadData[pos];
-        document.getElementById('edit-pos-label').textContent = pos;
+        const card = getCard(pos);
+        document.getElementById('edit-pos-label').textContent = isBenchPos(pos) ? `교체 ${benchIdx(pos) + 1}` : pos;
         document.getElementById('edit-season-img').src = card.season_img;
         document.getElementById('edit-player-name').textContent = card.player_name;
         setTimeout(() => {
@@ -2641,36 +3200,40 @@
     function editAction(action) {
         if (action === 'remove') {
             const pos = currentEditPos;
-            squadData[pos] = null;
-            const slotEl = document.getElementById(`slot-${pos}`);
-            if (slotEl) {
-                slotEl.innerHTML = `<span class="plus">+</span><div style="font-size:0.6rem;color:rgba(255,255,255,0.6);margin-top:3px;font-weight:600;">${pos}</div>`;
-                slotEl.style.background = 'rgba(255,255,255,0.08)';
-                slotEl.style.border = '1.5px dashed rgba(255,255,255,0.3)';
-                slotEl.style.overflow = 'hidden';
-                slotEl.style.width = '64px';
-                slotEl.style.height = '80px';
+            setCard(pos, null);
+            if (isBenchPos(pos)) {
+                renderBenchSlot(benchIdx(pos));
+            } else {
+                const slotEl = document.getElementById(`slot-${pos}`);
+                if (slotEl) {
+                    slotEl.innerHTML = `<span class="plus">+</span><div style="font-size:0.6rem;color:rgba(255,255,255,0.6);margin-top:3px;font-weight:600;">${pos}</div>`;
+                    slotEl.style.background = 'rgba(255,255,255,0.08)';
+                    slotEl.style.border = '1.5px dashed rgba(255,255,255,0.3)';
+                    slotEl.style.overflow = 'hidden';
+                    slotEl.style.width = '64px';
+                    slotEl.style.height = '80px';
+                }
             }
             closeEditModal();
             updateSummary();
         } else if (action === 'boost') {
             const pos = currentEditPos;
-            const card = squadData[pos];
+            const card = getCard(pos);
             closeEditModal();
             openBoostSelect(card, pos);
         } else if (action === 'season') {
             const pos = currentEditPos;
-            const card = squadData[pos];
+            const card = getCard(pos);
             closeEditModal();
             openSeasonChange(card, pos);
         } else if (action === 'miniface') {
             const pos = currentEditPos;
-            const card = squadData[pos];
+            const card = getCard(pos);
             closeEditModal();
             openMinifaceChange(card, pos);
         }
         else if (action === 'stat') {
-            const card = squadData[currentEditPos];
+            const card = getCard(currentEditPos);
             closeEditModal();
             window.open(`/card/${card.spid}?buildup=${card.boost || 8}`, '_blank');
         }
@@ -2784,12 +3347,9 @@
 
     function selectPlayer(card) {
         if (!currentSearchPos) return;
-        const newPid = String(card.spid).slice(-6);
-        const duplicate = Object.entries(squadData).find(([pos, c]) =>
-            c && pos !== currentSearchPos && String(c.spid).slice(-6) === newPid
-        );
+        const duplicate = findDuplicatePos(card.spid, currentSearchPos);
         if (duplicate) {
-            alert(`${card.player_name}은(는) 이미 ${duplicate[0]} 포지션에 있습니다.`);
+            alert(`${card.player_name}은(는) 이미 ${posLabel(duplicate)}에 있습니다.`);
             return;
         }
         pendingCard = card;
@@ -2826,13 +3386,13 @@
         if (pendingCard && pendingPos) {
             pendingCard.boost = boost;
             await fetchCardPrice(pendingCard);
-            squadData[pendingPos] = pendingCard;
-            renderSlotCard(pendingPos, pendingCard);
+            setCard(pendingPos, pendingCard);
+            renderAnyCard(pendingPos);
             pendingCard = null;
             pendingPos = null;
-        } else if (currentEditPos && squadData[currentEditPos]) {
-            squadData[currentEditPos].boost = boost;
-            renderSlotCard(currentEditPos, squadData[currentEditPos]);
+        } else if (currentEditPos && getCard(currentEditPos)) {
+            getCard(currentEditPos).boost = boost;
+            renderAnyCard(currentEditPos);
         }
         closeBoostSelect();
         updateSummary();
@@ -2880,18 +3440,15 @@
 
     async function selectSeasonCard(card, boost) {
         if (!currentSearchPos) return;
-        const newPid = String(card.spid).slice(-6);
-        const duplicate = Object.entries(squadData).find(([pos, c]) =>
-            c && pos !== currentSearchPos && String(c.spid).slice(-6) === newPid
-        );
+        const duplicate = findDuplicatePos(card.spid, currentSearchPos);
         if (duplicate) {
-            alert(`${card.player_name}은(는) 이미 ${duplicate[0]} 포지션에 있습니다.`);
+            alert(`${card.player_name}은(는) 이미 ${posLabel(duplicate)}에 있습니다.`);
             return;
         }
         card.boost = boost;
         await fetchCardPrice(card);
-        squadData[currentSearchPos] = card;
-        renderSlotCard(currentSearchPos, card);
+        setCard(currentSearchPos, card);
+        renderAnyCard(currentSearchPos);
         closePlayerModal();
         updateSummary();
     }
@@ -2945,10 +3502,11 @@
     }
 
     function selectMiniface(actionUrl, staticUrl, fallback) {
-        if (!currentEditPos || !squadData[currentEditPos]) return;
-        squadData[currentEditPos].image = actionUrl;
-        squadData[currentEditPos].image_fallback = staticUrl;
-        renderSlotCard(currentEditPos, squadData[currentEditPos]);
+        const mfCard = currentEditPos && getCard(currentEditPos);
+        if (!mfCard) return;
+        mfCard.image = actionUrl;
+        mfCard.image_fallback = staticUrl;
+        renderAnyCard(currentEditPos);
         closeMiniface();
         updateTeamColor();
     }
@@ -3212,9 +3770,11 @@
     }
 
     function resetSquad() {
-        const hasPlayer = Object.values(squadData).some(p => p);
-        if (hasPlayer && !confirm('그린필드의 선수를 모두 비울까요?')) return;
+        const hasPlayer = Object.values(squadData).some(p => p) || benchData.some(p => p);
+        if (hasPlayer && !confirm('그린필드와 교체 선수를 모두 비울까요?')) return;
         renderFormation(currentFormation);
+        benchData = Array(BENCH_SIZE).fill(null);
+        renderBench();
         document.getElementById('tc-trait-body').innerHTML =
             '<div class="sm-tc-empty">현역 케미, 특정 조합과 같은 팀컬러가 자동 표시됩니다.</div>';
         updateSummary();
@@ -3255,6 +3815,7 @@
     }
 
     function updateSummary() {
+        dropBenchDuplicates();
         const players = Object.values(squadData).filter(p => p !== null);
 
         const totalSalary = players.reduce((sum, p) => sum + (parseInt(p.salary) || 0), 0);
@@ -4216,6 +4777,15 @@
                 image_fallback: card.image_fallback || null
             } : null;
         });
+        // 교체 선수 (있을 때만 저장)
+        if (benchData.some(c => c)) {
+            squadSnapshot._bench = benchData.map(card => card ? {
+                spid: card.spid,
+                boost: card.boost || 8,
+                image: card.image || null,
+                image_fallback: card.image_fallback || null
+            } : null);
+        }
 
         if (IS_LOGGED_IN) {
             fetch('/api/user_squad/save', {
@@ -4279,8 +4849,10 @@
         if (!s) return;
 
         const squadObj = isLoggedIn ? s.squad_data : s.data;
-        const positions = Object.keys(squadObj);
-        const spids = positions.filter(pos => squadObj[pos]).map(pos => squadObj[pos].spid);
+        const savedBench = Array.isArray(squadObj._bench) ? squadObj._bench : [];
+        const positions = Object.keys(squadObj).filter(k => k !== '_bench');
+        const spids = positions.filter(pos => squadObj[pos]).map(pos => squadObj[pos].spid)
+            .concat(savedBench.filter(b => b).map(b => b.spid));
 
         // 카드 정보 일괄 조회
         const res = await fetch('/api/squad_search_by_pid', {
@@ -4315,13 +4887,29 @@
             }
         });
 
+        // 교체 선수 복원 (예전에 저장한 스쿼드는 교체 없음)
+        benchData = Array(BENCH_SIZE).fill(null);
+        savedBench.slice(0, BENCH_SIZE).forEach((saved, i) => {
+            if (saved && cardMap[saved.spid]) {
+                const card = { ...cardMap[saved.spid], boost: saved.boost };
+                card.image = saved.image || `https://fo4.dn.nexoncdn.co.kr/live/externalAssets/common/playersActionHigh/p${saved.spid}.png`;
+                if (saved.image_fallback) card.image_fallback = saved.image_fallback;
+                benchData[i] = card;
+            }
+        });
+        renderBench();
+
         closeSquadLoadModal();
         // 모든 가격 조회 완료 후 요약 업데이트
         Promise.all(
             positions
                 .filter(pos => squadObj[pos] && cardMap[squadObj[pos].spid])
                 .map(pos => fetchCardPrice(squadData[pos]))
-        ).then(() => updateSummary());
+                .concat(benchData.filter(c => c).map(c => fetchCardPrice(c)))
+        ).then(() => {
+            for (let i = 0; i < BENCH_SIZE; i++) renderBenchSlot(i, false);
+            updateSummary();
+        });
     }
 
     function deleteSquad(idOrIdx, isLoggedIn) {
@@ -4345,6 +4933,7 @@
     }
 
     renderFormation('42211');
+    renderBench();
     updateFormationLabel();
     initDragAndDrop();
 

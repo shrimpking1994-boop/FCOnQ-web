@@ -696,42 +696,46 @@
         height: 18px;
     }
 
+    /* 강화 배지: 좌하단 시즌 아이콘과 같은 높이로 좌우 대칭 */
     .card-buildup {
         position: absolute;
-        bottom: 0px;
-        right: 0px;
-        background: rgba(0, 0, 0, 0.8);
-        color: #fcd34d;
-        font-size: 0.65rem;
-        font-weight: 700;
-        padding: 1px 4px;
+        bottom: 0;
+        right: 0;
+        height: 18px;
+        min-width: 24px;
+        padding: 0 5px;
+        box-sizing: border-box;
         border-radius: 3px;
+        background: #FFD700;
+        color: #333;
+        font-size: 0.68rem;
+        font-weight: 800;
+        line-height: 18px;
+        text-align: center;
+        border: 1px solid rgba(0, 0, 0, 0.6);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
     }
 
-
+    /* 강화 단계 색: 1강 회색 / 2~4 동 / 5~7 은 / 8~10 금 / 11~13 백금 */
     .card-buildup.bu-1 {
-        background: rgba(0, 0, 0, 0.85);
-        color: #9ca3af;
+        background: #808080;
+        color: #fff;
     }
 
     .card-buildup.bu-bronze {
-        background: rgba(0, 0, 0, 0.85);
-        color: #cd7f32;
+        background: #CD7F32;
     }
 
     .card-buildup.bu-silver {
-        background: rgba(0, 0, 0, 0.85);
-        color: #c0c0c0;
+        background: #C0C0C0;
     }
 
     .card-buildup.bu-gold {
-        background: rgba(0, 0, 0, 0.85);
-        color: #fcd34d;
+        background: #FFD700;
     }
 
     .card-buildup.bu-purple {
-        background: rgba(0, 0, 0, 0.85);
-        color: #d8b4fe;
+        background: linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%);
     }
 
     .card-salary {
@@ -870,8 +874,11 @@
         }
 
         .card-buildup {
+            height: 16px;
+            min-width: 21px;
+            padding: 0 4px;
             font-size: 0.6rem;
-            padding: 1px 4px;
+            line-height: 16px;
         }
 
         .card-salary {
@@ -1522,9 +1529,12 @@
         border-radius: 6px;
     }
 
-    .cmp-chip .card-buildup {
-        font-size: 0.65rem;
-        padding: 1px 4px;
+    .cmp-chip .card-buildup,
+    .cmp-slot .card-buildup {
+        height: 20px;
+        min-width: 26px;
+        font-size: 0.7rem;
+        line-height: 20px;
     }
 
     .cmp-chip .cmp-season,
@@ -1679,8 +1689,19 @@
         }
 
         .cmp-chip .card-buildup {
-            font-size: 0.55rem;
+            height: 14px;
+            min-width: 18px;
             padding: 0 3px;
+            font-size: 0.5rem;
+            line-height: 14px;
+        }
+
+        .cmp-slot .card-buildup {
+            height: 16px;
+            min-width: 21px;
+            padding: 0 4px;
+            font-size: 0.6rem;
+            line-height: 16px;
         }
 
         .cmp-slot .cmp-season {
@@ -2377,7 +2398,7 @@
                                     <span class="card-rank-badge ${rankClass}">${rank}</span>
                                     <img class="card-face" src="${faceUrl}" loading="lazy" onerror="this.onerror=null; this.src='${staticFaceUrl}'; this.onerror=function(){this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';};" onclick="window.open('/card/${card.spid}?buildup=${card.buildup}', '_blank')" style="cursor:pointer;">
                                     ${seasonUrl ? `<img class="card-season-badge" src="${seasonUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
-                                    <span class="card-buildup ${card.buildup === 1 ? 'bu-1' : card.buildup <= 4 ? 'bu-bronze' : card.buildup <= 7 ? 'bu-silver' : card.buildup <= 10 ? 'bu-gold' : 'bu-purple'}">+${card.buildup}</span>
+                                    <span class="card-buildup ${card.buildup === 1 ? 'bu-1' : card.buildup <= 4 ? 'bu-bronze' : card.buildup <= 7 ? 'bu-silver' : card.buildup <= 10 ? 'bu-gold' : 'bu-purple'}">${card.buildup}</span>
                                     ${salaryHtml}
                                     ${newTraitHtml}
                                 </div>
@@ -2627,7 +2648,7 @@
                 <div class="card-img-wrap">
                     <img class="card-face" src="${faceUrl}" loading="lazy" onerror="this.onerror=null; this.src='${staticFaceUrl}'; this.onerror=function(){this.onerror=null; this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png';};" onclick="window.open('/card/${item.spid}?buildup=${g}', '_blank')" style="cursor:pointer;">
                     ${seasonUrl ? `<img class="card-season-badge" src="${seasonUrl}" loading="lazy" onerror="this.style.display='none'">` : ''}
-                    <span class="card-buildup ${buClass}">+${g}</span>
+                    <span class="card-buildup ${buClass}">${g}</span>
                     ${item.salary ? `<span class="card-salary">${item.salary}</span>` : ''}
                     ${newTraitHtml}
                 </div>
@@ -3151,7 +3172,7 @@
                 <div class="cmp-chip ${n !== -1 ? 'slotted' : ''}" onclick="cmpChipTap('${p.key}')" title="${p.name}">
                     <img class="cmp-face" src="${p.face}">
                     ${p.season ? `<img class="cmp-season" src="${p.season}">` : ''}
-                    <span class="card-buildup ${cmpBuClass(p.buildup)}">+${p.buildup}</span>
+                    <span class="card-buildup ${cmpBuClass(p.buildup)}">${p.buildup}</span>
                     ${n !== -1 ? `<span class="cmp-chip-num">${n + 1}</span>` : ''}
                     <button type="button" class="cmp-x" onclick="event.stopPropagation(); cmpDrop('${p.key}')">×</button>
                 </div>`;
@@ -3173,7 +3194,7 @@
                     <div class="cmp-slot filled" onclick="cmpUnslot(${i})" title="눌러서 칸 비우기">
                         <img class="cmp-face" src="${p.face}">
                         ${p.season ? `<img class="cmp-season" src="${p.season}">` : ''}
-                        <span class="card-buildup ${cmpBuClass(p.buildup)}">+${p.buildup}</span>
+                        <span class="card-buildup ${cmpBuClass(p.buildup)}">${p.buildup}</span>
                     </div>
                     <span class="cmp-slot-name" title="${p.name}">${p.name}</span>
                 </div>`;
@@ -3270,7 +3291,7 @@
                 <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
                     <img src="${getSeasonImgUrl(spid)}" style="height:22px; width:auto;" onerror="this.style.display='none'">
                     <span style="font-size:0.95rem; font-weight:700; color:var(--text-primary);">${data.name}</span>
-                    <span style="font-size:0.75rem; font-weight:700; padding:1px 6px; border-radius:4px; background:rgba(0,0,0,0.5); color:${parseInt(buildup) <= 1 ? '#9ca3af' : parseInt(buildup) <= 4 ? '#cd7f32' : parseInt(buildup) <= 7 ? '#c0c0c0' : parseInt(buildup) <= 10 ? '#fcd34d' : '#d8b4fe'};">+${buildup}</span>
+                    <span class="card-buildup ${parseInt(buildup) <= 1 ? 'bu-1' : parseInt(buildup) <= 4 ? 'bu-bronze' : parseInt(buildup) <= 7 ? 'bu-silver' : parseInt(buildup) <= 10 ? 'bu-gold' : 'bu-purple'}" style="position:static; display:inline-block; height:20px; line-height:20px; min-width:28px; font-size:0.75rem;">${buildup}</span>
                 </div>
                 <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">
                     급여 ${data.salary} &nbsp;|&nbsp; ${data.height}cm ${data.weight}kg ${data.body_type} &nbsp;|&nbsp; ${(() => {
