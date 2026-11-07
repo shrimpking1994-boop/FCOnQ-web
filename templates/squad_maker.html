@@ -1204,6 +1204,56 @@
         color: var(--text-primary);
     }
 
+    /* 픽률 자동 완성 2단계: 구단가치 구간 버튼 (티어리스트와 동일) */
+    .sm-tier-gd {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--bg-secondary);
+        padding-bottom: 8px;
+        margin-bottom: 2px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .sm-tier-gd-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-align: center;
+        margin-bottom: 6px;
+    }
+
+    .sm-tier-gd-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .sm-tier-gd-btn {
+        padding: 6px 0;
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .sm-tier-gd-btn.active {
+        background: var(--primary-color);
+        color: #fff;
+        border-color: var(--primary-color);
+    }
+
+    .sm-tier-empty {
+        text-align: center;
+        color: var(--text-muted);
+        padding: 20px;
+        font-size: 0.85rem;
+    }
+
     .sm-tier-rank-grid {
         display: flex;
         flex-direction: column;
@@ -3501,10 +3551,27 @@
         'GK': 'GK'
     };
 
-    let tierTcOrder = null;
+    // 구단가치 구간 (티어리스트와 같은 값)
+    const TIER_GD_BUCKETS = [
+        ['', '전체'], ['5', '1~5억'], ['10', '5~10억'], ['30', '10~30억'],
+        ['50', '30~50억'], ['100', '50~100억'], ['300', '100~300억'], ['300p', '300억+']
+    ];
+    const TIER_GD_STORE = 'squadAutofillBucket';   // 마지막으로 고른 구간 기억
+
+    const tierTcCache = {};     // 구간별 팀컬러 순위 (다시 눌러도 서버에 재요청 안 함)
     let tierLogos = {};
     let tierSelectedFormation = null;
     let tierSelectedTc = null;
+    let tierBucket = '';
+    let tierLoadSeq = 0;
+    try {
+        const saved = localStorage.getItem(TIER_GD_STORE) || '';
+        if (TIER_GD_BUCKETS.some(([k]) => k === saved)) tierBucket = saved;
+    } catch (e) { }
+
+    function tierBucketLabel(b = tierBucket) {
+        return (TIER_GD_BUCKETS.find(([k]) => k === b) || TIER_GD_BUCKETS[0])[1];
+    }
 
     function closeTierModal() {
         document.getElementById('tier-overlay').classList.remove('active');
@@ -3525,18 +3592,42 @@
 
     async function selectTierFormation(fKey) {
         tierSelectedFormation = fKey;
+        renderTierStep2();
+    }
+
+    // 2단계: 맨 위 구단가치 버튼 + 해당 구간 팀컬러 순위
+    async function renderTierStep2() {
         document.getElementById('tier-step-title').textContent = '2/3 — 팀컬러 선택';
         const content = document.getElementById('tier-content');
-        content.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">불러오는 중...</div>';
+        const gdHtml = `
+            <div class="sm-tier-gd">
+                <div class="sm-tier-gd-label">💰 랭커 구단가치</div>
+                <div class="sm-tier-gd-tabs">
+                    ${TIER_GD_BUCKETS.map(([k, label]) =>
+            `<button type="button" class="sm-tier-gd-btn ${k === tierBucket ? 'active' : ''}" onclick="selectTierBucket('${k}')">${label}</button>`
+        ).join('')}
+                </div>
+            </div>`;
 
-        if (!tierTcOrder) {
-            const res = await fetch('/api/squad_tierlist_teamcolors');
-            const data = await res.json();
-            tierTcOrder = data.order;
-            tierLogos = data.logos || {};
+        const seq = ++tierLoadSeq;
+        const bucket = tierBucket;
+        if (!tierTcCache[bucket]) {
+            content.innerHTML = gdHtml + '<div class="sm-tier-empty">불러오는 중...</div>';
+            try {
+                const res = await fetch('/api/squad_tierlist_teamcolors' + (bucket ? '?bucket=' + encodeURIComponent(bucket) : ''));
+                const data = await res.json();
+                if (!data.success) throw new Error();
+                tierTcCache[bucket] = data.order || [];
+                tierLogos = { ...tierLogos, ...(data.logos || {}) };
+            } catch (e) {
+                if (seq === tierLoadSeq) content.innerHTML = gdHtml + '<div class="sm-tier-empty">팀컬러 정보를 불러오지 못했습니다.</div>';
+                return;
+            }
         }
+        if (seq !== tierLoadSeq) return;   // 그사이 다른 구간을 눌렀으면 무시
 
-        content.innerHTML = tierTcOrder.map((tc, i) => {
+        const order = tierTcCache[bucket];
+        const listHtml = order.length ? order.map((tc, i) => {
             const logo = tierLogos[tc]
                 ? `<img src="${tierLogos[tc]}" loading="lazy" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">`
                 : '';
@@ -3545,12 +3636,23 @@
                         ${logo}
                         <span class="sm-tier-tc-name">${tc}</span>
                     </div>`;
-        }).join('');
+        }).join('') : '<div class="sm-tier-empty">이 구간에는 표시할 팀컬러가 없어요.</div>';
+
+        content.innerHTML = gdHtml + listHtml;
+        content.scrollTop = 0;
+    }
+
+    function selectTierBucket(bucket) {
+        if (bucket === tierBucket) return;
+        tierBucket = bucket;
+        try { localStorage.setItem(TIER_GD_STORE, bucket); } catch (e) { }
+        renderTierStep2();
+        if (typeof gtag === 'function') gtag('event', 'squad_autofill_bucket', { bucket: tierBucketLabel(bucket) });
     }
 
     function selectTierTc(tc) {
         tierSelectedTc = tc;
-        document.getElementById('tier-step-title').textContent = `3/3 — ${tc} 순위 선택`;
+        document.getElementById('tier-step-title').textContent = `3/3 — ${tc} 순위 선택 (${tierBucketLabel()})`;
         const content = document.getElementById('tier-content');
         content.innerHTML = `<div class="sm-tier-rank-grid">
             ${[1, 2, 3, 4, 5].map(n =>
@@ -3562,7 +3664,8 @@
     async function executeTierFill(rank) {
         closeTierModal();
 
-        const res = await fetch(`/api/squad_tierlist_cards?teamcolor=${encodeURIComponent(tierSelectedTc)}`);
+        const res = await fetch(`/api/squad_tierlist_cards?teamcolor=${encodeURIComponent(tierSelectedTc)}`
+            + (tierBucket ? `&bucket=${encodeURIComponent(tierBucket)}` : ''));
         const data = await res.json();
         if (!data.success) { alert('팀컬러 데이터를 불러오지 못했습니다.'); return; }
         const tcData = data.data;

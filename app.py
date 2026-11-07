@@ -3323,6 +3323,8 @@ def get_new_trait_stats():
 
 @app.route('/api/squad_tierlist_teamcolors')
 def squad_tierlist_teamcolors():
+    """스쿼드 메이커 픽률 자동 완성: 팀컬러 순위 (bucket이 있으면 해당 구단가치 구간 기준)"""
+    bucket = request.args.get('bucket', '').strip()
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -3333,36 +3335,64 @@ def squad_tierlist_teamcolors():
         LIMIT 1
     """)
     result = cur.fetchone()
+
+    # 구단가치 구간 데이터 (없는 구간이면 전체로)
+    gd = None
+    if bucket:
+        cur.execute("""
+            SELECT full_data->'_order' AS tc_order, full_data->'_logos' AS tc_logos,
+                   full_data->'_usage' AS tc_usage
+            FROM card_tierlist_gd
+            WHERE bucket = %s
+        """, (bucket,))
+        gd = cur.fetchone()
+
     cur.execute("SELECT team_name, logo_url FROM team_logos")
     table_logos = {row['team_name']: row['logo_url'] for row in cur.fetchall()}
     crawled_logos = (result['tc_logos'] if result else None) or {}
-    logos = {**crawled_logos, **table_logos}
+    gd_logos = (gd['tc_logos'] if gd else None) or {}
+    logos = {**crawled_logos, **gd_logos, **table_logos}
     cur.close()
     conn.close()
-    if not result:
+
+    src = gd or result
+    if not src:
         return jsonify({'success': False}), 404
-    order = result['tc_order'] or []
+    order = src['tc_order'] or []
     order = [tc for tc in order if tc not in TIERLIST_EXCLUDE_TEAMCOLORS]
-    usage = result['tc_usage'] or {}
+    usage = src['tc_usage'] or {}
     if usage:
         order = [tc for tc in order if usage.get(tc, 0) >= TIERLIST_MIN_USERS]
-    return jsonify({'success': True, 'order': order, 'logos': logos})
+    return jsonify({'success': True, 'order': order, 'logos': logos, 'bucket': bucket if gd else ''})
 
 @app.route('/api/squad_tierlist_cards')
 def squad_tierlist_cards():
-    """스쿼드 메이커용 특정 팀컬러 카드 데이터 반환"""
+    """스쿼드 메이커용 특정 팀컬러 카드 데이터 반환 (bucket이 있으면 해당 구단가치 구간 기준)"""
     teamcolor = request.args.get('teamcolor', '').strip()
+    bucket = request.args.get('bucket', '').strip()
     if not teamcolor:
         return jsonify({'success': False}), 400
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("""
-        SELECT full_data->%s AS tc_data
-        FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC, id DESC
-        LIMIT 1
-    """, (teamcolor,))
-    result = cur.fetchone()
+
+    result = None
+    if bucket:
+        cur.execute("""
+            SELECT full_data->%s AS tc_data
+            FROM card_tierlist_gd
+            WHERE bucket = %s
+        """, (teamcolor, bucket))
+        result = cur.fetchone()
+
+    if not result:   # 전체 기준 (또는 없는 구간이면 전체로)
+        cur.execute("""
+            SELECT full_data->%s AS tc_data
+            FROM card_tierlist_rankings
+            ORDER BY crawl_date DESC, id DESC
+            LIMIT 1
+        """, (teamcolor,))
+        result = cur.fetchone()
+
     cur.close()
     conn.close()
     if not result or not result['tc_data']:
