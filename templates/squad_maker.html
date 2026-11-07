@@ -1745,7 +1745,7 @@
             margin-top: 8px;
         }
 
-        .sm-container>div:first-child {
+        .sm-tools {
             gap: 8px !important;
             margin-bottom: 8px !important;
         }
@@ -1793,6 +1793,232 @@
     }
 
 
+
+    /* ===== 버튼 묶음: 관리하기 / 내보내기 (빠른 스쿼드 제작과 같은 "제목 + 버튼" 구조) ===== */
+    .sm-manage,
+    .sm-export {
+        display: flex !important;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .sm-box-title {
+        display: flex;
+        align-items: center;
+        min-height: 20px;
+    }
+
+    .sm-box-btns {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-auto-rows: 1fr;
+        gap: 8px;
+    }
+
+    .sm-manage-reset {
+        color: #ff6b6b;
+    }
+
+    .sm-export {
+        grid-column: 1 / -1;
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 14px 18px;
+    }
+
+    .sm-export-btns {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .sm-export .sm-manage-btn {
+        padding: 8px 6px;
+    }
+
+    @media (max-width: 768px) {
+
+        .sm-manage,
+        .sm-export {
+            gap: 5px;
+        }
+
+        .sm-box-btns {
+            gap: 5px;
+        }
+
+        .sm-export {
+            padding: 8px;
+        }
+
+        /* 모바일: 내보내기는 넓은 버튼 두 개라 제목 없이 (세로 공간 절약) */
+        .sm-export-title {
+            display: none;
+        }
+    }
+
+    /* ===== 캡처 ===== */
+    .sm-watermark {
+        display: none;
+        position: absolute;
+        top: 12px;
+        left: 14px;
+        z-index: 3;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: rgba(255, 255, 255, 0.55);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+    }
+
+    .sm-capture.capturing .sm-watermark {
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .sm-watermark {
+            top: 9px;
+            left: 10px;
+            font-size: 0.65rem;
+        }
+    }
+
+    .sm-cap-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 3000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sm-cap-overlay.active {
+        display: flex;
+    }
+
+    .sm-cap-box {
+        background: var(--bg-secondary);
+        border-radius: 12px;
+        padding: 20px;
+        width: 92%;
+        max-width: 480px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sm-cap-preview {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        border-radius: 8px;
+        background: var(--bg-main);
+        text-align: center;
+    }
+
+    .sm-cap-preview img {
+        max-width: 100%;
+        max-height: 58vh;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .sm-cap-name {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .sm-cap-name input {
+        flex: 1;
+        min-width: 0;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .sm-cap-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .sm-cap-btn {
+        flex: 1;
+        padding: 11px 0;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .sm-cap-btn.save {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+    }
+
+    /* ===== PC 2단 구성: 왼쪽 그린필드 / 오른쪽 도구 ===== */
+    .sm-side-extra:empty {
+        display: none;
+    }
+
+    @media (min-width: 1000px) {
+        .sm-container {
+            display: grid;
+            grid-template-columns: 640px minmax(0, 1fr);
+            column-gap: 16px;
+            align-items: start;
+        }
+
+        /* 왼쪽: 랭커 이동 바 → 급여·구단가치·포메이션 → 그린필드 → 교체 선수 */
+        .sm-container>.sm-ranker-queue-bar,
+        .sm-container>.sm-capture,
+        .sm-container>.sm-bench {
+            grid-column: 1;
+        }
+
+        .sm-capture>.sm-field-wrap,
+        .sm-container>.sm-bench {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        /* 오른쪽 버튼은 한 줄에 하나씩 */
+        .sm-export-btns {
+            grid-template-columns: 1fr;
+        }
+
+        /* 오른쪽: 패널 칸은 왼쪽(그린필드~교체 선수) 높이만큼만 차지 */
+        .sm-container>.sm-side {
+            grid-column: 2;
+            grid-row: 1 / span 4;
+            align-self: stretch;
+            padding-bottom: 10px;
+        }
+
+        /* 도구는 세로로 쌓고, 패널 칸 안에서만 따라옴 → 팀컬러 상세 현황에 닿지 않음 */
+        .sm-side>.sm-tools {
+            grid-template-columns: 1fr !important;
+            margin-bottom: 0 !important;
+            position: sticky;
+            top: 16px;
+        }
+
+        /* 아래: 팀컬러 현황 (전체 폭) */
+        .sm-container>.sm-tc {
+            grid-column: 1 / -1;
+        }
+    }
 
     /* ===== 교체 선수 (서브 명단 7칸) ===== */
     .sm-bench {
@@ -2130,43 +2356,60 @@
 <h1 class="visually-hidden">FC온라인 스쿼드 메이커</h1>
 <div class="sm-container">
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-        <!-- 빠른 스쿼드 제작 -->
-        <div class="sm-quick-vertical" style="border: 1.5px solid #D97757; box-shadow: 0 0 8px rgba(217,119,87,0.25);">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="sm-quick-label">✨ 빠른 스쿼드 제작</span>
-                <button onclick="openQuickGuide()" style="background:none; border:1px solid var(--border-color);
+    <!-- 오른쪽 패널 칸: PC에서 도구가 이 칸 안에서만 따라옴 (팀컬러 상세 현황과 겹치지 않음) -->
+    <div class="sm-side">
+        <!-- 도구 묶음 (모바일: 위쪽 2열 / PC: 오른쪽 패널) -->
+        <div class="sm-tools" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <!-- 빠른 스쿼드 제작 -->
+            <div class="sm-quick-vertical"
+                style="border: 1.5px solid #D97757; box-shadow: 0 0 8px rgba(217,119,87,0.25);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="sm-quick-label">✨ 빠른 스쿼드 제작</span>
+                    <button onclick="openQuickGuide()" style="background:none; border:1px solid var(--border-color);
         border-radius:50%; width:20px; height:20px; font-size:0.75rem; cursor:pointer;
         color:var(--text-muted); line-height:1; padding:0;">?</button>
+                </div>
+                <button class="sm-btn sm-btn-tier"
+                    onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'autofill' }); autoFillByTier()">
+
+                    <span class="btn-full">픽률 자동 완성</span>
+                    <span class="btn-short">픽률 자동 완성</span>
+                </button>
+                <button class="sm-btn sm-btn-ranker"
+                    onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'ranker' }); loadRankerSquad()">
+
+                    <span class="btn-full">랭커 스쿼드 조회</span>
+                    <span class="btn-short">랭커 스쿼드</span>
+                </button>
+                <button class="sm-btn sm-btn-owner"
+                    onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'owner' }); openOwnerSearch()">
+
+                    <span class="btn-full">구단주명 검색</span>
+                    <span class="btn-short">구단주명 검색</span>
+                </button>
             </div>
-            <button class="sm-btn sm-btn-tier"
-                onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'autofill' }); autoFillByTier()">
-
-                <span class="btn-full">픽률 자동 완성</span>
-                <span class="btn-short">픽률 자동 완성</span>
-            </button>
-            <button class="sm-btn sm-btn-ranker"
-                onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'ranker' }); loadRankerSquad()">
-
-                <span class="btn-full">랭커 스쿼드 조회</span>
-                <span class="btn-short">랭커 스쿼드</span>
-            </button>
-            <button class="sm-btn sm-btn-owner"
-                onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'owner' }); openOwnerSearch()">
-
-                <span class="btn-full">구단주명 검색</span>
-                <span class="btn-short">구단주명 검색</span>
-            </button>
+            <!-- 묶음 1: 관리하기 -->
+            <div class="sm-manage">
+                <div class="sm-box-title"><span class="sm-quick-label">🗂️ 관리하기</span></div>
+                <div class="sm-box-btns">
+                    <button class="sm-manage-btn" onclick="saveSquad()">저장하기</button>
+                    <button class="sm-manage-btn" onclick="loadSquadList()">불러오기</button>
+                    <button class="sm-manage-btn sm-manage-reset" onclick="resetSquad()">초기화</button>
+                </div>
+            </div>
+            <!-- 묶음 2: 내보내기 -->
+            <div class="sm-export">
+                <div class="sm-box-title sm-export-title"><span class="sm-quick-label">📤 내보내기</span></div>
+                <div class="sm-box-btns sm-export-btns">
+                    <button class="sm-manage-btn sm-manage-share" onclick="shareSquad()">공유하기</button>
+                    <button class="sm-manage-btn sm-manage-share" id="capture-btn"
+                        onclick="captureSquad()">캡처하기</button>
+                </div>
+            </div>
+            <!-- PC 오른쪽 패널 빈 자리: 나중에 기능을 넣을 칸 (비어 있으면 안 보임) -->
+            <div class="sm-side-extra" id="sm-side-extra"></div>
         </div>
-        <!-- 스쿼드 관리 -->
-        <div class="sm-manage">
-            <button class="sm-manage-btn" onclick="saveSquad()"><span class="sm-manage-ico">💾 </span>저장하기</button>
-            <button class="sm-manage-btn" onclick="loadSquadList()"><span class="sm-manage-ico">📂 </span>불러오기</button>
-            <button class="sm-manage-btn sm-manage-share" onclick="shareSquad()"><span class="sm-manage-ico">🔗
-                </span>공유하기</button>
-            <button class="sm-manage-btn" onclick="resetSquad()"><span class="sm-manage-ico">🔄 </span>초기화</button>
-        </div>
-    </div>
+    </div><!-- /오른쪽 패널 칸 -->
 
     <!-- 랭커 큐 순회 바 -->
     <div class="sm-ranker-queue-bar" id="ranker-queue-bar">
@@ -2182,37 +2425,43 @@
         <div class="sm-ranker-queue-dropdown" id="ranker-queue-dropdown"></div>
     </div>
 
-    <div class="sm-summary">
-        <div class="sm-stat">
-            <div class="sm-stat-label">총 급여</div>
-            <div class="sm-stat-val"><span id="total-salary">0</span><span
-                    style="font-size:0.85rem;color:var(--text-muted)">/315</span></div>
+    <!-- 캡처 영역: 급여·구단가치·포메이션 + 그린필드 -->
+    <div class="sm-capture" id="squad-capture">
+        <div class="sm-summary">
+            <div class="sm-stat">
+                <div class="sm-stat-label">총 급여</div>
+                <div class="sm-stat-val"><span id="total-salary">0</span><span
+                        style="font-size:0.85rem;color:var(--text-muted)">/315</span></div>
+            </div>
+            <div class="sm-stat sm-stat-price">
+                <button type="button" class="sm-info-btn sm-cap-hide" onclick="toggleValueInfo(event)"
+                    aria-label="구단가치 안내">i</button>
+                <div class="sm-info-pop sm-cap-hide" id="value-info-pop"></div>
+                <div class="sm-stat-label">총 구단가치</div>
+                <div class="sm-stat-val"><span id="total-price">—</span><span
+                        style="font-size:0.85rem;color:var(--text-muted)"> BP</span></div>
+            </div>
+            <div class="sm-stat sm-stat-formation" onclick="openFormationPicker()">
+                <div class="sm-stat-label">포메이션<span class="sm-cap-hide"> ▾</span></div>
+                <div class="sm-stat-val"><span id="formation-label">—</span></div>
+            </div>
         </div>
-        <div class="sm-stat sm-stat-price">
-            <button type="button" class="sm-info-btn" onclick="toggleValueInfo(event)" aria-label="구단가치 안내">i</button>
-            <div class="sm-info-pop" id="value-info-pop"></div>
-            <div class="sm-stat-label">총 구단가치</div>
-            <div class="sm-stat-val"><span id="total-price">—</span><span
-                    style="font-size:0.85rem;color:var(--text-muted)"> BP</span></div>
+
+        <!-- 필드 -->
+        <div class="sm-field-wrap" id="squad-field">
+            <div class="sm-field-lines"><span class="box top"></span><span class="box bottom"></span></div>
+
+            <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
+
+            <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
+            <div id="field-rows" style="position:relative; width:100%; height:100%;"></div>
+
+            <div id="tc-corner-logos" class="sm-tc-logos"></div>
+            <div id="tc-corner-name" class="sm-tc-name"></div>
+            <!-- 캡처 이미지에만 나오는 워터마크 -->
+            <div class="sm-watermark">엪씨온큐 · fconq.com</div>
         </div>
-        <div class="sm-stat sm-stat-formation" onclick="openFormationPicker()">
-            <div class="sm-stat-label">포메이션 ▾</div>
-            <div class="sm-stat-val"><span id="formation-label">—</span></div>
-        </div>
-    </div>
-
-    <!-- 필드 -->
-    <div class="sm-field-wrap" id="squad-field">
-        <div class="sm-field-lines"><span class="box top"></span><span class="box bottom"></span></div>
-
-        <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
-
-        <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
-        <div id="field-rows" style="position:relative; width:100%; height:100%;"></div>
-
-        <div id="tc-corner-logos" class="sm-tc-logos"></div>
-        <div id="tc-corner-name" class="sm-tc-name"></div>
-    </div>
+    </div><!-- /캡처 영역 -->
 
     <!-- 교체 선수 (서브 명단 7칸) -->
     <div class="sm-bench" id="squad-bench">
@@ -2284,7 +2533,7 @@
 
     <div class="sm-tc">
         <div class="sm-tc-header">
-            <span class="sm-tc-title">팀컬러 현황</span>
+            <span class="sm-tc-title">팀컬러 상세 현황</span>
         </div>
 
         <div class="sm-tc-block">
@@ -2309,6 +2558,26 @@
         </div>
     </div>
 
+</div>
+
+<!-- 캡처 미리보기 창 -->
+<div class="sm-cap-overlay" id="capture-overlay" onclick="if (event.target === this) closeCapture()">
+    <div class="sm-cap-box">
+        <div class="sm-tier-header">
+            <span class="sm-tier-title">📷 스쿼드 캡처</span>
+            <button style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);"
+                onclick="closeCapture()">✕</button>
+        </div>
+        <div class="sm-cap-preview"><img id="capture-img" alt="스쿼드 캡처 이미지"></div>
+        <div class="sm-cap-name">
+            <input type="text" id="capture-name" maxlength="60" autocomplete="off">
+            <span>.png</span>
+        </div>
+        <div class="sm-cap-actions">
+            <button class="sm-cap-btn save" onclick="downloadCapture()">저장</button>
+            <button class="sm-cap-btn share" id="capture-share-btn" onclick="shareCapture()">공유</button>
+        </div>
+    </div>
 </div>
 
 <!-- 포메이션 선택 모달 -->
@@ -3799,6 +4068,135 @@
         navigator.clipboard.writeText(url).then(() => {
             showToast('그린필드 위, 현재 선수 정보를 그대로 담은 링크가 복사되었습니다! 메신저나 타 플랫폼 등에 붙여넣기해서 공유해보세요 🔗');
         });
+    }
+
+    // ===== 스쿼드 캡처 (급여·구단가치·포메이션 + 그린필드) =====
+    let captureBlob = null;
+    let captureUrl = null;
+
+    function loadCaptureLib() {
+        if (window.htmlToImage) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const sc = document.createElement('script');
+            sc.src = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
+            sc.onload = resolve;
+            sc.onerror = reject;
+            document.head.appendChild(sc);
+        });
+    }
+
+    // 다른 사이트(넥슨) 이미지는 우리 서버 통로를 거쳐 데이터로 바꿔 넣기
+    async function inlineCaptureImages(root) {
+        const restore = [];
+        const blank = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+        await Promise.all([...root.querySelectorAll('img')].map(async img => {
+            const src = img.currentSrc || img.src;
+            if (!src || src.startsWith('data:') || img.style.display === 'none') return;
+            let abs;
+            try { abs = new URL(src, location.href); } catch (e) { return; }
+            if (abs.origin === location.origin) return;
+            restore.push([img, img.getAttribute('src'), img.getAttribute('onerror')]);
+            img.removeAttribute('onerror');
+            try {
+                const res = await fetch('/img_proxy?url=' + encodeURIComponent(abs.href));
+                if (!res.ok) throw new Error();
+                const blob = await res.blob();
+                const dataUrl = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+                img.src = dataUrl;
+            } catch (e) {
+                img.src = blank;   // 못 불러온 이미지는 비워서 캡처 전체가 실패하지 않게
+            }
+            try { await img.decode(); } catch (e) { }
+        }));
+        return () => restore.forEach(([img, src, onerr]) => {
+            img.setAttribute('src', src);
+            if (onerr) img.setAttribute('onerror', onerr);
+        });
+    }
+
+    async function captureSquad() {
+        const btn = document.getElementById('capture-btn');
+        if (btn.disabled) return;
+        const target = document.getElementById('squad-capture');
+        const label = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '⏳ 캡처 중...';
+        let restoreImages = null;
+        try {
+            await loadCaptureLib();
+            if (typeof clearTcHighlight === 'function') clearTcHighlight();   // 팀컬러 강조 등 조작 중 상태 해제
+            restoreImages = await inlineCaptureImages(target);
+            target.classList.add('capturing');   // 워터마크 표시
+
+            const pad = 14;
+            const w = target.offsetWidth, h = target.offsetHeight;
+            const bg = getComputedStyle(document.body).backgroundColor || '#1a1a1a';
+            const opts = {
+                pixelRatio: 2,
+                backgroundColor: bg,
+                width: w + pad * 2,
+                height: h + pad * 2,
+                style: { padding: pad + 'px', margin: '0', width: w + 'px', boxSizing: 'content-box' },
+                filter: node => !(node.classList && node.classList.contains('sm-cap-hide')),
+                imagePlaceholder: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+            };
+            await htmlToImage.toBlob(target, opts);   // 첫 번째는 글꼴·이미지 준비용 (사파리 대비)
+            captureBlob = await htmlToImage.toBlob(target, opts);
+            if (!captureBlob) throw new Error('empty');
+            openCapture();
+            if (typeof gtag === 'function') gtag('event', 'squad_capture');
+        } catch (e) {
+            console.error('캡처 실패:', e);
+            showToast('캡처에 실패했어요. 잠시 후 다시 시도해주세요.');
+        } finally {
+            target.classList.remove('capturing');
+            if (restoreImages) restoreImages();
+            btn.disabled = false;
+            btn.innerHTML = label;
+        }
+    }
+
+    function captureFileName() {
+        const raw = (document.getElementById('capture-name').value || '').trim() || '엪씨온큐 스쿼드 메이커';
+        return raw.replace(/[\\/:*?"<>|]/g, '_') + '.png';
+    }
+
+    function openCapture() {
+        if (captureUrl) URL.revokeObjectURL(captureUrl);
+        captureUrl = URL.createObjectURL(captureBlob);
+        document.getElementById('capture-img').src = captureUrl;
+        const d = new Date();
+        const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        document.getElementById('capture-name').value = `엪씨온큐 스쿼드 메이커 ${ymd}`;
+        // 휴대폰 공유 화면을 쓸 수 있을 때만 공유 버튼 표시
+        const file = new File([captureBlob], 'squad.png', { type: 'image/png' });
+        const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+        document.getElementById('capture-share-btn').style.display = canShare ? '' : 'none';
+        document.getElementById('capture-overlay').classList.add('active');
+    }
+
+    function closeCapture() {
+        document.getElementById('capture-overlay').classList.remove('active');
+    }
+
+    function downloadCapture() {
+        if (!captureBlob) return;
+        const a = document.createElement('a');
+        a.href = captureUrl;
+        a.download = captureFileName();
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        if (typeof gtag === 'function') gtag('event', 'squad_capture_save');
+    }
+
+    async function shareCapture() {
+        if (!captureBlob) return;
+        const file = new File([captureBlob], captureFileName(), { type: 'image/png' });
+        try {
+            await navigator.share({ files: [file], title: '엪씨온큐 스쿼드', text: 'fconq.com 스쿼드 메이커' });
+            if (typeof gtag === 'function') gtag('event', 'squad_capture_share');
+        } catch (e) { /* 사용자가 공유를 취소한 경우 */ }
     }
 
     function showToast(msg) {

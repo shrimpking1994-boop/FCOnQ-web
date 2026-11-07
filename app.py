@@ -3321,6 +3321,31 @@ def get_new_trait_stats():
         'nexon_prev_date': prev_dates.get('nexon', '')
     })    
 
+# ===== 스쿼드 메이커 캡처용 이미지 통로 =====
+# 넥슨 이미지를 우리 서버를 거쳐 전달 (브라우저 보안 규칙 때문에 캡처 시 필요)
+IMG_PROXY_HOSTS = ('nexoncdn.co.kr', 'nexon.com')
+
+@app.route('/img_proxy')
+def img_proxy():
+    url = request.args.get('url', '')
+    parsed = urllib.parse.urlparse(url)
+    host = (parsed.hostname or '').lower()
+    allowed = any(host == h or host.endswith('.' + h) for h in IMG_PROXY_HOSTS)
+    if parsed.scheme not in ('http', 'https') or not allowed:
+        abort(400)
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (FCOnQ image proxy)'})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            ctype = r.headers.get('Content-Type', '')
+            data = r.read(3 * 1024 * 1024 + 1)
+    except Exception:
+        abort(404)
+    if not ctype.startswith('image/') or len(data) > 3 * 1024 * 1024:
+        abort(404)
+    resp = Response(data, mimetype=ctype)
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
 @app.route('/api/squad_tierlist_teamcolors')
 def squad_tierlist_teamcolors():
     """스쿼드 메이커 픽률 자동 완성: 팀컬러 순위 (bucket이 있으면 해당 구단가치 구간 기준)"""
