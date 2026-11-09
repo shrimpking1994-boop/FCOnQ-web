@@ -1967,6 +1967,121 @@
         color: #fff;
     }
 
+    /* ===== 저장된 스쿼드: 편집(선택 삭제 / 전체 삭제) ===== */
+    .sm-sl-head-btns {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sm-sl-edit-btn {
+        padding: 4px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        color: var(--text-primary);
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .sm-sl-edit-btn.on {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+    }
+
+    .sm-sl-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        border: 1px solid rgba(128, 128, 128, 0.4);
+        flex-shrink: 0;
+    }
+
+    .sm-sl-item.editing {
+        cursor: pointer;
+    }
+
+    .sm-sl-item.checked {
+        border-color: #f44336;
+        background: rgba(244, 67, 54, 0.1);
+    }
+
+    .sm-sl-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        accent-color: #f44336;
+        pointer-events: none;
+    }
+
+    .sm-sl-name {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .sm-sl-load {
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: none;
+        background: #4caf50;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .sm-sl-bar {
+        display: none;
+        gap: 6px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .sm-sl-bar.active {
+        display: flex;
+    }
+
+    .sm-sl-bar button {
+        flex: 1;
+        padding: 9px 0;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-main);
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .sm-sl-bar button:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    .sm-sl-bar .del {
+        background: #f44336;
+        border-color: #f44336;
+        color: #fff;
+    }
+
+    .sm-sl-bar .del-all {
+        color: #f44336;
+        border-color: rgba(244, 67, 54, 0.5);
+    }
+
     /* ===== PC 2단 구성: 왼쪽 그린필드 / 오른쪽 도구 ===== */
     .sm-side-extra:empty {
         display: none;
@@ -5193,42 +5308,136 @@
         document.getElementById('squad-save-modal').classList.remove('active');
     }
 
-    async function loadSquadList() {
-        let squads;
-        if (IS_LOGGED_IN) {
-            const res = await fetch('/api/user_squad/load');
-            squads = await res.json();
-        } else {
-            squads = getSavedSquads().reverse();
-        }
+    // 저장된 스쿼드 목록 (화면에 보이는 순서 = 최신순)
+    let squadListCache = [];
+    let squadEditMode = false;
+    let squadChecked = new Set();   // 화면 순서 번호(i)
 
-        const listEl = document.getElementById('squad-load-list');
-        document.getElementById('squad-load-title').textContent = `저장된 스쿼드 (${squads.length}/${IS_LOGGED_IN ? 30 : 10})`;
-        if (squads.length === 0) {
-            listEl.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">저장된 스쿼드가 없습니다.</div>';
-        } else {
-            listEl.innerHTML = squads.map((s, i) => `
-            <div style="display:flex; align-items:center; justify-content:space-between;
-                        padding:10px 12px; margin-bottom:8px; border-radius:8px;
-                        background:var(--bg-secondary); gap:8px; border:1px solid rgba(128,128,128,0.4);">
-                <span style="font-size:0.9rem; font-weight:600; color:var(--text-primary); flex:1;">${s.name}</span>
-                <button onclick="loadSquad(${i}, ${IS_LOGGED_IN})" style="padding:4px 10px; border-radius:6px; border:none; background:#4caf50; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">불러오기</button>
-                <button onclick="deleteSquad(${IS_LOGGED_IN ? s.id : i}, ${IS_LOGGED_IN})" style="padding:4px 10px; border-radius:6px; border:none; background:#f44336; color:#fff; font-size:0.75rem; font-weight:700; cursor:pointer;">삭제</button>
-            </div>
-        `).join('');
-        }
+    function escSquadName(t) {
+        return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    async function loadSquadList() {
+        squadEditMode = false;
+        squadChecked.clear();
+        await refreshSquadList();
         document.getElementById('squad-load-modal').classList.add('active');
     }
 
-    async function loadSquad(idx, isLoggedIn) {
-        let squads;
-        if (isLoggedIn) {
+    async function refreshSquadList() {
+        if (IS_LOGGED_IN) {
             const res = await fetch('/api/user_squad/load');
-            squads = await res.json();
+            squadListCache = await res.json();
+            if (!Array.isArray(squadListCache)) squadListCache = [];
         } else {
-            squads = getSavedSquads().reverse();
+            squadListCache = getSavedSquads().reverse();
         }
-        const s = squads[idx];
+        renderSquadList();
+    }
+
+    function renderSquadList() {
+        const squads = squadListCache;
+        const listEl = document.getElementById('squad-load-list');
+        document.getElementById('squad-load-title').textContent = `저장된 스쿼드 (${squads.length}/${IS_LOGGED_IN ? 30 : MAX_SAVED_SQUADS})`;
+        if (squads.length === 0) squadEditMode = false;
+
+        const editBtn = document.getElementById('squad-edit-btn');
+        editBtn.style.display = squads.length ? '' : 'none';
+        editBtn.textContent = squadEditMode ? '완료' : '편집';
+        editBtn.classList.toggle('on', squadEditMode);
+
+        if (squads.length === 0) {
+            listEl.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px;">저장된 스쿼드가 없습니다.</div>';
+        } else {
+            listEl.innerHTML = squads.map((s, i) => {
+                const checked = squadChecked.has(i);
+                if (squadEditMode) {
+                    return `
+            <div class="sm-sl-item editing${checked ? ' checked' : ''}" onclick="toggleSquadCheck(${i})">
+                <input type="checkbox" ${checked ? 'checked' : ''} tabindex="-1">
+                <span class="sm-sl-name">${escSquadName(s.name)}</span>
+            </div>`;
+                }
+                return `
+            <div class="sm-sl-item">
+                <span class="sm-sl-name">${escSquadName(s.name)}</span>
+                <button class="sm-sl-load" onclick="loadSquad(${i}, ${IS_LOGGED_IN})">불러오기</button>
+            </div>`;
+            }).join('');
+        }
+
+        // 하단 편집 바
+        const bar = document.getElementById('squad-edit-bar');
+        bar.classList.toggle('active', squadEditMode);
+        const n = squadChecked.size;
+        const allChecked = squads.length > 0 && n === squads.length;
+        document.getElementById('squad-check-all').textContent = allChecked ? '선택 해제' : '전체 선택';
+        const delBtn = document.getElementById('squad-del-selected');
+        delBtn.textContent = `선택 삭제 (${n})`;
+        delBtn.disabled = n === 0;
+    }
+
+    function toggleSquadEditMode() {
+        squadEditMode = !squadEditMode;
+        squadChecked.clear();
+        renderSquadList();
+    }
+
+    function toggleSquadCheck(i) {
+        if (squadChecked.has(i)) squadChecked.delete(i);
+        else squadChecked.add(i);
+        renderSquadList();
+    }
+
+    function toggleSquadCheckAll() {
+        if (squadChecked.size === squadListCache.length) squadChecked.clear();
+        else squadListCache.forEach((_, i) => squadChecked.add(i));
+        renderSquadList();
+    }
+
+    // 화면 순서 번호들(목록) 삭제. all=true면 전부 삭제
+    async function deleteSquads(indices, all) {
+        if (IS_LOGGED_IN) {
+            const body = all ? { all: true } : { ids: indices.map(i => squadListCache[i] && squadListCache[i].id).filter(Boolean) };
+            try {
+                const res = await fetch('/api/user_squad/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.error) { alert(data.error); return; }
+            } catch (e) {
+                alert('삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+        } else if (all) {
+            saveSquads([]);
+        } else {
+            // 화면은 최신순(뒤집은 순서)이라, 저장된 원래 순서 번호로 바꿔서 지움
+            const total = getSavedSquads().length;
+            const removeSet = new Set(indices.map(i => total - 1 - i));
+            saveSquads(getSavedSquads().filter((_, j) => !removeSet.has(j)));
+        }
+        squadChecked.clear();
+        await refreshSquadList();
+    }
+
+    function deleteSelectedSquads() {
+        const indices = [...squadChecked];
+        if (!indices.length) return;
+        if (!confirm(`선택한 스쿼드 ${indices.length}개를 삭제할까요?`)) return;
+        deleteSquads(indices, false);
+    }
+
+    function deleteAllSquads() {
+        if (!squadListCache.length) return;
+        if (!confirm(`저장된 스쿼드 ${squadListCache.length}개를 모두 삭제할까요?\n삭제한 스쿼드는 되돌릴 수 없습니다.`)) return;
+        deleteSquads([], true);
+    }
+
+    async function loadSquad(idx, isLoggedIn) {
+        const s = squadListCache[idx];
         if (!s) return;
 
         const squadObj = isLoggedIn ? s.squad_data : s.data;
@@ -5295,24 +5504,10 @@
         });
     }
 
-    function deleteSquad(idOrIdx, isLoggedIn) {
-        if (!confirm('스쿼드를 삭제할까요?')) return;
-        if (isLoggedIn) {
-            fetch('/api/user_squad/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: idOrIdx })
-            }).then(() => loadSquadList());
-        } else {
-            const squads = getSavedSquads();
-            squads.splice(idOrIdx, 1);
-            saveSquads(squads);
-            loadSquadList();
-        }
-    }
-
     function closeSquadLoadModal() {
         document.getElementById('squad-load-modal').classList.remove('active');
+        squadEditMode = false;
+        squadChecked.clear();
     }
 
     renderFormation('42211');
@@ -5384,7 +5579,7 @@
         { id: 'boost-select-overlay', fn: () => closeBoostSelect() },
         { id: 'miniface-overlay', fn: () => closeMiniface() },
         { id: 'squad-save-modal', fn: () => document.getElementById('squad-save-modal').classList.remove('active') },
-        { id: 'squad-load-modal', fn: () => document.getElementById('squad-load-modal').classList.remove('active') },
+        { id: 'squad-load-modal', fn: closeSquadLoadModal },
     ].forEach(({ id, fn }) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -5413,10 +5608,18 @@
 <div id="squad-load-modal" class="sm-modal-overlay" onclick="if(event.target===this)closeSquadLoadModal()">
     <div class="sm-modal">
         <div class="sm-modal-header">
-            <span class="sm-modal-title" id="squad-load-title">저장된 스쿼드</span>
+            <div class="sm-sl-head-btns">
+                <span class="sm-modal-title" id="squad-load-title">저장된 스쿼드</span>
+                <button class="sm-sl-edit-btn" id="squad-edit-btn" onclick="toggleSquadEditMode()">편집</button>
+            </div>
             <button class="sm-modal-close" onclick="closeSquadLoadModal()">✕</button>
         </div>
         <div id="squad-load-list" class="sm-modal-results"></div>
+        <div class="sm-sl-bar" id="squad-edit-bar">
+            <button id="squad-check-all" onclick="toggleSquadCheckAll()">전체 선택</button>
+            <button class="del" id="squad-del-selected" onclick="deleteSelectedSquads()" disabled>선택 삭제 (0)</button>
+            <button class="del-all" onclick="deleteAllSquads()">전체 삭제</button>
+        </div>
     </div>
 </div>
 

@@ -3696,12 +3696,23 @@ def user_squad_load():
 def user_squad_delete():
     if 'user_id' not in session:
         return jsonify({'error': 'unauthorized'}), 401
-    squad_id = request.json.get('id')
+    data = request.json or {}
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("""
-                DELETE FROM user_squads WHERE id = %s AND user_id = %s
-            """, (squad_id, session['user_id']))
+            if data.get('all'):
+                # 전체 삭제
+                cur.execute("DELETE FROM user_squads WHERE user_id = %s", (session['user_id'],))
+            else:
+                # 선택 삭제 (예전 방식 id 하나도 지원)
+                ids = data.get('ids')
+                if ids is None and data.get('id') is not None:
+                    ids = [data.get('id')]
+                ids = [int(i) for i in (ids or []) if str(i).isdigit()]
+                if not ids:
+                    return jsonify({'error': '삭제할 스쿼드를 선택해주세요.'}), 400
+                cur.execute("""
+                    DELETE FROM user_squads WHERE id = ANY(%s) AND user_id = %s
+                """, (ids, session['user_id']))
         conn.commit()
     return jsonify({'success': True})
 
