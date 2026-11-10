@@ -404,6 +404,30 @@
         pointer-events: none;
     }
 
+    /* 조명: 가운데는 밝게, 가장자리는 어둡게 */
+    .sm-field-fx {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+            radial-gradient(ellipse 70% 55% at 50% 45%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0) 70%),
+            radial-gradient(ellipse 115% 90% at 50% 48%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.09) 80%, rgba(0, 0, 0, 0.45) 100%);
+    }
+
+    /* 센터서클 엠블럼 워터마크 */
+    .sm-field-emblem {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 19%;
+        aspect-ratio: 1;
+        object-fit: contain;
+        transform: translate(-50%, -50%);
+        opacity: 0.09;
+        filter: grayscale(0.2);
+        pointer-events: none;
+    }
+
     /* 터치라인 (경기장 테두리) */
     .sm-field-lines::before {
         content: '';
@@ -436,21 +460,21 @@
     }
 
     /* 좌하단 대표 팀컬러 로고 */
-    /* 좌하단 팀컬러 로고 묶음 (한 줄 3개, 넘치면 위로 쌓임) */
+    /* 좌하단 팀컬러 로고 묶음 (한 줄 5개, 넘치면 위로 쌓임) */
     .sm-tc-logos {
         position: absolute;
         left: 14px;
         bottom: 14px;
         display: grid;
-        grid-template-columns: repeat(3, 40px);
-        gap: 6px;
+        grid-template-columns: repeat(5, 36px);
+        gap: 5px;
         z-index: 2;
         pointer-events: none;
     }
 
     .sm-tc-corner {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         object-fit: contain;
         cursor: pointer;
         pointer-events: auto;
@@ -1684,13 +1708,13 @@
         .sm-tc-logos {
             left: 10px;
             bottom: 10px;
-            grid-template-columns: repeat(3, 30px);
-            gap: 5px;
+            grid-template-columns: repeat(5, 20px);
+            gap: 3px;
         }
 
         .sm-tc-corner {
-            width: 30px;
-            height: 30px;
+            width: 20px;
+            height: 20px;
         }
 
         .sm-tc-name {
@@ -1965,6 +1989,206 @@
         background: var(--primary-color);
         border-color: var(--primary-color);
         color: #fff;
+    }
+
+    /* ===== 그린필드 안 정보: 좌상단 급여·구단가치 / 우상단 포메이션 ===== */
+    .sm-hud {
+        position: absolute;
+        top: 12px;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .sm-hud-left {
+        left: 12px;
+        align-items: flex-start;
+    }
+
+    .sm-hud-right {
+        right: 12px;
+        align-items: flex-end;
+    }
+
+    .sm-hud-box {
+        background: rgba(0, 0, 0, 0.38);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 6px 10px;
+        color: #fff;
+        font-weight: 800;
+        line-height: 1.25;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .sm-hud-box .sub {
+        font-size: 0.72em;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .sm-hud-salary {
+        font-size: 1.15rem;
+    }
+
+    .sm-hud-price {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 1px;
+        font-size: 1.05rem;
+        white-space: nowrap;
+    }
+
+    .sm-hud-price .sm-info-btn {
+        position: static;
+        margin-left: 5px;
+        border-color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.75);
+        flex-shrink: 0;
+    }
+
+    .sm-hud-price .sm-info-pop {
+        left: -10px;
+        transform: none;
+        top: calc(100% + 10px);
+        width: 220px;
+        white-space: normal;
+        text-shadow: none;
+        font-weight: 400;
+    }
+
+    .sm-hud-formation {
+        font-family: inherit;
+        font-size: 1.05rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: background 0.15s;
+    }
+
+    .sm-hud-formation:hover {
+        background: rgba(0, 0, 0, 0.55);
+    }
+
+    .sm-hud-formation .caret {
+        font-size: 0.7em;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* 우하단 팀컬러 요약 (로고를 눌러 상세가 뜨면 잠시 숨김) */
+    .sm-tc-summary {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 2;
+        text-align: right;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+
+    .sm-tc-summary:empty,
+    .sm-tc-summary.hide {
+        opacity: 0;
+    }
+
+    .sm-tc-summary:empty {
+        display: none;
+    }
+
+    .sm-tc-summary .club {
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    .sm-tc-summary .trait {
+        display: block;
+        margin-top: 1px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    @media (max-width: 768px) {
+        .sm-tc-summary {
+            right: 8px;
+            bottom: 8px;
+        }
+
+        .sm-tc-summary .club {
+            font-size: 0.72rem;
+        }
+
+        .sm-tc-summary .trait {
+            font-size: 0.6rem;
+        }
+    }
+
+    /* 캡처할 때는 i 버튼·화살표를 아예 빼서 박스 크기도 딱 맞게 */
+    .sm-capture.capturing .sm-hud .sm-cap-hide {
+        display: none !important;
+    }
+
+    /* 캡처 워터마크: 포메이션 아래 (오른쪽 정렬) */
+    .sm-hud-right .sm-watermark {
+        position: static;
+        padding-right: 2px;
+        text-align: right;
+    }
+
+    /* 선수 배치 영역 */
+    #field-rows {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    @media (max-width: 768px) {
+
+        /* 모바일: 위쪽 정보 자리만큼 필드를 늘리고 선수 배치는 그 아래부터 */
+        .sm-field-wrap {
+            height: 540px;
+        }
+
+        #field-rows {
+            top: 40px;
+            height: calc(100% - 40px);
+        }
+
+        .sm-hud {
+            top: 8px;
+        }
+
+        .sm-hud-left {
+            left: 8px;
+        }
+
+        .sm-hud-right {
+            right: 8px;
+        }
+
+        .sm-hud-box {
+            padding: 4px 7px;
+            border-radius: 6px;
+        }
+
+        .sm-hud-salary {
+            font-size: 0.85rem;
+        }
+
+        .sm-hud-price {
+            font-size: 0.78rem;
+        }
+
+        .sm-hud-formation {
+            font-size: 0.8rem;
+        }
+
+        .sm-hud-price .sm-info-btn {
+            margin-left: 4px;
+        }
     }
 
     /* ===== 저장된 스쿼드: 편집(선택 삭제 / 전체 삭제) ===== */
@@ -2539,41 +2763,48 @@
         <div class="sm-ranker-queue-dropdown" id="ranker-queue-dropdown"></div>
     </div>
 
-    <!-- 캡처 영역: 급여·구단가치·포메이션 + 그린필드 -->
+    <!-- 캡처 영역: 그린필드 (급여·구단가치·포메이션은 필드 안에 표시) -->
     <div class="sm-capture" id="squad-capture">
-        <div class="sm-summary">
-            <div class="sm-stat">
-                <div class="sm-stat-label">총 급여</div>
-                <div class="sm-stat-val"><span id="total-salary">0</span><span
-                        style="font-size:0.85rem;color:var(--text-muted)">/315</span></div>
-            </div>
-            <div class="sm-stat sm-stat-price">
-                <button type="button" class="sm-info-btn sm-cap-hide" onclick="toggleValueInfo(event)"
-                    aria-label="구단가치 안내">i</button>
-                <div class="sm-info-pop sm-cap-hide" id="value-info-pop"></div>
-                <div class="sm-stat-label">총 구단가치</div>
-                <div class="sm-stat-val"><span id="total-price">—</span><span
-                        style="font-size:0.85rem;color:var(--text-muted)"> BP</span></div>
-            </div>
-            <div class="sm-stat sm-stat-formation" onclick="openFormationPicker()">
-                <div class="sm-stat-label">포메이션<span class="sm-cap-hide"> ▾</span></div>
-                <div class="sm-stat-val"><span id="formation-label">—</span></div>
-            </div>
-        </div>
-
         <!-- 필드 -->
         <div class="sm-field-wrap" id="squad-field">
+            <!-- 조명 효과 -->
+            <div class="sm-field-fx" id="field-fx"></div>
+            <!-- 센터서클 대표 팀컬러 엠블럼 (아주 흐리게) -->
+            <img id="field-emblem" class="sm-field-emblem" alt="" style="display:none"
+                onerror="this.style.display='none'">
             <div class="sm-field-lines"><span class="box top"></span><span class="box bottom"></span></div>
 
             <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
 
             <!-- 포메이션별 슬롯은 JS로 동적 렌더링 -->
-            <div id="field-rows" style="position:relative; width:100%; height:100%;"></div>
+            <div id="field-rows"></div>
 
             <div id="tc-corner-logos" class="sm-tc-logos"></div>
             <div id="tc-corner-name" class="sm-tc-name"></div>
-            <!-- 캡처 이미지에만 나오는 워터마크 -->
-            <div class="sm-watermark">엪씨온큐 · fconq.com</div>
+            <!-- 우하단: 적용 중인 팀컬러 요약 -->
+            <div id="tc-corner-summary" class="sm-hud-box sm-tc-summary"></div>
+
+            <!-- 좌상단: 급여 / 구단가치 (+ 캡처 시 워터마크) -->
+            <div class="sm-hud sm-hud-left">
+                <div class="sm-hud-box">
+                    <div class="sm-hud-salary"><span id="total-salary">0</span><span class="sub">/315</span></div>
+                    <div class="sm-hud-price sm-stat-price">
+                        <span id="total-price">—</span><span class="sub"> BP</span>
+                        <button type="button" class="sm-info-btn sm-cap-hide" onclick="toggleValueInfo(event)"
+                            aria-label="구단가치 안내">i</button>
+                        <div class="sm-info-pop sm-cap-hide" id="value-info-pop"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 우상단: 포메이션 (눌러서 변경) -->
+            <div class="sm-hud sm-hud-right">
+                <button type="button" class="sm-hud-box sm-hud-formation" onclick="openFormationPicker()"
+                    aria-label="포메이션 변경"><span id="formation-label">—</span><span
+                        class="caret sm-cap-hide">▾</span></button>
+                <!-- 캡처 이미지에만 나오는 워터마크 -->
+                <div class="sm-watermark">엪씨온큐 · fconq.com</div>
+            </div>
         </div>
     </div><!-- /캡처 영역 -->
 
@@ -3183,7 +3414,7 @@
         el.innerHTML = `
         <div class="sm-slot-card" id="slot-${pos}">
             <span class="plus">+</span>
-            <div style="font-size:0.6rem;color:rgba(255,255,255,0.6);margin-top:3px;font-weight:600;">${pos}</div>
+            <div style="font-size:0.6rem;color:${posColor(pos)};opacity:0.75;margin-top:3px;font-weight:700;">${pos}</div>
         </div>`;
         container.appendChild(el);
     }
@@ -3232,22 +3463,22 @@
         'LAM': { top: 27, left: 20, w: 17, h: 11 },
         'CAM': { top: 27, left: 37, w: 26, h: 11 },
         'RAM': { top: 27, left: 63, w: 17, h: 11 },
-        'LM': { top: 28, left: 0, w: 20, h: 35 },
+        'LM': { top: 28, left: 0, w: 20, h: 27 },
         'LCM': { top: 38, left: 20, w: 22, h: 12 },
         'CM': { top: 38, left: 42, w: 16, h: 12 },
         'RCM': { top: 38, left: 58, w: 22, h: 12 },
-        'RM': { top: 28, left: 80, w: 20, h: 35 },
+        'RM': { top: 28, left: 80, w: 20, h: 27 },
         'LDM': { top: 50, left: 20, w: 23, h: 18 },
         'CDM': { top: 50, left: 43, w: 14, h: 18 },
         'RDM': { top: 50, left: 57, w: 23, h: 18 },
-        'LWB': { top: 63, left: 0, w: 20, h: 9 },
-        'RWB': { top: 63, left: 80, w: 20, h: 9 },
-        'LB': { top: 72, left: 0, w: 20, h: 13 },
+        'LWB': { top: 55, left: 0, w: 20, h: 15 },
+        'RWB': { top: 55, left: 80, w: 20, h: 15 },
+        'LB': { top: 70, left: 0, w: 20, h: 15 },
         'LCB': { top: 68, left: 20, w: 23, h: 17 },
         'CB': { top: 68, left: 43, w: 14, h: 9 },
         'SW': { top: 77, left: 43, w: 14, h: 8 },
         'RCB': { top: 68, left: 57, w: 23, h: 17 },
-        'RB': { top: 72, left: 80, w: 20, h: 13 },
+        'RB': { top: 70, left: 80, w: 20, h: 15 },
     };
 
     function initDragAndDrop() {
@@ -3259,7 +3490,7 @@
         document.querySelectorAll('.zone-highlight').forEach(el => el.remove());
         if (!pos || !ZONE_DEFS[pos]) return;
 
-        const field = document.getElementById('squad-field');
+        const field = document.getElementById('field-rows');
         const fw = field.offsetWidth;
         const fh = field.offsetHeight;
         const z = ZONE_DEFS[pos];
@@ -3332,7 +3563,7 @@
             highlightBenchSlot(benchHover);
             if (benchHover !== null) { clearZoneHighlight(); return; }
 
-            const field = document.getElementById('squad-field');
+            const field = document.getElementById('field-rows');
             const rect = field.getBoundingClientRect();
             const pctX = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
             const pctY = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
@@ -3346,7 +3577,10 @@
 
                 // 포지션 레이블 업데이트
                 const posLabel = dragState.ghost.querySelector('[data-ghost-pos]');
-                if (posLabel) posLabel.textContent = hoverPos;
+                if (posLabel) {
+                    posLabel.textContent = hoverPos;
+                    posLabel.style.color = posColor(hoverPos);
+                }
 
                 // OVR 업데이트 (카드가 있을 때만)
                 if (card) {
@@ -3376,7 +3610,7 @@
 
             if (dragState.pos === 'GK') { dragState = null; return; }
 
-            const field = document.getElementById('squad-field');
+            const field = document.getElementById('field-rows');
             const rect = field.getBoundingClientRect();
             const pctX = Math.max(0, Math.min(100, (e.clientX - rect.left) / rect.width * 100));
             const pctY = Math.max(0, Math.min(100, (e.clientY - rect.top) / rect.height * 100));
@@ -3474,7 +3708,7 @@
     function resetSlotEmpty(pos) {
         const el = document.getElementById(`slot-${pos}`);
         if (!el) return;
-        el.innerHTML = `<span class="plus">+</span><div data-ghost-pos style="font-size:0.6rem;color:rgba(255,255,255,0.6);margin-top:3px;font-weight:600;">${pos}</div>`;
+        el.innerHTML = `<span class="plus">+</span><div data-ghost-pos style="font-size:0.6rem;color:${posColor(pos)};opacity:0.75;margin-top:3px;font-weight:700;">${pos}</div>`;
         el.style.background = 'rgba(255,255,255,0.08)';
         el.style.border = '1.5px dashed rgba(255,255,255,0.3)';
         el.style.overflow = 'hidden';
@@ -3588,7 +3822,7 @@
             } else {
                 const slotEl = document.getElementById(`slot-${pos}`);
                 if (slotEl) {
-                    slotEl.innerHTML = `<span class="plus">+</span><div style="font-size:0.6rem;color:rgba(255,255,255,0.6);margin-top:3px;font-weight:600;">${pos}</div>`;
+                    slotEl.innerHTML = `<span class="plus">+</span><div style="font-size:0.6rem;color:${posColor(pos)};opacity:0.75;margin-top:3px;font-weight:700;">${pos}</div>`;
                     slotEl.style.background = 'rgba(255,255,255,0.08)';
                     slotEl.style.border = '1.5px dashed rgba(255,255,255,0.3)';
                     slotEl.style.overflow = 'hidden';
@@ -4085,7 +4319,7 @@
                 <div data-ghost-ovr style="font-size:${ovrFont}; font-weight:800; color:#fff; text-shadow:1px 1px 2px #000;">
                     ${calcOvr(card, pos)}
                 </div>
-                <div data-ghost-pos style="font-size:${posFont}; font-weight:700; color:rgba(255,255,255,0.85);">
+                <div data-ghost-pos style="font-size:${posFont}; font-weight:800; color:${posColor(pos)}; text-shadow:1px 1px 2px rgba(0,0,0,0.6);">
                     ${pos}
                 </div>
                 ${newTraitIconHtml ? `<div style="display:flex; justify-content:center; gap:2px; margin-top:${traitGapTop}px; flex-wrap:wrap;">${newTraitIconHtml}</div>` : ''}
@@ -4323,7 +4557,7 @@
         const totalSalary = players.reduce((sum, p) => sum + (parseInt(p.salary) || 0), 0);
         const salaryEl = document.getElementById('total-salary');
         salaryEl.textContent = totalSalary;
-        salaryEl.style.color = totalSalary > 315 ? '#f44336' : 'var(--text-primary)';
+        salaryEl.style.color = totalSalary > 315 ? '#ff4d4d' : '#fff';
 
         const totalPrice = players.reduce((sum, p) => {
             const bpKey = 'bp' + (p.boost || 8);
@@ -4346,6 +4580,18 @@
 
         updateFormationLabel();
         updateTeamColor();
+    }
+
+    // 포지션 글자 색: 공격수 빨강 / 미드필더 연두 / 수비수 하늘 / 골키퍼 노랑
+    function posColor(pos) {
+        const FW = ['ST', 'LS', 'RS', 'CF', 'LF', 'RF', 'LW', 'RW'];
+        const MF = ['CAM', 'LAM', 'RAM', 'LM', 'RM', 'CM', 'LCM', 'RCM', 'CDM', 'LDM', 'RDM'];
+        const DF = ['LB', 'RB', 'LWB', 'RWB', 'CB', 'LCB', 'RCB', 'SW'];
+        if (FW.includes(pos)) return '#ff5a5a';
+        if (MF.includes(pos)) return '#8ee04a';
+        if (DF.includes(pos)) return '#4fb3ff';
+        if (pos === 'GK') return '#ffd23f';
+        return 'rgba(255,255,255,0.85)';
     }
 
     const POS_LINE = {
@@ -4384,6 +4630,32 @@
             `<img class="sm-tc-corner" src="${tc.image_url}" alt="${tc.name}" data-tc-idx="${i}"
                   onclick="toggleTcHighlight(${i})" onerror="this.style.display='none'">`
         ).join('');
+        renderTcSummary();
+        renderFieldEmblem();
+    }
+
+    // 센터서클 엠블럼: 대표 소속 팀컬러 로고
+    function renderFieldEmblem() {
+        const el = document.getElementById('field-emblem');
+        if (!el) return;
+        const url = tcCornerClub && tcCornerClub.image_url;
+        if (url) {
+            if (el.getAttribute('src') !== url) el.src = url;
+            el.style.display = '';
+        } else {
+            el.style.display = 'none';
+        }
+    }
+
+    // 우하단 요약: "레알 마드리드 / + 특성 팀컬러 N종"
+    function renderTcSummary() {
+        const el = document.getElementById('tc-corner-summary');
+        if (!el) return;
+        const traitCnt = tcCornerItems.length - (tcCornerClub ? 1 : 0);
+        let html = '';
+        if (tcCornerClub) html += `<span class="club">${tcCornerClub.name}</span>`;
+        if (traitCnt > 0) html += `<span class="trait">${tcCornerClub ? '+ ' : ''}특성 팀컬러 ${traitCnt}종</span>`;
+        el.innerHTML = html;
     }
 
     function toggleTcHighlight(i) {
@@ -4405,6 +4677,7 @@
         nameEl.innerHTML = `<span class="nm">${tc.name}</span>` +
             (effects.length ? `<span class="eff">${effects.join(' · ')}</span>` : '');
         nameEl.classList.add('show');
+        document.getElementById('tc-corner-summary')?.classList.add('hide');
         tcActiveIdx = i;
     }
 
@@ -4414,6 +4687,7 @@
         document.querySelectorAll('#tc-corner-logos .active')
             .forEach(el => el.classList.remove('active'));
         document.getElementById('tc-corner-name')?.classList.remove('show');
+        document.getElementById('tc-corner-summary')?.classList.remove('hide');
         tcActiveIdx = null;
     }
 
