@@ -612,12 +612,14 @@
         transform: translateY(-2px);
     }
 
-    /* 미니 경기장 */
+    /* 미니 경기장 (조명: 스쿼드 메이커와 같은 명암) */
     .home-pitch {
         position: relative;
         aspect-ratio: 3 / 4;
         background:
             linear-gradient(to bottom, transparent calc(50% - 1px), rgba(255, 255, 255, 0.18) calc(50% - 1px), rgba(255, 255, 255, 0.18) calc(50% + 1px), transparent calc(50% + 1px)),
+            radial-gradient(ellipse 70% 55% at 50% 45%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0) 70%),
+            radial-gradient(ellipse 115% 90% at 50% 48%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.09) 80%, rgba(0, 0, 0, 0.45) 100%),
             repeating-linear-gradient(to bottom, #2f6b3a 0, #2f6b3a 12.5%, #2a6134 12.5%, #2a6134 25%);
     }
 
