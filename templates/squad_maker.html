@@ -4059,7 +4059,11 @@
         const boostColor = BOOST_COLORS[boost];
         const boostTextColor = boost <= 13 ? '#333' : '#fff';
 
-        const newTraitIconSize = isMobile ? 13 : 25;
+        const newTraitIconSize = isMobile ? 15 : 25;
+        // 모바일: OVR·포지션·신규 특성 묶음을 위로 바짝 올려 시즌 로고와 겹치지 않게
+        const ovrTop = isMobile ? 0 : 4;
+        const ovrLineH = isMobile ? 1.1 : 1.3;
+        const traitGapTop = isMobile ? 2 : 2;
         const newTraitIconHtml = (card.traits || [])
             .filter(t => NEW_TRAITS.includes(t) && TRAIT_MAP[t])
             .map(t => `<img src="${TRAIT_MAP[t]}" alt="${t}" title="${t}" loading="lazy" style="width:${newTraitIconSize}px;height:${newTraitIconSize}px;object-fit:contain;">`)
@@ -4077,14 +4081,14 @@
         <div class="${isNewCard ? 'sm-pop' : ''}" style="position:relative; width:${slotW}px; text-align:center;">
 
             <!-- OVR + 포지션 (왼쪽) -->
-            <div style="position:absolute; left:${ovrLeft}px; top:4px; text-align:center; line-height:1.3;">
+            <div style="position:absolute; left:${ovrLeft}px; top:${ovrTop}px; text-align:center; line-height:${ovrLineH};">
                 <div data-ghost-ovr style="font-size:${ovrFont}; font-weight:800; color:#fff; text-shadow:1px 1px 2px #000;">
                     ${calcOvr(card, pos)}
                 </div>
                 <div data-ghost-pos style="font-size:${posFont}; font-weight:700; color:rgba(255,255,255,0.85);">
                     ${pos}
                 </div>
-                ${newTraitIconHtml ? `<div style="display:flex; justify-content:center; gap:2px; margin-top:2px; flex-wrap:wrap;">${newTraitIconHtml}</div>` : ''}
+                ${newTraitIconHtml ? `<div style="display:flex; justify-content:center; gap:2px; margin-top:${traitGapTop}px; flex-wrap:wrap;">${newTraitIconHtml}</div>` : ''}
             </div>
 
             <!-- 급여 육각형 + 강화단계 (오른쪽) -->
