@@ -2706,7 +2706,8 @@
                     <span class="sm-quick-label">✨ 빠른 스쿼드 제작</span>
                     <button onclick="openQuickGuide()" style="background:none; border:1px solid var(--border-color);
         border-radius:50%; width:20px; height:20px; font-size:0.75rem; cursor:pointer;
-        color:var(--text-muted); line-height:1; padding:0;">?</button>
+        color:var(--text-muted); line-height:1; padding:0; font-style:italic; font-weight:700;"
+                        aria-label="빠른 스쿼드 제작 안내">i</button>
                 </div>
                 <button class="sm-btn sm-btn-tier"
                     onclick="if (typeof gtag === 'function') gtag('event', 'squad_quick_click', { feature: 'autofill' }); autoFillByTier()">
@@ -2958,12 +2959,13 @@
         </div>
         <div class="sm-ranker-list" style="overflow-y:auto;">
             <div style="padding:4px 0 12px;">
-                <div style="font-size:0.95rem; font-weight:700; color:var(--primary-color); margin-bottom:6px;">
+                <div style="font-size:0.95rem; font-weight:700; color:#14944a; margin-bottom:6px;">
                     1. 픽률 자동 완성
                 </div>
                 <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6;">
                     선수 티어리스트 데이터를 기반으로 팀컬러별 각 포지션 사용률 순위에 따라 스쿼드를 자동으로 채워드립니다. 포메이션 → 팀컬러 → 순위 조합을 선택하면 즉시
-                    완성됩니다.<br><br>해당
+                    완성됩니다.<br><br>필드 플레이어는 선택한 순위대로 채우고, <b>골키퍼는 총 급여 315 안에서 남은 급여를 최대한 채우는 카드</b>로 자동 선택합니다.
+                    필드 플레이어만으로 이미 급여가 넘치는 경우에는 급여가 가장 낮은 골키퍼가 들어가요.<br><br>해당
                     기능은 특정 팀컬러의 대략적인 느낌 파악이나 쉽고 빠른 스쿼드 초안 제작을 위해 만들었습니다.
                 </div>
             </div>
@@ -5021,7 +5023,10 @@
         const usedPids = new Set();
         const assignments = {};
 
+        // 골키퍼는 급여 조절용: 필드 플레이어를 먼저 채운 뒤 따로 고름
+        const gkPos = positions.find(p => SM_TO_TIERLIST[p] === 'GK');
         for (const pos of positions) {
+            if (pos === gkPos) continue;
             const tlPos = SM_TO_TIERLIST[pos];
             const cards = tcData[tlPos] || [];
             let picked = null, uniqueCount = 0;
@@ -5038,7 +5043,13 @@
             }
         }
 
-        const spids = Object.values(assignments).map(c => parseInt(c.spid));
+        // 골키퍼 후보 (사용률 순, 필드 선수와 중복 제외)
+        const gkCands = gkPos
+            ? (tcData['GK'] || []).filter(c => !usedPids.has(String(c.spid).slice(-6)))
+            : [];
+
+        const spids = Object.values(assignments).map(c => parseInt(c.spid))
+            .concat(gkCands.map(c => parseInt(c.spid)));
         if (!spids.length) return;
 
         const cardRes = await fetch('/api/squad_cards_batch', {
@@ -5049,6 +5060,18 @@
         const cardList = await cardRes.json();
         const cardMap = {};
         cardList.forEach(c => { cardMap[String(c.spid)] = c; });
+
+        // 남은 급여를 최대한 채우는 골키퍼 (급여가 같으면 사용률 높은 쪽), 없으면 급여가 가장 낮은 골키퍼
+        if (gkPos && gkCands.length) {
+            const salaryOf = c => parseInt((cardMap[String(c.spid)] || {}).salary) || 0;
+            const fieldSalary = Object.values(assignments).reduce((sum, c) => sum + salaryOf(c), 0);
+            const budget = 315 - fieldSalary;
+            const withInfo = gkCands.filter(c => cardMap[String(c.spid)]);
+            const fits = withInfo.filter(c => salaryOf(c) <= budget);
+            let gk = fits.reduce((best, c) => (!best || salaryOf(c) > salaryOf(best)) ? c : best, null);
+            if (!gk && withInfo.length) gk = withInfo.reduce((min, c) => salaryOf(c) < salaryOf(min) ? c : min);
+            if (gk) assignments[gkPos] = gk;
+        }
 
         const entries = [];
         for (const [pos, tierCard] of Object.entries(assignments)) {
