@@ -642,7 +642,7 @@ def home_summary():
         SELECT id, title, created_at FROM community.posts
         WHERE is_deleted = false AND category = '업데이트'
         ORDER BY created_at DESC
-        LIMIT 5
+        LIMIT 9
     """)
     updates = [{'id': r['id'], 'title': r['title'], 'date': _home_date(r['created_at'])}
                for r in cur.fetchall()]
