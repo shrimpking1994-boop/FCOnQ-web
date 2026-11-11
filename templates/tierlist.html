@@ -3,8 +3,7 @@
 {% block title %}FCOnQ - 티어리스트{% endblock %}
 
 {% block meta_description %}
-<meta name="description"
-    content="랭커 1만 명의 스쿼드를 분석한 FC온라인 티어리스트. 인기 팀컬러 순위, 팀컬러별 포지션 선수 순위, 신규 특성 순위, 시세 급등·급락 카드를 한눈에 확인하세요.">
+<meta name="description" content="랭커 1만 명의 스쿼드를 분석한 FC온라인 티어리스트. 인기 팀컬러 순위, 팀컬러별 포지션 선수 순위, 신규 특성 순위를 한눈에 확인하세요.">
 {% endblock %}
 
 {% block twitter_tags %}
@@ -1726,7 +1725,8 @@
         <button class="tierlist-tab-btn active" onclick="switchTab('teamcolor')">팀컬러</button>
         <button class="tierlist-tab-btn" onclick="switchTab('card')">선수</button>
         <button class="tierlist-tab-btn" onclick="switchTab('trait')">신규 특성</button>
-        <button class="tierlist-tab-btn" onclick="switchTab('price')">시세</button>
+        <!-- 시세 탭: 조회가 적어 잠시 숨김 (되살릴 때 주석만 풀면 됨) -->
+        <!-- <button class="tierlist-tab-btn" onclick="switchTab('price')">시세</button> -->
         <!-- <button class="tierlist-tab-btn" onclick="switchTab('formation')">포메이션</button> -->
     </div>
 
@@ -2948,7 +2948,8 @@
         }
 
         let lastTab = tabParam || localStorage.getItem('lastTab') || 'teamcolor';
-        if (lastTab === 'formation') lastTab = 'teamcolor';
+        // 숨긴 탭(포메이션·시세)으로 들어오면 기본 탭으로
+        if (lastTab === 'formation' || lastTab === 'price') lastTab = 'teamcolor';
         const lastTeamRanking = localStorage.getItem('lastTeamRanking') || '5000';
         const lastFormationRanking = localStorage.getItem('lastFormationRanking') || '5000';
 
