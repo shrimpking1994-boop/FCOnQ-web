@@ -995,6 +995,20 @@
                 height: 18px;
             }
         }
+
+        /* ===== PC 오른쪽 광고 (PR 작업) ===== */
+        #pc-right-rail {
+            display: none;
+            position: fixed;
+            top: 160px;
+            width: 160px;
+            height: 600px;
+            z-index: 10;
+        }
+
+        #pc-right-rail:has(ins[data-ad-status="unfilled"]) {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -1301,6 +1315,13 @@
             style="width: 250px; border-radius: 8px; cursor: pointer; display: block;">
     </a>
 
+    <!-- PC 오른쪽 광고 (스쿼드 메이커, 로그인, 정책, 글쓰기·수정 화면 제외) -->
+    {% set hide_side_ad = request.path.startswith(('/squad_maker', '/login', '/privacy', '/terms', '/delete-account',
+    '/community/write', '/admin')) or request.path.endswith('/edit') %}
+    {% if not hide_side_ad %}
+    <div id="pc-right-rail" data-slot="8764761811"></div>
+    {% endif %}
+
     <!-- X05 PRO 광고 배너 -->{#
     <a id="x05pro-banner" href="https://link.coupang.com/a/gQvGOGMErA" target="_blank" rel="noopener"
         onclick="gtag('event', 'ad_click', { 'ad_name': 'x05pro_pad', 'placement': 'index_left_banner' });">
@@ -1339,6 +1360,53 @@
 
         window.addEventListener('load', positionBanner);
         window.addEventListener('resize', positionBanner);
+    </script>
+
+    <script>
+        // PC 오른쪽 광고: 오른쪽 빈 공간이 충분할 때만 보이고, 그때 한 번만 불러오기
+        (function () {
+            const rail = document.getElementById('pc-right-rail');
+            if (!rail) return;
+            let pushed = false;
+
+            function placeRail() {
+                const container = document.querySelector('.main-content .container');
+                if (!container) return;
+                const rightSpace = window.innerWidth - container.getBoundingClientRect().right;
+
+                if (rightSpace < 200) {
+                    rail.style.display = 'none';
+                    return;
+                }
+
+                rail.style.display = 'block';
+                rail.style.left = (window.innerWidth - rightSpace / 2 - 80) + 'px';
+                rail.style.position = window.innerHeight >= 780 ? 'fixed' : 'absolute';
+                keepAboveFooter();
+
+                if (!pushed) {
+                    pushed = true;
+                    rail.innerHTML = `<ins class="adsbygoogle" style="display:inline-block;width:160px;height:600px"
+                        data-ad-client="ca-pub-7405651133449844" data-ad-slot="${rail.dataset.slot}"></ins>`;
+                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
+                }
+            }
+
+            // 스크롤해서 푸터가 올라오면 광고도 같이 올라가게 (푸터를 덮지 않도록)
+            function keepAboveFooter() {
+                if (rail.style.position !== 'fixed') {
+                    rail.style.top = '160px';
+                    return;
+                }
+                const footer = document.querySelector('.main-footer');
+                const limit = footer ? footer.getBoundingClientRect().top - 620 : 160;
+                rail.style.top = Math.min(160, limit) + 'px';
+            }
+
+            window.addEventListener('load', placeRail);
+            window.addEventListener('resize', placeRail);
+            window.addEventListener('scroll', keepAboveFooter, { passive: true });
+        })();
     </script>
 
     <script>
