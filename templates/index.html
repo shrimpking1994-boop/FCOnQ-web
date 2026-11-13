@@ -1319,7 +1319,7 @@
     {% set hide_side_ad = request.path.startswith(('/squad_maker', '/login', '/privacy', '/terms', '/delete-account',
     '/community/write', '/admin')) or request.path.endswith('/edit') %}
     {% if not hide_side_ad %}
-    <div id="pc-right-rail" data-slot="8764761811"></div>
+    <div id="pc-right-rail" data-slot-300="8764761811" data-slot-160=""></div>
     {% endif %}
 
     <!-- X05 PRO 광고 배너 -->{#
@@ -1369,25 +1369,39 @@
             if (!rail) return;
             let pushed = false;
 
+            let railSize = 0;   // 처음 불러올 때 정한 광고 폭 (300 또는 160)
+
             function placeRail() {
                 const container = document.querySelector('.main-content .container');
                 if (!container) return;
                 const rightSpace = window.innerWidth - container.getBoundingClientRect().right;
 
-                if (rightSpace < 200) {
+                // 처음 한 번: 공간에 맞는 크기를 정하고 그 크기로 불러오기
+                if (!pushed) {
+                    const slot300 = rail.getAttribute('data-slot-300');
+                    const slot160 = rail.getAttribute('data-slot-160');
+                    if (rightSpace >= 340 && slot300) railSize = 300;
+                    else if (rightSpace >= 200 && slot160) railSize = 160;
+                    else { rail.style.display = 'none'; return; }
+                }
+
+                // 창 크기가 바뀌어 공간이 모자라면 숨기기
+                if (rightSpace < railSize + 40) {
                     rail.style.display = 'none';
                     return;
                 }
 
                 rail.style.display = 'block';
-                rail.style.left = (window.innerWidth - rightSpace / 2 - 80) + 'px';
+                rail.style.width = railSize + 'px';
+                rail.style.left = (window.innerWidth - rightSpace / 2 - railSize / 2) + 'px';
                 rail.style.position = window.innerHeight >= 780 ? 'fixed' : 'absolute';
                 keepAboveFooter();
 
                 if (!pushed) {
                     pushed = true;
-                    rail.innerHTML = `<ins class="adsbygoogle" style="display:inline-block;width:160px;height:600px"
-                        data-ad-client="ca-pub-7405651133449844" data-ad-slot="${rail.dataset.slot}"></ins>`;
+                    const slot = rail.getAttribute(railSize === 300 ? 'data-slot-300' : 'data-slot-160');
+                    rail.innerHTML = `<ins class="adsbygoogle" style="display:inline-block;width:${railSize}px;height:600px"
+                        data-ad-client="ca-pub-7405651133449844" data-ad-slot="${slot}"></ins>`;
                     try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
                 }
             }
