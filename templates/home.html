@@ -1370,7 +1370,7 @@
             .then(data => {
                 if (!data.success || !data.buckets.length) throw new Error();
                 buckets = data.buckets;
-                current = Math.min(2, buckets.length - 1);  // 처음엔 3번째(~30억) 탭
+                current = Math.min(2, buckets.length - 1);  // 처음엔 3번째(~100억, 랭커가 가장 많은 구간) 탭
                 document.getElementById('homeSquadDate').textContent = data.date || '';
                 renderTabs();
                 render();
