@@ -123,14 +123,6 @@
     }
 
     /* ===== 구단주 정보 ===== */
-    .us-profile {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 14px;
-    }
-
     .us-nick {
         color: var(--text-primary);
         font-size: 1.4rem;
@@ -149,84 +141,219 @@
         vertical-align: middle;
     }
 
-    .us-record {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-    }
-
-    .us-record b {
-        color: var(--text-primary);
-        font-size: 1rem;
-    }
-
-    .us-record .rate {
-        color: #5b9bff;
-        font-weight: 800;
-    }
-
-    .us-best {
+    /* ===== 등급 정보 ===== */
+    .us-grades {
+        margin-top: 14px;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
-        margin-top: 14px;
     }
 
-    .us-best-item {
+    .us-grade {
+        display: flex;
+        flex-direction: column;
         background: var(--bg-main);
         border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 12px 14px;
+        border-radius: 12px;
+        padding: 14px 16px;
     }
 
-    .us-best-type {
-        color: var(--text-secondary);
-        font-size: 0.78rem;
-        font-weight: 700;
-    }
-
-    .us-best-div {
-        margin-top: 4px;
-        font-size: 1.1rem;
-        font-weight: 800;
+    .us-grade-mode {
+        padding-left: 8px;
+        border-left: 3px solid #16a34a;
         color: var(--text-primary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        line-height: 1.1;
     }
 
-    .us-best-date {
+    .us-grade-sub {
+        margin-top: 12px;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+
+    .us-grade-div {
+        margin-top: 2px;
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+
+    .us-grade-date {
         margin-top: 2px;
         color: var(--text-secondary);
         font-size: 0.75rem;
     }
 
-    /* 등급 색 */
-    .dv-sc {
-        color: #ff5a8a;
+    .us-grade-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.8rem;
     }
 
-    .dv-ch {
-        color: #f5b301;
+    .us-grade>.us-grade-date+.us-grade-foot {
+        margin-top: 12px;
     }
 
-    .dv-sl {
-        color: #b18cff;
+    .us-grade-foot .k {
+        color: var(--text-secondary);
     }
 
-    .dv-cl {
-        color: #4fb3ff;
-    }
-
-    .dv-wc {
-        color: #20c997;
-    }
-
-    .dv-pr {
-        color: #8ee04a;
-    }
-
-    .dv-etc {
+    .us-grade-foot .v {
         color: var(--text-primary);
+        font-weight: 700;
+    }
+
+    .us-grade-foot .v em {
+        font-style: normal;
+        color: #4ade80;
+    }
+
+    /* ===== 등급별 시그니처 디자인 (게임 등급 아이콘 색 기반) =====
+       --t1 메인색 / --t2 밝은색(글씨 하이라이트) / --t3 포인트색(테두리) */
+    .us-grade {
+        position: relative;
+        overflow: hidden;
+        --t1: #6b7280;
+        --t2: #d1d5db;
+        --t3: #6b7280;
+        border-color: color-mix(in srgb, var(--t3) 45%, var(--border-color));
+        background:
+            radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--t1) 22%, transparent) 0%, transparent 60%),
+            var(--bg-main);
+    }
+
+    /* 아이콘의 사선 줄무늬를 오른쪽 위에 은은하게 */
+    .us-grade::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 55%;
+        height: 100%;
+        background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--t1) 16%, transparent) 0 6px, transparent 6px 14px);
+        -webkit-mask-image: radial-gradient(90% 80% at 100% 0%, #000 0%, transparent 70%);
+        mask-image: radial-gradient(90% 80% at 100% 0%, #000 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .us-grade>* {
+        position: relative;
+    }
+
+    .us-grade-mode {
+        border-left-color: var(--t1);
+    }
+
+    .us-grade-div {
+        width: fit-content;
+        background: linear-gradient(100deg, var(--t2) 0%, var(--t1) 70%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .us-grade.tier-none .us-grade-div {
+        background: none;
+        color: var(--text-muted);
+    }
+
+    .us-grade.tier-none {
+        --t1: transparent;
+        --t3: transparent;
+    }
+
+    /* 슈퍼 챔피언스: 블랙 + 샴페인 골드, 빛이 스쳐 지나감 */
+    .us-grade.tier-sc {
+        --t1: #c9a96a;
+        --t2: #fff4d6;
+        --t3: #e2c88e;
+        background:
+            radial-gradient(120% 90% at 100% 0%, rgba(226, 200, 142, 0.24) 0%, transparent 60%),
+            linear-gradient(160deg, #1b1915 0%, #0e0e0e 100%);
+        box-shadow: 0 0 0 1px rgba(226, 200, 142, 0.25), 0 0 18px rgba(226, 200, 142, 0.18);
+    }
+
+    .us-grade.tier-sc .us-grade-div {
+        background: linear-gradient(100deg, #b8945a 0%, #fff4d6 45%, #b8945a 55%, #e2c88e 100%);
+        background-size: 250% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        animation: us-shine 3.5s ease-in-out infinite;
+    }
+
+    @keyframes us-shine {
+        0% {
+            background-position: 100% 0;
+        }
+
+        60%,
+        100% {
+            background-position: 0% 0;
+        }
+    }
+
+    /* 챔피언스: 퍼플·마젠타 + 코퍼 포인트 */
+    .us-grade.tier-ch {
+        --t1: #b23cf0;
+        --t2: #f3c4ff;
+        --t3: #d98a6c;
+        box-shadow: 0 0 16px rgba(178, 60, 240, 0.18);
+    }
+
+    /* 슈퍼 챌린저: 밝은 아쿠아 (챌린저보다 밝고 차갑게) */
+    .us-grade.tier-sch {
+        --t1: #22e3d3;
+        --t2: #d6fffb;
+        --t3: #5fe9ff;
+        box-shadow: 0 0 16px rgba(34, 227, 211, 0.16);
+    }
+
+    /* 챌린저 1~3: 깊은 틸 + 골드 테두리 */
+    .us-grade.tier-chl {
+        --t1: #179e94;
+        --t2: #7fe3d8;
+        --t3: #c9a45c;
+    }
+
+    /* 마스터: 그린 */
+    .us-grade.tier-ms {
+        --t1: #22c55e;
+        --t2: #b6f5c9;
+        --t3: #22c55e;
+    }
+
+    /* 월드클래스: 바이올렛 */
+    .us-grade.tier-wc {
+        --t1: #7c4dff;
+        --t2: #d9ccff;
+        --t3: #8b5cf6;
+    }
+
+    /* 프로: 오렌지·골드 */
+    .us-grade.tier-pr {
+        --t1: #f08c00;
+        --t2: #ffe28a;
+        --t3: #f5a524;
+    }
+
+    /* 세미프로: 스틸 블루 + 실버 */
+    .us-grade.tier-sp {
+        --t1: #4f86c6;
+        --t2: #e3ebf5;
+        --t3: #8fb0d6;
+    }
+
+    /* 유망주: 코퍼 */
+    .us-grade.tier-yp {
+        --t1: #d9693f;
+        --t2: #ffc6aa;
+        --t3: #e0835c;
     }
 
     /* ===== 현재 스쿼드 (홈 미니 경기장과 같은 모양) ===== */
@@ -397,16 +524,165 @@
     }
 
     /* ===== 최근 경기 ===== */
+    .us-mi {
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .us-mi:last-child {
+        border-bottom: none;
+    }
+
     .us-match {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 10px 6px;
-        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.15s;
     }
 
-    .us-match:last-child {
-        border-bottom: none;
+    .us-match:hover {
+        background: var(--hover-bg);
+    }
+
+    .us-chev {
+        flex-shrink: 0;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        transition: transform 0.2s;
+    }
+
+    .us-mi.open .us-chev {
+        transform: rotate(180deg);
+    }
+
+    /* ===== 경기 상세 ===== */
+    .us-detail {
+        display: none;
+        padding: 6px 0 16px;
+    }
+
+    .us-mi.open .us-detail {
+        display: block;
+    }
+
+    .us-dt-tabs {
+        display: none;
+    }
+
+    .us-dt-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .us-dt-name {
+        margin-bottom: 6px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .us-dt-empty {
+        padding: 30px 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        text-align: center;
+    }
+
+    .us-st {
+        margin-top: 14px;
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+    }
+
+    .us-st-head {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 10px;
+        margin-bottom: 6px;
+        color: var(--text-primary);
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .us-st-head span:last-child {
+        text-align: right;
+    }
+
+    .us-opp-link,
+    .us-opp-link:hover,
+    .us-opp-link:visited {
+        color: inherit !important;
+        text-decoration: none !important;
+        background: none !important;
+    }
+
+    .us-st-head b {
+        color: var(--text-secondary);
+    }
+
+    .us-st-row {
+        display: grid;
+        grid-template-columns: 44px 1fr 44px;
+        align-items: center;
+        gap: 10px;
+        padding: 3px 0;
+    }
+
+    .us-st-v {
+        color: var(--text-primary);
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .us-st-v:last-child {
+        text-align: right;
+    }
+
+    /* 왼쪽(나) 초록 / 오른쪽(상대) 파랑 비율 막대 */
+    .us-st-bar {
+        position: relative;
+        height: 20px;
+        border-radius: 5px;
+        overflow: hidden;
+        background: #3b6fd1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .us-st-bar::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--l);
+        background: #16a34a;
+    }
+
+    .us-st-bar.zero::before {
+        display: none;
+    }
+
+    .us-st-bar.zero {
+        background: #3a3d4a;
+    }
+
+    .us-st-bar span {
+        position: relative;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
     }
 
     .us-res {
@@ -423,7 +699,7 @@
     }
 
     .us-res.win {
-        background: #3b82f6;
+        background: #16a34a;
     }
 
     .us-res.draw {
@@ -479,6 +755,12 @@
         font-weight: 700;
     }
 
+    /* 이긴 몰수 경기는 초록색 */
+    .us-tag.win {
+        background: rgba(22, 163, 74, 0.18);
+        color: #4ade80;
+    }
+
     .us-date {
         flex-shrink: 0;
         color: var(--text-secondary);
@@ -525,13 +807,74 @@
             font-size: 1.15rem;
         }
 
-        .us-best-div {
-            font-size: 1rem;
+        .us-grades {
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .us-grade {
+            padding: 12px 14px;
+        }
+
+        .us-grade-div {
+            font-size: 1.15rem;
         }
 
         .us-match {
             gap: 8px;
             padding: 9px 2px;
+        }
+
+        /* 모바일: 내/상대 스쿼드를 탭으로 전환 */
+        .us-dt-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .us-dt-tabs button {
+            flex: 1;
+            padding: 8px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .us-dt-tabs button.active {
+            border-color: #16a34a;
+            background: rgba(22, 163, 74, 0.15);
+            color: var(--text-primary);
+        }
+
+        .us-detail.show-opp .us-dt-tabs button.active {
+            border-color: #3b6fd1;
+            background: rgba(59, 111, 209, 0.15);
+        }
+
+        .us-dt-fields {
+            display: block;
+        }
+
+        .us-dt-field[data-side="opp"],
+        .us-detail.show-opp .us-dt-field[data-side="my"] {
+            display: none;
+        }
+
+        .us-detail.show-opp .us-dt-field[data-side="opp"] {
+            display: block;
+        }
+
+        .us-dt-name {
+            display: none;
+        }
+
+        .us-st-row {
+            grid-template-columns: 34px 1fr 34px;
+            gap: 6px;
         }
 
         .us-res {
@@ -612,15 +955,20 @@
             return d.innerHTML;
         }
 
-        function divClass(name) {
-            if (!name) return 'dv-etc';
-            if (name.startsWith('슈퍼챔피언스')) return 'dv-sc';
-            if (name.startsWith('챔피언스')) return 'dv-ch';
-            if (name.startsWith('슈퍼챌린지')) return 'dv-sl';
-            if (name.startsWith('챌린지')) return 'dv-cl';
-            if (name.startsWith('월드클래스')) return 'dv-wc';
-            if (name.startsWith('프로')) return 'dv-pr';
-            return 'dv-etc';
+        // 등급 이름 → 디자인 구분 (띄어쓰기·옛 이름 '챌린지'도 같이 처리)
+        function tierKey(name) {
+            const n = (name || '').replace(/\s/g, '');
+            if (!n) return 'none';
+            if (n.startsWith('슈퍼챔피언스')) return 'sc';
+            if (n.startsWith('챔피언스')) return 'ch';
+            if (n.startsWith('슈퍼챌린')) return 'sch';
+            if (n.startsWith('챌린')) return 'chl';
+            if (n.startsWith('마스터')) return 'ms';
+            if (n.startsWith('월드클래스')) return 'wc';
+            if (n.startsWith('세미프로')) return 'sp';
+            if (n.startsWith('프로')) return 'pr';
+            if (n.startsWith('유망주')) return 'yp';
+            return 'etc';
         }
 
         // "2026-11-15T21:03:12" → "11.15 21:03"
@@ -633,78 +981,173 @@
             return r === '승' ? 'win' : r === '패' ? 'lose' : 'draw';
         }
 
-        function profileHtml(d) {
+        // 구단주명 + 등급 정보: 공식경기 / 감독모드 카드 (역대 최고 등급 + 최근 공식경기 전적)
+        function gradeHtml(d) {
             const ms = d.matches || [];
             const w = ms.filter(m => m.result === '승').length;
             const dr = ms.filter(m => m.result === '무').length;
             const l = ms.filter(m => m.result === '패').length;
-            const rate = ms.length ? Math.round(w / ms.length * 100) : 0;
-            const record = ms.length
-                ? `<div class="us-record">최근 ${ms.length}경기 <b>${w}승 ${dr}무 ${l}패</b> <span class="rate">승률 ${rate}%</span></div>`
-                : '';
-            const best = (d.best || []).length
-                ? `<div class="us-best">${d.best.map(b => `
-                    <div class="us-best-item">
-                        <div class="us-best-type">🏆 ${esc(b.type)} 역대 최고</div>
-                        <div class="us-best-div ${divClass(b.division)}">${esc(b.division)}</div>
-                        <div class="us-best-date">${esc(b.date)} 달성</div>
-                    </div>`).join('')}</div>`
-                : '';
+            const rate = ms.length ? (w / ms.length * 100).toFixed(1) : 0;
+            const modes = [[50, '공식경기'], [52, '감독모드']];
+            const cards = modes.map(([id, label]) => {
+                const b = (d.best || []).find(x => x.type_id === id);
+                const record = id === 50 && ms.length
+                    ? `<div class="us-grade-foot">
+                           <span class="k">최근 ${ms.length}경기</span>
+                           <span class="v">${w}승 ${dr}무 ${l}패 <em>(${rate}%)</em></span>
+                       </div>`
+                    : '';
+                return `
+                    <div class="us-grade tier-${b ? tierKey(b.division) : 'none'}">
+                        <div class="us-grade-mode">${label}</div>
+                        <div class="us-grade-sub">역대 최고</div>
+                        <div class="us-grade-div">${b ? esc(b.division) : '등급 없음'}</div>
+                        <div class="us-grade-date">${b ? esc((b.date || '').replace(/-/g, '.')) + ' 달성' : '&nbsp;'}</div>
+                        ${record}
+                    </div>`;
+            }).join('');
             return `
                 <section class="us-card">
-                    <div class="us-profile">
-                        <div class="us-nick">${esc(d.nickname)}${d.level ? `<span class="us-level">Lv.${d.level}</span>` : ''}</div>
-                        ${record}
-                    </div>
-                    ${best}
+                    <div class="us-nick">${esc(d.nickname)}${d.level ? `<span class="us-level">Lv.${d.level}</span>` : ''}</div>
+                    <div class="us-grades">${cards}</div>
                 </section>`;
         }
 
         // 현재 스쿼드: 스쿼드 메이커 그린필드를 그대로 띄움 (보기 전용)
         function squadHtml(d) {
             if (!(d.squad || []).length) return '';
-            const lineup = d.squad.map(p => ({ position: p.p, spid: p.spid, buildup: p.b }));
-            const enc = btoa(unescape(encodeURIComponent(JSON.stringify(lineup))));
-            const h = window.innerWidth <= 768 ? 540 : 720;
             return `
                 <section class="us-card">
                     <div class="us-card-title">⚽ 현재 스쿼드 <span class="us-card-sub">${fmtDate(d.squad_date)} 공식경기 기준</span></div>
-                    <div class="us-sm-frame-box">
-                        <div class="us-sm-loading">스쿼드를 불러오는 중이에요.</div>
-                        <iframe class="us-sm-frame" id="usSmFrame" title="현재 스쿼드" scrolling="no" style="height:${h}px;"
-                            src="/squad_maker?embed=1&squad=${encodeURIComponent(enc)}"></iframe>
-                    </div>
+                    ${frameHtml(d.squad, window.innerWidth <= 768 ? 540 : 720)}
                     <a class="us-open-sm" href="/squad_maker?owner=${encodeURIComponent(d.nickname)}">스쿼드 메이커로 열기 →</a>
                 </section>`;
         }
 
-        // 그린필드 창이 알려주는 높이에 맞추고, 다 그려지면 보여주기
-        function showFrame() {
-            const f = document.getElementById('usSmFrame');
-            if (f) f.classList.add('ready');
+        // 라인업 → 스쿼드 메이커 그린필드(보기 전용) iframe
+        function frameHtml(squad, h) {
+            const lineup = squad.map(p => ({ position: p.p, spid: p.spid, buildup: p.b }));
+            const enc = btoa(unescape(encodeURIComponent(JSON.stringify(lineup))));
+            return `
+                <div class="us-sm-frame-box">
+                    <div class="us-sm-loading">스쿼드를 불러오는 중이에요.</div>
+                    <iframe class="us-sm-frame" title="스쿼드" scrolling="no" style="height:${h}px;"
+                        src="/squad_maker?embed=1&squad=${encodeURIComponent(enc)}"></iframe>
+                </div>`;
         }
+
+        // 혹시 신호가 안 와도 8초 뒤엔 보여주기
+        function revealLater(root) {
+            setTimeout(() => root.querySelectorAll('.us-sm-frame').forEach(f => f.classList.add('ready')), 8000);
+        }
+
+        // 그린필드 창이 알려주는 높이에 맞추고, 다 그려지면 보여주기
         window.addEventListener('message', e => {
             if (e.origin !== location.origin || !e.data) return;
-            const f = document.getElementById('usSmFrame');
+            const f = [...document.querySelectorAll('iframe.us-sm-frame')].find(x => x.contentWindow === e.source);
             if (!f) return;
             if (e.data.type === 'sm-embed-height' && e.data.height > 100) f.style.height = e.data.height + 'px';
-            if (e.data.type === 'sm-embed-ready' || e.data.type === 'sm-embed-error') showFrame();
+            if (e.data.type === 'sm-embed-ready' || e.data.type === 'sm-embed-error') f.classList.add('ready');
+        });
+
+        // ===== 경기 상세 (줄을 누르면 펼침) =====
+        const STAT_ROWS = [
+            ['슛', 'shoot'], ['유효슛', 'eff_shoot'], ['슛 성공률(%)', 'shoot_rate'], ['패스 성공률(%)', 'pass_rate'],
+            ['점유율(%)', 'possession'], ['코너킥', 'corner'], ['태클', 'tackle'], ['파울', 'foul'],
+            ['오프사이드', 'offside'], ['경고', 'yellow'], ['퇴장', 'red'], ['부상', 'injury'],
+        ];
+        let currentMatches = [];
+
+        // 상대 구단주명 → 그 구단주 검색 링크
+        function oppLink(name) {
+            return `<a class="us-opp-link" href="/user_search?nickname=${encodeURIComponent(name)}">${esc(name)} 🔎</a>`;
+        }
+
+        function sideFieldHtml(side, key) {
+            return `
+                <div class="us-dt-field" data-side="${key}">
+                    <div class="us-dt-name">${key === 'opp' ? oppLink(side.nickname) : esc(side.nickname)}</div>
+                    ${(side.squad || []).length
+                    ? frameHtml(side.squad, 540)
+                    : '<div class="us-dt-empty">출전 선수 기록이 없어요.</div>'}
+                </div>`;
+        }
+
+        function statsHtml(dt) {
+            const rows = STAT_ROWS.map(([label, k]) => {
+                const a = dt.my.stats[k] || 0, b = dt.opp.stats[k] || 0;
+                const left = a + b ? a / (a + b) * 100 : 50;
+                return `
+                    <div class="us-st-row">
+                        <span class="us-st-v">${a}</span>
+                        <div class="us-st-bar ${a + b ? '' : 'zero'}" style="--l:${left}%"><span>${label}</span></div>
+                        <span class="us-st-v">${b}</span>
+                    </div>`;
+            }).join('');
+            return `
+                <div class="us-st">
+                    <div class="us-st-head"><span>${esc(dt.my.nickname)}</span><b>VS</b><span>${oppLink(dt.opp.nickname)}</span></div>
+                    ${rows}
+                </div>`;
+        }
+
+        function detailHtml(m) {
+            const dt = m.detail;
+            if (!dt || (!(dt.my.squad || []).length && !(dt.opp.squad || []).length)) {
+                return '<div class="us-detail"><div class="us-dt-empty">이 경기는 상세 기록이 없어요.</div></div>';
+            }
+            return `
+                <div class="us-detail">
+                    <div class="us-dt-tabs">
+                        <button type="button" data-tab="my" class="active">내 스쿼드</button>
+                        <button type="button" data-tab="opp">상대 스쿼드</button>
+                    </div>
+                    <div class="us-dt-fields">
+                        ${sideFieldHtml(dt.my, 'my')}
+                        ${sideFieldHtml(dt.opp, 'opp')}
+                    </div>
+                    ${statsHtml(dt)}
+                </div>`;
+        }
+
+        box.addEventListener('click', e => {
+            if (e.target.closest('a')) return;   // 링크는 그대로 이동
+
+            const tab = e.target.closest('.us-dt-tabs button');
+            if (tab) {
+                const det = tab.closest('.us-detail');
+                det.querySelectorAll('.us-dt-tabs button').forEach(b => b.classList.toggle('active', b === tab));
+                det.classList.toggle('show-opp', tab.dataset.tab === 'opp');
+                return;
+            }
+
+            const row = e.target.closest('.us-match');
+            if (!row) return;
+            const item = row.parentElement;
+            if (!item.querySelector('.us-detail')) {
+                item.insertAdjacentHTML('beforeend', detailHtml(currentMatches[row.dataset.i] || {}));
+                revealLater(item);
+            }
+            item.classList.toggle('open');
         });
 
         function matchesHtml(d) {
             const ms = d.matches || [];
             const body = ms.length
-                ? ms.map(m => `
-                    <div class="us-match">
+                ? ms.map((m, i) => `
+                    <div class="us-mi">
+                    <div class="us-match" data-i="${i}">
                         <span class="us-res ${resultClass(m.result)}">${esc(m.result)}</span>
                         <span class="us-score">${m.my_goal ?? '-'} : ${m.opp_goal ?? '-'}</span>
-                        <span class="us-opp"><span class="vs">vs</span><a href="/user_search?nickname=${encodeURIComponent(m.opponent)}">${esc(m.opponent)}</a>${m.forfeit ? '<span class="us-tag">몰수</span>' : ''}</span>
+                        <span class="us-opp"><span class="vs">vs</span>${esc(m.opponent)}${m.forfeit ? `<span class="us-tag ${m.result === '승' ? 'win' : ''}">몰수</span>` : ''}</span>
                         <span class="us-date">${fmtDate(m.date)}</span>
+                        <span class="us-chev">▾</span>
+                    </div>
                     </div>`).join('')
                 : '<div class="us-msg" style="padding:20px 0;">최근 공식경기 기록이 없어요.</div>';
             const streak = ms.length
                 ? `<span class="us-streak">${ms.slice().reverse().map(m =>
-                    `<span style="background:${m.result === '승' ? '#3b82f6' : m.result === '패' ? '#ef4444' : '#6b7280'}"></span>`).join('')}</span>`
+                    `<span style="background:${m.result === '승' ? '#16a34a' : m.result === '패' ? '#ef4444' : '#6b7280'}"></span>`).join('')}</span>`
                 : '';
             return `
                 <section class="us-card">
@@ -733,8 +1176,9 @@
                     box.innerHTML = `<div class="us-msg">${esc(data.message || '정보를 불러오지 못했어요.')}</div>`;
                     return;
                 }
-                box.innerHTML = profileHtml(data) + squadHtml(data) + matchesHtml(data);
-                setTimeout(showFrame, 8000);   // 혹시 신호가 안 와도 8초 뒤엔 보여주기
+                currentMatches = data.matches || [];
+                box.innerHTML = gradeHtml(data) + squadHtml(data) + matchesHtml(data);
+                revealLater(box);
             } catch (e) {
                 box.innerHTML = '<div class="us-msg">정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';
             } finally {

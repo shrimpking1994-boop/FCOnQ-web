@@ -4209,12 +4209,47 @@ def _summarize_match(detail, ouid):
         'forfeit': end_type in (1, 2),
         'possession': md.get('possession'),
     }
-    squad = []
-    for p in me.get('player', []) or []:
+    squad = _match_lineup(me)
+    # 경기 상세 펼치기용: 양쪽 스쿼드 + 기록 비교 (몰수 등으로 비어 있으면 None)
+    row['detail'] = {
+        'my': {'nickname': me.get('nickname', ''), 'squad': squad, 'stats': _match_stats(me)},
+        'opp': {'nickname': opp.get('nickname', ''), 'squad': _match_lineup(opp), 'stats': _match_stats(opp)},
+    } if opp else None
+    return row, squad
+
+
+def _match_lineup(side):
+    """경기 한쪽 팀 → 출전 라인업 [{p, spid, b}] (벤치 제외)"""
+    lineup = []
+    for p in side.get('player', []) or []:
         pos = NEXON_SPPOSITION.get(p.get('spPosition'))
         if pos:
-            squad.append({'p': pos, 'spid': p.get('spId'), 'b': p.get('spGrade') or 1})
-    return row, squad
+            lineup.append({'p': pos, 'spid': p.get('spId'), 'b': p.get('spGrade') or 1})
+    return lineup
+
+
+def _match_stats(side):
+    """경기 한쪽 팀 → 기록 비교용 숫자들"""
+    md = side.get('matchDetail') or {}
+    sh = side.get('shoot') or {}
+    ps = side.get('pass') or {}
+    df = side.get('defence') or {}
+    shoot, goal = sh.get('shootTotal') or 0, sh.get('goalTotal') or 0
+    pass_try, pass_ok = ps.get('passTry') or 0, ps.get('passSuccess') or 0
+    return {
+        'shoot': shoot,
+        'eff_shoot': sh.get('effectiveShootTotal') or 0,
+        'shoot_rate': round(goal / shoot * 100) if shoot else 0,
+        'pass_rate': round(pass_ok / pass_try * 100) if pass_try else 0,
+        'possession': md.get('possession') or 0,
+        'corner': md.get('cornerKick') or 0,
+        'tackle': df.get('tackleSuccess') or 0,
+        'foul': md.get('foul') or 0,
+        'offside': md.get('offsideCount') or 0,
+        'yellow': md.get('yellowCards') or 0,
+        'red': md.get('redCards') or 0,
+        'injury': md.get('injury') or 0,
+    }
 
 
 @app.route('/api/user_search')

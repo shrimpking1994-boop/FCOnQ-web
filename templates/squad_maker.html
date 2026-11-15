@@ -73,6 +73,15 @@
         display: none;
     }
 
+    /* 유저 검색 경기 상세처럼 폭 400~768px로 끼워질 땐 선수 카드를 조금 크게 */
+    html.sm-embed-lg .sm-field-wrap {
+        height: 610px !important;
+    }
+
+    html.sm-embed-lg #field-rows>[id^="wrapper-"] {
+        transform: translate(-50%, -50%) scale(1.2) !important;
+    }
+
     .sm-container {
         max-width: 980px;
         margin: 20px auto;
@@ -5878,6 +5887,7 @@
 
     // 유저 검색 페이지 안(embed): 넘겨받은 라인업으로 그린필드만 채우고, 높이를 바깥 페이지에 알려줌
     if (document.documentElement.classList.contains('sm-embed')) {
+        if (window.innerWidth > 400 && window.innerWidth <= 768) document.documentElement.classList.add('sm-embed-lg');
         const capture = document.getElementById('squad-capture');
         const postToParent = msg => { try { parent.postMessage(msg, location.origin); } catch (e) { } };
         new ResizeObserver(() => postToParent({ type: 'sm-embed-height', height: Math.ceil(capture.getBoundingClientRect().bottom + window.scrollY) + 4 }))
