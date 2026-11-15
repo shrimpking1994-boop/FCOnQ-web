@@ -3,14 +3,14 @@
 {% block title %}FCOnQ - 유틸리티{% endblock %}
 
 {% block meta_description %}
-<meta name="description" content="FC온라인 팀컬러 상세 검색, 시즌별 미니 페이스온 검색, 이적시장 수수료 계산기 등 편리한 도구를 한곳에서 이용해보세요.">
+<meta name="description" content="FC온라인 유저 검색, 팀컬러 상세 검색, 시즌별 미니 페이스온 검색, 이적시장 수수료 계산기 등 편리한 도구를 한곳에서 이용해보세요.">
 {% endblock %}
 
 {% block og_tags %}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FCOnQ">
 <meta property="og:title" content="FCOnQ : FC온라인 유틸리티">
-<meta property="og:description" content="팀컬러 검색 · 미니 페이스온 · 수수료 계산기">
+<meta property="og:description" content="유저 검색 · 팀컬러 검색 · 미니 페이스온 · 수수료 계산기">
 <meta property="og:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -20,7 +20,7 @@
 {% block twitter_tags %}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FCOnQ : FC온라인 유틸리티">
-<meta name="twitter:description" content="팀컬러 검색 · 미니 페이스온 · 수수료 계산기">
+<meta name="twitter:description" content="유저 검색 · 팀컬러 검색 · 미니 페이스온 · 수수료 계산기">
 <meta name="twitter:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
 {% endblock %}
 
@@ -118,6 +118,12 @@
 <div class="utility-container">
 
     <div class="utility-grid">
+        <a class="utility-card" href="/user_search">
+            <div class="utility-card-title">🔎 유저 검색 <span class="utility-card-badge"
+                    style="background:#20c997;">NEW</span></div>
+            <div class="utility-card-desc">구단주명으로 역대 최고 등급, 지금 쓰는 스쿼드, 최근 공식경기 20경기 기록을 한눈에 확인해보세요.</div>
+        </a>
+
         <a class="utility-card" href="/teamcolor_search">
             <div class="utility-card-title">🎨 팀컬러 상세 검색</div>
             <div class="utility-card-desc">특정 팀컬러의 케미 효과 검색과 더불어, 특히 특성 팀컬러의 선수 명단/시즌/상세 정보를 확인하는데 매우 편리해요.</div>

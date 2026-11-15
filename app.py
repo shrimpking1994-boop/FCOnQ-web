@@ -200,7 +200,7 @@ def service_worker():
 SITE_URL = 'https://fconq.com'
 SITEMAP_CARD_CHUNK = 40000
 SITEMAP_PAGES = ['/', '/search', '/tierlist', '/squad_maker', '/community', '/utility',
-                 '/fee_calculator', '/miniface_search', '/teamcolor_search', '/terms', '/privacy']
+                 '/fee_calculator', '/miniface_search', '/teamcolor_search', '/user_search', '/terms', '/privacy']
 _sitemap_cache = {}   # {이름: (만든 시각, xml)}
 
 
@@ -2639,6 +2639,11 @@ def fee_calculator():
     """수수료 계산기 페이지"""
     return render_template('fee_calculator.html')
 
+@app.route('/user_search')
+def user_search_page():
+    """유저(구단주) 검색 페이지"""
+    return render_template('user_search.html')
+
 @app.route('/miniface_search')
 def miniface_search():
     """미니 페이스온 검색기 페이지"""
@@ -4156,6 +4161,179 @@ def owner_squad():
             return jsonify(data)
 
     return jsonify({'success': False, 'message': '최근 공식경기에서 스쿼드 정보를 찾지 못했습니다.'}), 404
+
+# ── 유저(구단주) 검색 (넥슨 오픈 API) ─────────────────────────
+USER_SEARCH_MATCH_COUNT = 20          # 최근 공식경기 몇 개까지 보여줄지
+USER_SEARCH_DIVISION_TYPES = [50, 52]  # 역대 최고 등급: 공식경기, 감독모드
+_user_search_cache = {}               # 같은 구단주 반복 검색 시 3분간 재사용
+_nexon_meta_cache = {}                # 등급·경기 종류 이름표 (하루 동안 재사용)
+
+
+def nexon_meta(name):
+    """넥슨 메타데이터 (division, matchtype) → {id: 이름}"""
+    now = datetime.now()
+    c = _nexon_meta_cache.get(name)
+    if c and (now - c['time']).total_seconds() < 86400:
+        return c['data']
+    data = {}
+    try:
+        url = f"https://open.api.nexon.com/static/fconline/meta/{name}.json"
+        req = urllib.request.Request(url, headers={'x-nxopen-api-key': NEXON_API_KEY})
+        with urllib.request.urlopen(req, timeout=4) as res:
+            rows = json.loads(res.read().decode('utf-8'))
+        if name == 'division':
+            data = {r['divisionId']: r['divisionName'] for r in rows}
+        else:
+            data = {r['matchtype']: r['desc'] for r in rows}
+        _nexon_meta_cache[name] = {'data': data, 'time': now}
+    except Exception:
+        pass
+    return data
+
+
+def _summarize_match(detail, ouid):
+    """경기 상세 → 내 기준 한 줄 요약 + 출전 라인업"""
+    infos = detail.get('matchInfo', []) or []
+    me = next((m for m in infos if m.get('ouid') == ouid), None)
+    if not me:
+        return None, None
+    opp = next((m for m in infos if m.get('ouid') != ouid), {}) or {}
+    md = me.get('matchDetail') or {}
+    end_type = md.get('matchEndType') or 0
+    row = {
+        'date': detail.get('matchDate', ''),
+        'result': md.get('matchResult') or '-',
+        'my_goal': (me.get('shoot') or {}).get('goalTotal'),
+        'opp_goal': (opp.get('shoot') or {}).get('goalTotal'),
+        'opponent': opp.get('nickname', ''),
+        'forfeit': end_type in (1, 2),
+        'possession': md.get('possession'),
+    }
+    squad = []
+    for p in me.get('player', []) or []:
+        pos = NEXON_SPPOSITION.get(p.get('spPosition'))
+        if pos:
+            squad.append({'p': pos, 'spid': p.get('spId'), 'b': p.get('spGrade') or 1})
+    return row, squad
+
+
+@app.route('/api/user_search')
+def user_search_api():
+    """구단주명 → 기본 정보 + 역대 최고 등급 + 현재 스쿼드 + 최근 공식경기"""
+    from concurrent.futures import ThreadPoolExecutor
+
+    nickname = request.args.get('nickname', '').strip()
+    if not nickname:
+        return jsonify({'success': False, 'message': '구단주명을 입력해주세요.'}), 400
+    if not NEXON_API_KEY:
+        return jsonify({'success': False, 'message': '서버 설정 오류입니다.'}), 500
+
+    now = datetime.now()
+    cached = _user_search_cache.get(nickname)
+    if cached and (now - cached['time']).total_seconds() < 180:
+        return jsonify(cached['data'])
+
+    # 1) 구단주명 → ouid
+    try:
+        ouid = nexon_get('/id', {'nickname': nickname}).get('ouid')
+    except urllib.error.HTTPError:
+        return jsonify({'success': False, 'message': '존재하지 않는 구단주명입니다.'}), 404
+    except Exception:
+        return jsonify({'success': False, 'message': '넥슨 서버 응답이 없습니다. 잠시 후 다시 시도해주세요.'}), 502
+    if not ouid:
+        return jsonify({'success': False, 'message': '존재하지 않는 구단주명입니다.'}), 404
+
+    def safe(path, params, default):
+        try:
+            return nexon_get(path, params)
+        except Exception:
+            return default
+
+    # 2) 기본 정보 / 최고 등급 / 경기 목록 / 메타데이터를 동시에
+    with ThreadPoolExecutor(max_workers=5) as ex:
+        f_basic = ex.submit(safe, '/user/basic', {'ouid': ouid}, {})
+        f_div = ex.submit(safe, '/user/maxdivision', {'ouid': ouid}, [])
+        f_match = ex.submit(safe, '/user/match', {
+            'ouid': ouid, 'matchtype': OFFICIAL_MATCH_TYPE, 'offset': 0, 'limit': USER_SEARCH_MATCH_COUNT
+        }, [])
+        f_dmeta = ex.submit(nexon_meta, 'division')
+        f_mmeta = ex.submit(nexon_meta, 'matchtype')
+        basic, divs, match_ids = f_basic.result(), f_div.result(), f_match.result()
+        div_names, type_names = f_dmeta.result(), f_mmeta.result()
+
+    # 3) 경기 상세를 동시에 (최근 순서 유지)
+    details = []
+    if match_ids:
+        with ThreadPoolExecutor(max_workers=10) as ex:
+            details = list(ex.map(lambda mid: safe('/match-detail', {'matchid': mid}, None), match_ids))
+
+    matches, squad, squad_date = [], [], ''
+    for d in details:
+        if not d:
+            continue
+        row, lineup = _summarize_match(d, ouid)
+        if not row:
+            continue
+        matches.append(row)
+        if not squad and len(lineup) >= 11:   # 11명이 다 있는 가장 최근 경기의 라인업
+            squad, squad_date = lineup, row['date']
+
+    # 4) 라인업 카드 이름·시즌·신규 특성 (홈 랭커 스쿼드와 같은 방식)
+    if squad:
+        spids = [int(p['spid']) for p in squad if p.get('spid')]
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT season_id, season_img_url FROM seasons")
+            season_imgs = {str(r['season_id']): r['season_img_url'] for r in cur.fetchall()}
+            cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
+            new_traits = set(r['trait_name'] for r in cur.fetchall())
+            cur.execute(
+                "SELECT spid, player_name, full_data->'game_info'->'traits' AS traits FROM player_cards WHERE spid = ANY(%s)",
+                (spids,)
+            )
+            names, traits = {}, {}
+            for r in cur.fetchall():
+                names[str(r['spid'])] = (r['player_name'] or '').strip().split(' ')[-1]
+                found = next((t for t in (r['traits'] or []) if t in new_traits), None)
+                if found:
+                    traits[str(r['spid'])] = found
+        finally:
+            cur.close()
+            conn.close()
+        for p in squad:
+            sp = str(p.get('spid') or '')
+            p['season'] = season_imgs.get(sp[:3], '')
+            p['name'] = names.get(sp, '')
+            p['trait'] = traits.get(sp)
+
+    # 5) 역대 최고 등급 (공식경기·감독모드)
+    best = []
+    for d in divs or []:
+        mt = d.get('matchType')
+        if mt in USER_SEARCH_DIVISION_TYPES:
+            best.append({
+                'type': type_names.get(mt, '공식경기' if mt == 50 else '감독모드'),
+                'type_id': mt,
+                'division': div_names.get(d.get('division'), '-'),
+                'date': (d.get('achievementDate') or '')[:10],
+            })
+    best.sort(key=lambda x: USER_SEARCH_DIVISION_TYPES.index(x['type_id']))
+
+    data = {
+        'success': True,
+        'nickname': basic.get('nickname') or nickname,
+        'level': basic.get('level'),
+        'best': best,
+        'squad': squad,
+        'squad_date': squad_date,
+        'matches': matches,
+    }
+    if len(_user_search_cache) > 500:
+        _user_search_cache.clear()
+    _user_search_cache[nickname] = {'data': data, 'time': now}
+    return jsonify(data)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

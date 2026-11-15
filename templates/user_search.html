@@ -1,0 +1,683 @@
+{% extends "index.html" %}
+
+{% block title %}FCOnQ - 유저 검색{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="FC온라인 구단주명으로 역대 최고 등급, 현재 스쿼드, 최근 공식경기 20경기 기록을 한눈에 확인하세요.">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FCOnQ">
+<meta property="og:title" content="FCOnQ : FC온라인 유저 검색">
+<meta property="og:description" content="역대 최고 등급 · 현재 스쿼드 · 최근 공식경기 기록">
+<meta property="og:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://fconq.com/user_search">
+{% endblock %}
+
+{% block twitter_tags %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FCOnQ : FC온라인 유저 검색">
+<meta name="twitter:description" content="역대 최고 등급 · 현재 스쿼드 · 최근 공식경기 기록">
+<meta name="twitter:image" content="{{ url_for('static', filename='fconq_og.png', _external=True) }}">
+{% endblock %}
+
+{% block content %}
+<style>
+    .us-container {
+        max-width: 980px;
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    /* ===== 검색 ===== */
+    .us-search {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 16px 20px;
+    }
+
+    .us-search-form {
+        display: flex;
+        gap: 10px;
+        max-width: 620px;
+        margin: 0 auto;
+    }
+
+    .us-search-input {
+        flex: 1;
+        min-width: 0;
+        padding: 13px 18px;
+        background: var(--bg-main);
+        color: var(--text-primary);
+        border: 2px solid var(--border-color);
+        border-radius: 25px;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .us-search-input:focus {
+        border-color: #5865B8;
+    }
+
+    .us-search-btn {
+        background: #5865B8;
+        border: none;
+        padding: 0 30px;
+        color: #fff;
+        font-weight: 700;
+        border-radius: 25px;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .us-search-btn:disabled {
+        opacity: 0.6;
+        cursor: default;
+    }
+
+    .us-note {
+        margin-top: 10px;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+    }
+
+    .us-msg {
+        padding: 50px 0;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    /* ===== 공통 카드 ===== */
+    .us-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 16px;
+        margin-top: 14px;
+    }
+
+    .us-card-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .us-card-sub {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    /* ===== 구단주 정보 ===== */
+    .us-profile {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .us-nick {
+        color: var(--text-primary);
+        font-size: 1.4rem;
+        font-weight: 800;
+        word-break: break-all;
+    }
+
+    .us-level {
+        margin-left: 8px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: var(--primary-color);
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 700;
+        vertical-align: middle;
+    }
+
+    .us-record {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+
+    .us-record b {
+        color: var(--text-primary);
+        font-size: 1rem;
+    }
+
+    .us-record .rate {
+        color: #5b9bff;
+        font-weight: 800;
+    }
+
+    .us-best {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .us-best-item {
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+
+    .us-best-type {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .us-best-div {
+        margin-top: 4px;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+
+    .us-best-date {
+        margin-top: 2px;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+
+    /* 등급 색 */
+    .dv-sc { color: #ff5a8a; }
+    .dv-ch { color: #f5b301; }
+    .dv-sl { color: #b18cff; }
+    .dv-cl { color: #4fb3ff; }
+    .dv-wc { color: #20c997; }
+    .dv-pr { color: #8ee04a; }
+    .dv-etc { color: var(--text-primary); }
+
+    /* ===== 현재 스쿼드 (홈 미니 경기장과 같은 모양) ===== */
+    .us-squad-wrap {
+        max-width: 420px;
+        margin: 0 auto;
+    }
+
+    .us-pitch {
+        position: relative;
+        aspect-ratio: 3 / 4;
+        border-radius: 10px;
+        overflow: hidden;
+        background:
+            linear-gradient(to bottom, transparent calc(50% - 1px), rgba(255, 255, 255, 0.18) calc(50% - 1px), rgba(255, 255, 255, 0.18) calc(50% + 1px), transparent calc(50% + 1px)),
+            radial-gradient(ellipse 70% 55% at 50% 45%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0) 70%),
+            radial-gradient(ellipse 115% 90% at 50% 48%, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.09) 80%, rgba(0, 0, 0, 0.45) 100%),
+            repeating-linear-gradient(to bottom, #2f6b3a 0, #2f6b3a 12.5%, #2a6134 12.5%, #2a6134 25%);
+    }
+
+    .us-pitch::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 26%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%);
+        border: 2px solid rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+    }
+
+    .hp-player {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 14%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hp-top {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        height: 14px;
+        margin-bottom: 1px;
+    }
+
+    .hp-trait {
+        height: 14px;
+        width: 14px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.75);
+        object-fit: contain;
+    }
+
+    .hp-bu {
+        padding: 0 3px;
+        border-radius: 2px;
+        font-size: 0.58rem;
+        font-weight: 800;
+        line-height: 13px;
+        color: #333;
+    }
+
+    .hp-bu.bu-1 { background: #808080; }
+    .hp-bu.bu-bronze { background: #CD7F32; }
+    .hp-bu.bu-silver { background: #C0C0C0; }
+    .hp-bu.bu-gold { background: #FFD700; }
+    .hp-bu.bu-purple { background: linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%); }
+
+    .hp-face {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .hp-sub {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        margin-top: 1px;
+        height: 13px;
+        width: max-content;
+        white-space: nowrap;
+    }
+
+    .hp-season {
+        height: 100%;
+    }
+
+    .hp-name {
+        color: #fff;
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+    }
+
+    .us-open-sm {
+        display: block;
+        width: 100%;
+        margin-top: 12px;
+        padding: 11px 0;
+        border-radius: 10px;
+        border: 1px solid var(--primary-color);
+        background: rgba(88, 101, 184, 0.15);
+        color: var(--text-primary);
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .us-open-sm:hover {
+        background: rgba(88, 101, 184, 0.3);
+        color: var(--text-primary);
+    }
+
+    /* ===== 최근 경기 ===== */
+    .us-match {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 6px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .us-match:last-child {
+        border-bottom: none;
+    }
+
+    .us-res {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 800;
+    }
+
+    .us-res.win { background: #3b82f6; }
+    .us-res.draw { background: #6b7280; }
+    .us-res.lose { background: #ef4444; }
+
+    .us-score {
+        flex-shrink: 0;
+        width: 56px;
+        text-align: center;
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .us-opp {
+        flex: 1;
+        min-width: 0;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .us-opp a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .us-opp a:hover {
+        text-decoration: underline;
+    }
+
+    .us-opp .vs {
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-right: 4px;
+    }
+
+    .us-tag {
+        margin-left: 6px;
+        padding: 1px 6px;
+        border-radius: 4px;
+        background: rgba(239, 68, 68, 0.15);
+        color: #ff6b6b;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    .us-date {
+        flex-shrink: 0;
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+    }
+
+    .us-streak {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+    }
+
+    .us-streak span {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+    }
+
+    @media (max-width: 768px) {
+        .us-container {
+            margin-top: 10px;
+            padding: 0 6px;
+        }
+
+        .us-search {
+            padding: 12px 10px;
+        }
+
+        .us-search-btn {
+            padding: 0 20px;
+        }
+
+        .us-card {
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .us-nick {
+            font-size: 1.15rem;
+        }
+
+        .us-best-div {
+            font-size: 1rem;
+        }
+
+        .us-match {
+            gap: 8px;
+            padding: 9px 2px;
+        }
+
+        .us-res {
+            width: 28px;
+            height: 28px;
+            font-size: 0.78rem;
+        }
+
+        .us-score {
+            width: 46px;
+            font-size: 0.92rem;
+        }
+
+        .us-opp {
+            font-size: 0.82rem;
+        }
+
+        .us-date {
+            font-size: 0.7rem;
+        }
+
+        .us-streak {
+            gap: 2px;
+            flex-wrap: nowrap;
+        }
+
+        .us-streak span {
+            width: 7px;
+            height: 7px;
+            border-radius: 2px;
+        }
+    }
+</style>
+
+<h1 class="visually-hidden">FC온라인 유저 검색</h1>
+<div class="us-container">
+    <section class="us-search">
+        <form class="us-search-form" id="usForm">
+            <input type="text" class="us-search-input" id="usInput" placeholder="구단주명을 입력하세요." autocomplete="off"
+                maxlength="30">
+            <button type="submit" class="us-search-btn" id="usBtn">검색</button>
+        </form>
+        <div class="us-note">넥슨 오픈 API 기준으로 매시 정각에 2시간 전까지의 경기가 반영돼요. 방금 한 경기는 보이지 않을 수 있어요.</div>
+    </section>
+
+    <div id="usResult"></div>
+</div>
+
+<script>
+    (function () {
+        const form = document.getElementById('usForm');
+        const input = document.getElementById('usInput');
+        const btn = document.getElementById('usBtn');
+        const box = document.getElementById('usResult');
+
+        // 홈 미니 경기장과 같은 좌표 [위, 왼쪽] (%)
+        const POS_COORDS = {
+            LW: [13, 12], LF: [23, 32], LS: [11, 35], ST: [10, 50], CF: [23, 50], RF: [23, 68], RS: [11, 65], RW: [13, 88],
+            LAM: [30, 24], CAM: [30, 50], RAM: [30, 76],
+            LM: [38, 12], LCM: [40, 36], CM: [40, 50], RCM: [40, 64], RM: [38, 88],
+            LDM: [55, 35], CDM: [57, 50], RDM: [55, 65],
+            LWB: [68, 12], LB: [74, 12], LCB: [74, 38], CB: [73, 50], SW: [77, 50], RCB: [74, 62], RB: [74, 88], RWB: [68, 88],
+            GK: [91, 50]
+        };
+        const TRAIT_ICON = {
+            "아크로바틱 피니셔": "trait_icon_50", "크로스 포쳐": "trait_icon_51", "라인 브레이커": "trait_icon_52",
+            "와일드 태클러": "trait_icon_53", "체이서": "trait_icon_54", "2개의 심장": "trait_icon_55",
+            "파이터": "trait_icon_56", "GK 빠른 반응": "trait_icon_57", "커맨더": "trait_icon_59",
+            "GK 공중볼 장악": "trait_icon_60", "블로커": "trait_icon_62", "스피드스터": "trait_icon_63",
+            "타이탄": "trait_icon_64", "트릭스터": "trait_icon_65", "레이저 슈터": "trait_icon_66",
+            "프레데터": "trait_icon_67", "GK 데드아이": "trait_icon_68"
+        };
+        const CDN = 'https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/';
+
+        function esc(t) {
+            const d = document.createElement('div');
+            d.textContent = t == null ? '' : String(t);
+            return d.innerHTML;
+        }
+
+        function divClass(name) {
+            if (!name) return 'dv-etc';
+            if (name.startsWith('슈퍼챔피언스')) return 'dv-sc';
+            if (name.startsWith('챔피언스')) return 'dv-ch';
+            if (name.startsWith('슈퍼챌린지')) return 'dv-sl';
+            if (name.startsWith('챌린지')) return 'dv-cl';
+            if (name.startsWith('월드클래스')) return 'dv-wc';
+            if (name.startsWith('프로')) return 'dv-pr';
+            return 'dv-etc';
+        }
+
+        // "2026-11-15T21:03:12" → "11.15 21:03"
+        function fmtDate(s) {
+            const m = /(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(s || '');
+            return m ? `${m[2]}.${m[3]} ${m[4]}:${m[5]}` : '';
+        }
+
+        function resultClass(r) {
+            return r === '승' ? 'win' : r === '패' ? 'lose' : 'draw';
+        }
+
+        function profileHtml(d) {
+            const ms = d.matches || [];
+            const w = ms.filter(m => m.result === '승').length;
+            const dr = ms.filter(m => m.result === '무').length;
+            const l = ms.filter(m => m.result === '패').length;
+            const rate = ms.length ? Math.round(w / ms.length * 100) : 0;
+            const record = ms.length
+                ? `<div class="us-record">최근 ${ms.length}경기 <b>${w}승 ${dr}무 ${l}패</b> <span class="rate">승률 ${rate}%</span></div>`
+                : '';
+            const best = (d.best || []).length
+                ? `<div class="us-best">${d.best.map(b => `
+                    <div class="us-best-item">
+                        <div class="us-best-type">🏆 ${esc(b.type)} 역대 최고</div>
+                        <div class="us-best-div ${divClass(b.division)}">${esc(b.division)}</div>
+                        <div class="us-best-date">${esc(b.date)} 달성</div>
+                    </div>`).join('')}</div>`
+                : '';
+            return `
+                <section class="us-card">
+                    <div class="us-profile">
+                        <div class="us-nick">${esc(d.nickname)}${d.level ? `<span class="us-level">Lv.${d.level}</span>` : ''}</div>
+                        ${record}
+                    </div>
+                    ${best}
+                </section>`;
+        }
+
+        function squadHtml(d) {
+            if (!(d.squad || []).length) return '';
+            const players = d.squad.map(p => {
+                const c = POS_COORDS[p.p];
+                if (!c) return '';
+                const pid = parseInt(String(p.spid).slice(-6));
+                const b = p.b || 0;
+                const bu = b <= 1 ? 'bu-1' : b <= 4 ? 'bu-bronze' : b <= 7 ? 'bu-silver' : b <= 10 ? 'bu-gold' : 'bu-purple';
+                const icon = p.trait && TRAIT_ICON[p.trait];
+                return `<div class="hp-player" style="top:${c[0]}%; left:${c[1]}%;">
+                    <div class="hp-top">
+                        ${b ? `<span class="hp-bu ${bu}">+${b}</span>` : ''}
+                        ${icon ? `<img class="hp-trait" src="${CDN}traits/${icon}.png" alt="" title="${esc(p.trait)}">` : ''}
+                    </div>
+                    <img class="hp-face" src="${CDN}playersAction/p${p.spid}.png" alt="" loading="lazy"
+                        onerror="this.onerror=null; this.src='${CDN}playersHigh/p${pid}.png'; this.onerror=function(){this.onerror=null; this.src='${CDN}players/not_found.png';};">
+                    <div class="hp-sub">
+                        ${p.season ? `<img class="hp-season" src="${p.season}" alt="" loading="lazy">` : ''}
+                        <span class="hp-name">${esc(p.name)}</span>
+                    </div>
+                </div>`;
+            }).join('');
+            return `
+                <section class="us-card">
+                    <div class="us-card-title">⚽ 현재 스쿼드 <span class="us-card-sub">${fmtDate(d.squad_date)} 공식경기 기준</span></div>
+                    <div class="us-squad-wrap">
+                        <div class="us-pitch">${players}</div>
+                        <a class="us-open-sm" href="/squad_maker?owner=${encodeURIComponent(d.nickname)}">스쿼드 메이커로 열기 →</a>
+                    </div>
+                </section>`;
+        }
+
+        function matchesHtml(d) {
+            const ms = d.matches || [];
+            const body = ms.length
+                ? ms.map(m => `
+                    <div class="us-match">
+                        <span class="us-res ${resultClass(m.result)}">${esc(m.result)}</span>
+                        <span class="us-score">${m.my_goal ?? '-'} : ${m.opp_goal ?? '-'}</span>
+                        <span class="us-opp"><span class="vs">vs</span><a href="/user_search?nickname=${encodeURIComponent(m.opponent)}">${esc(m.opponent)}</a>${m.forfeit ? '<span class="us-tag">몰수</span>' : ''}</span>
+                        <span class="us-date">${fmtDate(m.date)}</span>
+                    </div>`).join('')
+                : '<div class="us-msg" style="padding:20px 0;">최근 공식경기 기록이 없어요.</div>';
+            const streak = ms.length
+                ? `<span class="us-streak">${ms.slice().reverse().map(m =>
+                    `<span style="background:${m.result === '승' ? '#3b82f6' : m.result === '패' ? '#ef4444' : '#6b7280'}"></span>`).join('')}</span>`
+                : '';
+            return `
+                <section class="us-card">
+                    <div class="us-card-title"><span style="white-space:nowrap;">📋 최근 공식경기</span> ${streak}</div>
+                    ${body}
+                </section>`;
+        }
+
+        async function search(nickname, push) {
+            nickname = (nickname || '').trim();
+            if (!nickname) {
+                box.innerHTML = '<div class="us-msg">구단주명을 입력해주세요.</div>';
+                return;
+            }
+            input.value = nickname;
+            btn.disabled = true;
+            btn.textContent = '검색 중';
+            box.innerHTML = '<div class="us-msg">🔎 구단주 정보와 최근 경기를 불러오는 중이에요.</div>';
+            if (push) history.pushState(null, '', '/user_search?nickname=' + encodeURIComponent(nickname));
+            if (typeof gtag === 'function') gtag('event', 'user_search', { query: nickname });
+
+            try {
+                const res = await fetch('/api/user_search?nickname=' + encodeURIComponent(nickname));
+                const data = await res.json();
+                if (!data.success) {
+                    box.innerHTML = `<div class="us-msg">${esc(data.message || '정보를 불러오지 못했어요.')}</div>`;
+                    return;
+                }
+                box.innerHTML = profileHtml(data) + squadHtml(data) + matchesHtml(data);
+            } catch (e) {
+                box.innerHTML = '<div class="us-msg">정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '검색';
+            }
+        }
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            search(input.value, true);
+        });
+
+        // 주소에 닉네임이 있으면 바로 검색 (공유 링크·상대 닉네임 클릭·뒤로 가기)
+        function fromUrl() {
+            const nick = new URLSearchParams(location.search).get('nickname');
+            if (nick) search(nick, false);
+            else box.innerHTML = '';
+        }
+        window.addEventListener('popstate', fromUrl);
+        fromUrl();
+    })();
+</script>
+{% endblock %}
