@@ -26,6 +26,53 @@
 
 {% block content %}
 <style>
+    /* ===== 유저 검색 페이지 안에 그린필드만 보여주는 모드 (?embed=1) ===== */
+    html.sm-embed body {
+        padding: 0 !important;
+        min-height: 0 !important;
+        background: transparent !important;
+    }
+
+    html.sm-embed .site-header,
+    html.sm-embed .main-footer,
+    html.sm-embed .bottom-nav,
+    html.sm-embed #jjangdaenak-banner,
+    html.sm-embed #pc-right-rail,
+    html.sm-embed .sm-side,
+    html.sm-embed .sm-bench,
+    html.sm-embed .sm-tc,
+    html.sm-embed .sm-ranker-queue-bar {
+        display: none !important;
+    }
+
+    html.sm-embed .main-content,
+    html.sm-embed .content-wrapper {
+        padding: 0 !important;
+        min-height: 0 !important;
+        background: transparent !important;
+    }
+
+    html.sm-embed .sm-container {
+        display: block !important;
+        max-width: 640px;
+        margin: 0 auto !important;
+        padding: 0 !important;
+    }
+
+    html.sm-embed .sm-field-wrap {
+        margin-bottom: 0 !important;
+    }
+
+    /* 보기 전용: 선수 수정·포메이션 변경은 막고, 팀컬러 로고 강조와 i 안내만 허용 */
+    html.sm-embed #field-rows,
+    html.sm-embed .sm-hud-formation {
+        pointer-events: none;
+    }
+
+    html.sm-embed .sm-hud-formation .caret {
+        display: none;
+    }
+
     .sm-container {
         max-width: 980px;
         margin: 20px auto;
@@ -5827,6 +5874,22 @@
         openOwnerSearch();   // 창을 띄운 채 검색 (실패하면 안내 문구가 창에 보임)
         document.getElementById('owner-nickname').value = homeRankerParams.get('owner');
         searchOwnerSquad();
+    }
+
+    // 유저 검색 페이지 안(embed): 넘겨받은 라인업으로 그린필드만 채우고, 높이를 바깥 페이지에 알려줌
+    if (document.documentElement.classList.contains('sm-embed')) {
+        const capture = document.getElementById('squad-capture');
+        const postToParent = msg => { try { parent.postMessage(msg, location.origin); } catch (e) { } };
+        new ResizeObserver(() => postToParent({ type: 'sm-embed-height', height: Math.ceil(capture.getBoundingClientRect().bottom + window.scrollY) + 4 }))
+            .observe(capture);
+        try {
+            const lineup = JSON.parse(decodeURIComponent(escape(atob(homeRankerParams.get('squad') || ''))));
+            fillFieldFromSquad(lineup)
+                .then(() => setTimeout(() => postToParent({ type: 'sm-embed-ready' }), 700))
+                .catch(() => postToParent({ type: 'sm-embed-error' }));
+        } catch (e) {
+            postToParent({ type: 'sm-embed-error' });
+        }
     }
 
     const shareParam = new URLSearchParams(location.search).get('share');

@@ -53,6 +53,14 @@
     <meta name="google-site-verification" content="tQHTu8tWZuzsl0Fsd5j3k_M6vc8PZYQqiQZ4cIzRJSM" />
     <meta name="naver-site-verification" content="d0646e07d467270a6fac1efa8c1c1def5f2d7c22" />
 
+    <!-- 유저 검색 페이지 안에 스쿼드 메이커 그린필드만 띄울 때(embed): 헤더 등을 숨기고 방문 통계에서 제외 -->
+    <script>
+        if (location.pathname === '/squad_maker' && new URLSearchParams(location.search).get('embed') === '1') {
+            document.documentElement.classList.add('sm-embed');
+            window['ga-disable-G-7W0Y1VQK3C'] = true;
+        }
+    </script>
+
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7W0Y1VQK3C"></script>
     <script>

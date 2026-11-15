@@ -201,13 +201,33 @@
     }
 
     /* 등급 색 */
-    .dv-sc { color: #ff5a8a; }
-    .dv-ch { color: #f5b301; }
-    .dv-sl { color: #b18cff; }
-    .dv-cl { color: #4fb3ff; }
-    .dv-wc { color: #20c997; }
-    .dv-pr { color: #8ee04a; }
-    .dv-etc { color: var(--text-primary); }
+    .dv-sc {
+        color: #ff5a8a;
+    }
+
+    .dv-ch {
+        color: #f5b301;
+    }
+
+    .dv-sl {
+        color: #b18cff;
+    }
+
+    .dv-cl {
+        color: #4fb3ff;
+    }
+
+    .dv-wc {
+        color: #20c997;
+    }
+
+    .dv-pr {
+        color: #8ee04a;
+    }
+
+    .dv-etc {
+        color: var(--text-primary);
+    }
 
     /* ===== 현재 스쿼드 (홈 미니 경기장과 같은 모양) ===== */
     .us-squad-wrap {
@@ -274,11 +294,25 @@
         color: #333;
     }
 
-    .hp-bu.bu-1 { background: #808080; }
-    .hp-bu.bu-bronze { background: #CD7F32; }
-    .hp-bu.bu-silver { background: #C0C0C0; }
-    .hp-bu.bu-gold { background: #FFD700; }
-    .hp-bu.bu-purple { background: linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%); }
+    .hp-bu.bu-1 {
+        background: #808080;
+    }
+
+    .hp-bu.bu-bronze {
+        background: #CD7F32;
+    }
+
+    .hp-bu.bu-silver {
+        background: #C0C0C0;
+    }
+
+    .hp-bu.bu-gold {
+        background: #FFD700;
+    }
+
+    .hp-bu.bu-purple {
+        background: linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%);
+    }
 
     .hp-face {
         display: block;
@@ -312,8 +346,39 @@
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
     }
 
+    .us-sm-frame-box {
+        position: relative;
+    }
+
+    .us-sm-loading {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .us-sm-frame {
+        position: relative;
+        display: block;
+        width: 100%;
+        border: 0;
+        background: transparent;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .us-sm-frame.ready {
+        opacity: 1;
+    }
+
     .us-open-sm {
         display: block;
+        max-width: 640px;
+        margin-left: auto;
+        margin-right: auto;
         width: 100%;
         margin-top: 12px;
         padding: 11px 0;
@@ -357,9 +422,17 @@
         font-weight: 800;
     }
 
-    .us-res.win { background: #3b82f6; }
-    .us-res.draw { background: #6b7280; }
-    .us-res.lose { background: #ef4444; }
+    .us-res.win {
+        background: #3b82f6;
+    }
+
+    .us-res.draw {
+        background: #6b7280;
+    }
+
+    .us-res.lose {
+        background: #ef4444;
+    }
 
     .us-score {
         flex-shrink: 0;
@@ -441,6 +514,11 @@
         .us-card {
             padding: 12px;
             margin-top: 12px;
+        }
+
+        /* 모바일에선 그린필드를 카드 양끝까지 넓혀서 스쿼드 메이커와 같은 폭으로 */
+        .us-sm-frame-box {
+            margin: 0 -11px;
         }
 
         .us-nick {
@@ -582,37 +660,36 @@
                 </section>`;
         }
 
+        // 현재 스쿼드: 스쿼드 메이커 그린필드를 그대로 띄움 (보기 전용)
         function squadHtml(d) {
             if (!(d.squad || []).length) return '';
-            const players = d.squad.map(p => {
-                const c = POS_COORDS[p.p];
-                if (!c) return '';
-                const pid = parseInt(String(p.spid).slice(-6));
-                const b = p.b || 0;
-                const bu = b <= 1 ? 'bu-1' : b <= 4 ? 'bu-bronze' : b <= 7 ? 'bu-silver' : b <= 10 ? 'bu-gold' : 'bu-purple';
-                const icon = p.trait && TRAIT_ICON[p.trait];
-                return `<div class="hp-player" style="top:${c[0]}%; left:${c[1]}%;">
-                    <div class="hp-top">
-                        ${b ? `<span class="hp-bu ${bu}">+${b}</span>` : ''}
-                        ${icon ? `<img class="hp-trait" src="${CDN}traits/${icon}.png" alt="" title="${esc(p.trait)}">` : ''}
-                    </div>
-                    <img class="hp-face" src="${CDN}playersAction/p${p.spid}.png" alt="" loading="lazy"
-                        onerror="this.onerror=null; this.src='${CDN}playersHigh/p${pid}.png'; this.onerror=function(){this.onerror=null; this.src='${CDN}players/not_found.png';};">
-                    <div class="hp-sub">
-                        ${p.season ? `<img class="hp-season" src="${p.season}" alt="" loading="lazy">` : ''}
-                        <span class="hp-name">${esc(p.name)}</span>
-                    </div>
-                </div>`;
-            }).join('');
+            const lineup = d.squad.map(p => ({ position: p.p, spid: p.spid, buildup: p.b }));
+            const enc = btoa(unescape(encodeURIComponent(JSON.stringify(lineup))));
+            const h = window.innerWidth <= 768 ? 540 : 720;
             return `
                 <section class="us-card">
                     <div class="us-card-title">⚽ 현재 스쿼드 <span class="us-card-sub">${fmtDate(d.squad_date)} 공식경기 기준</span></div>
-                    <div class="us-squad-wrap">
-                        <div class="us-pitch">${players}</div>
-                        <a class="us-open-sm" href="/squad_maker?owner=${encodeURIComponent(d.nickname)}">스쿼드 메이커로 열기 →</a>
+                    <div class="us-sm-frame-box">
+                        <div class="us-sm-loading">스쿼드를 불러오는 중이에요.</div>
+                        <iframe class="us-sm-frame" id="usSmFrame" title="현재 스쿼드" scrolling="no" style="height:${h}px;"
+                            src="/squad_maker?embed=1&squad=${encodeURIComponent(enc)}"></iframe>
                     </div>
+                    <a class="us-open-sm" href="/squad_maker?owner=${encodeURIComponent(d.nickname)}">스쿼드 메이커로 열기 →</a>
                 </section>`;
         }
+
+        // 그린필드 창이 알려주는 높이에 맞추고, 다 그려지면 보여주기
+        function showFrame() {
+            const f = document.getElementById('usSmFrame');
+            if (f) f.classList.add('ready');
+        }
+        window.addEventListener('message', e => {
+            if (e.origin !== location.origin || !e.data) return;
+            const f = document.getElementById('usSmFrame');
+            if (!f) return;
+            if (e.data.type === 'sm-embed-height' && e.data.height > 100) f.style.height = e.data.height + 'px';
+            if (e.data.type === 'sm-embed-ready' || e.data.type === 'sm-embed-error') showFrame();
+        });
 
         function matchesHtml(d) {
             const ms = d.matches || [];
@@ -657,6 +734,7 @@
                     return;
                 }
                 box.innerHTML = profileHtml(data) + squadHtml(data) + matchesHtml(data);
+                setTimeout(showFrame, 8000);   // 혹시 신호가 안 와도 8초 뒤엔 보여주기
             } catch (e) {
                 box.innerHTML = '<div class="us-msg">정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';
             } finally {
