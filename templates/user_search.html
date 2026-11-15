@@ -200,6 +200,138 @@
         margin-top: 12px;
     }
 
+    /* 현재 시즌 (공홈 등급 아이콘) */
+    .us-grades.loading .us-grade {
+        animation: us-pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes us-pulse {
+        50% {
+            opacity: 0.6;
+        }
+    }
+
+    .us-grade-now {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 4px;
+    }
+
+    .us-grade-ico {
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
+        flex-shrink: 0;
+        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+    }
+
+    .us-grade-now-txt {
+        min-width: 0;
+    }
+
+    .us-grade-now .us-grade-div {
+        margin-top: 0;
+    }
+
+    .us-grade-rec {
+        margin-top: 2px;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    .us-grade-rec em {
+        font-style: normal;
+        color: #4ade80;
+        font-weight: 700;
+    }
+
+    .us-grade-mode span {
+        margin-left: 6px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .us-grade.loading {
+        animation: us-pulse 1.2s ease-in-out infinite;
+    }
+
+    .us-grade.loading .us-grade-div,
+    .us-grade.fail .us-grade-div {
+        font-size: 1rem;
+    }
+
+    .us-grade-foot3 {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: auto;
+        padding-top: 8px;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.75rem;
+        color: var(--text-primary);
+    }
+
+    .us-grade-now+.us-grade-foot3 {
+        margin-top: 10px;
+    }
+
+    .us-grade-foot3 .k {
+        color: var(--text-secondary);
+        margin-right: 2px;
+    }
+
+    .us-grade-foot2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.78rem;
+    }
+
+    .us-grade-now+.us-grade-foot2 {
+        margin-top: 12px;
+    }
+
+    .us-grade-foot2>div {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+    }
+
+    .us-grade-foot2>div+div {
+        padding-left: 12px;
+        border-left: 1px solid var(--border-color);
+    }
+
+    .us-grade-foot2 .k {
+        color: var(--text-secondary);
+        font-size: 0.72rem;
+    }
+
+    .us-grade-foot2 .v {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+        color: var(--text-primary);
+        font-weight: 700;
+    }
+
+    .us-grade-foot2 small {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.7rem;
+    }
+
+    .us-mini-ico {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
     .us-grade-foot .k {
         color: var(--text-secondary);
     }
@@ -266,6 +398,10 @@
     .us-grade.tier-none {
         --t1: transparent;
         --t3: transparent;
+    }
+
+    .us-grade.tier-none .us-grade-mode {
+        border-left-color: #6b7280;
     }
 
     /* 슈퍼 챔피언스: 블랙 + 샴페인 골드, 빛이 스쳐 지나감 */
@@ -807,13 +943,43 @@
             font-size: 1.15rem;
         }
 
+        /* 모바일도 2x2 유지, 아이콘을 등급 이름 위로 */
         .us-grades {
-            grid-template-columns: 1fr;
             gap: 8px;
         }
 
         .us-grade {
-            padding: 12px 14px;
+            padding: 10px 11px;
+        }
+
+        .us-grade-mode {
+            font-size: 0.75rem;
+            padding-left: 6px;
+        }
+
+        .us-grade-mode span {
+            margin-left: 4px;
+        }
+
+        .us-grade-now {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .us-grade-ico {
+            width: 42px;
+            height: 42px;
+        }
+
+        .us-grade-rec {
+            font-size: 0.72rem;
+        }
+
+        .us-grade-foot3 {
+            flex-wrap: wrap;
+            font-size: 0.7rem;
         }
 
         .us-grade-div {
@@ -981,36 +1147,97 @@
             return r === '승' ? 'win' : r === '패' ? 'lose' : 'draw';
         }
 
-        // 구단주명 + 등급 정보: 공식경기 / 감독모드 카드 (역대 최고 등급 + 최근 공식경기 전적)
-        function gradeHtml(d) {
-            const ms = d.matches || [];
-            const w = ms.filter(m => m.result === '승').length;
-            const dr = ms.filter(m => m.result === '무').length;
-            const l = ms.filter(m => m.result === '패').length;
-            const rate = ms.length ? (w / ms.length * 100).toFixed(1) : 0;
-            const modes = [[50, '공식경기'], [52, '감독모드']];
-            const cards = modes.map(([id, label]) => {
-                const b = (d.best || []).find(x => x.type_id === id);
-                const record = id === 50 && ms.length
-                    ? `<div class="us-grade-foot">
-                           <span class="k">최근 ${ms.length}경기</span>
-                           <span class="v">${w}승 ${dr}무 ${l}패 <em>(${rate}%)</em></span>
-                       </div>`
-                    : '';
-                return `
-                    <div class="us-grade tier-${b ? tierKey(b.division) : 'none'}">
-                        <div class="us-grade-mode">${label}</div>
-                        <div class="us-grade-sub">역대 최고</div>
-                        <div class="us-grade-div">${b ? esc(b.division) : '등급 없음'}</div>
-                        <div class="us-grade-date">${b ? esc((b.date || '').replace(/-/g, '.')) + ' 달성' : '&nbsp;'}</div>
-                        ${record}
-                    </div>`;
+        // 구단주명 + 등급 정보 2x2: [공식 현재 | 공식 역대] / [감독 현재 | 감독 역대]
+        const GRADE_MODES = [[50, '공식경기'], [52, '감독모드']];
+
+        function gradeBox(opt) {
+            // opt: { label, kind, tier, icon, line, foot, state }
+            return `
+                <div class="us-grade tier-${opt.state === 'loading' ? 'none' : tierKey(opt.tier || '')} ${opt.state || ''}">
+                    <div class="us-grade-mode">${opt.label}<span>${opt.kind}</span></div>
+                    <div class="us-grade-now">
+                        ${opt.icon ? `<img class="us-grade-ico" src="${esc(opt.icon)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
+                        <div class="us-grade-now-txt">
+                            <div class="us-grade-div">${opt.tier ? esc(opt.tier) : (opt.state === 'loading' ? '불러오는 중' : '등급 없음')}</div>
+                            <div class="us-grade-rec">${opt.line || '&nbsp;'}</div>
+                        </div>
+                    </div>
+                    ${opt.foot ? `<div class="us-grade-foot3">${opt.foot}</div>` : ''}
+                </div>`;
+        }
+
+        // 현재 시즌 박스
+        function currentBox(label, s) {
+            if (s === undefined) return gradeBox({ label, kind: '현재 시즌', state: 'loading' });
+            if (!s || !s.current) return gradeBox({ label, kind: '현재 시즌', line: '현재 시즌 정보를 불러오지 못했어요', state: 'fail' });
+            const cur = s.current;
+            return gradeBox({
+                label, kind: '현재 시즌',
+                tier: cur.rank && cur.rank.tier,
+                icon: cur.rank && cur.rank.icon,
+                line: recordHtml(cur.text),
+            });
+        }
+
+        // 역대 최고 박스 (공홈 정보가 있으면 아이콘까지, 없으면 오픈 API 기록)
+        function bestBox(label, s, apiBest) {
+            const best = s && s.best;
+            const tier = (best && best.rank && best.rank.tier) || (apiBest && apiBest.division) || null;
+            const date = (best && best.text) || (apiBest && (apiBest.date || '').replace(/-/g, '.')) || '';
+            return gradeBox({
+                label, kind: '역대 최고',
+                tier,
+                icon: best && best.rank && best.rank.icon,
+                line: tier && date ? `${esc(date)} 달성` : '',
+            });
+        }
+
+        function gradeBoxesHtml(d, season) {
+            return GRADE_MODES.map(([id, label]) => {
+                const s = season === undefined ? undefined : (season[String(id)] || null);
+                const apiBest = (d.best || []).find(x => x.type_id === id);
+                return currentBox(label, s) + bestBox(label, s, apiBest);
             }).join('');
+        }
+
+        function gradeHtml(d) {
             return `
                 <section class="us-card">
                     <div class="us-nick">${esc(d.nickname)}${d.level ? `<span class="us-level">Lv.${d.level}</span>` : ''}</div>
-                    <div class="us-grades">${cards}</div>
+                    <div class="us-grades">${gradeBoxesHtml(d, undefined)}</div>
                 </section>`;
+        }
+
+        // ===== 현재 시즌 등급 (공홈에서 따로 받아와 등급 카드를 바꿔 끼움) =====
+        let seasonToken = 0;
+
+        function rankIcon(r, cls) {
+            return r && r.icon
+                ? `<img class="${cls}" src="${esc(r.icon)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+                : '';
+        }
+
+        // "19승 3무 12패(55.9%)" → 전적 + 초록 승률
+        function recordHtml(text) {
+            const m = /^(.*?)\s*\(([\d.]+%)\)\s*$/.exec(text || '');
+            if (!m) return esc(text || '');
+            if (/^0승 0무 0패/.test(m[1])) return '이번 시즌 기록 없음';
+            return `${esc(m[1])} <em>(${esc(m[2])})</em>`;
+        }
+
+        async function loadSeason(d) {
+            const token = ++seasonToken;
+            let modes = {};
+            try {
+                const res = await fetch('/api/user_season?nickname=' + encodeURIComponent(d.nickname));
+                const data = await res.json();
+                if (data && data.success && data.modes) modes = data.modes;
+            } catch (e) {
+                // 실패하면 현재 시즌 박스만 '불러오지 못했어요'
+            }
+            if (token !== seasonToken) return;   // 그 사이 다른 구단주를 검색했으면 무시
+            const wrap = box.querySelector('.us-grades');
+            if (wrap) wrap.innerHTML = gradeBoxesHtml(d, modes);
         }
 
         // 현재 스쿼드: 스쿼드 메이커 그린필드를 그대로 띄움 (보기 전용)
@@ -1179,6 +1406,7 @@
                 currentMatches = data.matches || [];
                 box.innerHTML = gradeHtml(data) + squadHtml(data) + matchesHtml(data);
                 revealLater(box);
+                loadSeason(data);
             } catch (e) {
                 box.innerHTML = '<div class="us-msg">정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>';
             } finally {

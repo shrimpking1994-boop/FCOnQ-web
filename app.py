@@ -4370,5 +4370,118 @@ def user_search_api():
     return jsonify(data)
 
 
+# ===== 유저 검색: 현재 시즌 등급 (넥슨 공홈 프로필에서 읽어옴) =====
+FCO_WEB = 'https://fconline.nexon.com'
+FCO_WEB_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                  '(KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+}
+# 공홈 등급 아이콘 번호(ico_rankN) → 등급 이름
+FCO_RANK_NAMES = [
+    '슈퍼 챔피언스', '챔피언스', '슈퍼 챌린저', '챌린저 1부', '챌린저 2부', '챌린저 3부',
+    '마스터 1부', '마스터 2부', '마스터 3부', '월드클래스 1부', '월드클래스 2부', '월드클래스 3부',
+    '프로 1부', '프로 2부', '프로 3부', '세미프로 1부', '세미프로 2부', '세미프로 3부',
+    '유망주 1부', '유망주 2부', '유망주 3부',
+]
+_user_sn_cache = {}       # 구단주명 → 공홈 고유번호 (잘 안 바뀜)
+_user_season_cache = {}   # 구단주명 → 시즌 정보 (10분)
+
+
+def _fco_web_get(url, referer=None):
+    headers = dict(FCO_WEB_HEADERS)
+    if referer:
+        headers.update({'Referer': referer, 'X-Requested-With': 'XMLHttpRequest'})
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=6) as res:
+        return res.geturl(), res.read().decode('utf-8', 'ignore')
+
+
+def _fco_find_sn(nickname):
+    if nickname in _user_sn_cache:
+        return _user_sn_cache[nickname]
+    final_url, html = _fco_web_get(
+        FCO_WEB + '/profile/common/PopProfile?strCharacterName=' + urllib.parse.quote(nickname))
+    m = re.search(r'/popup/(\d+)', final_url) or re.search(r'id="hidGuestSN" value="(\d+)"', html)
+    sn = m.group(1) if m else None
+    if sn:
+        if len(_user_sn_cache) > 5000:
+            _user_sn_cache.clear()
+        _user_sn_cache[nickname] = sn
+    return sn
+
+
+def _fco_rank(src):
+    """아이콘 주소 → {icon, tier}  (ico_rank_default = 등급 없음)"""
+    if not src:
+        return None
+    m = re.search(r'ico_rank(\d+)', src)
+    idx = int(m.group(1)) if m else None
+    tier = FCO_RANK_NAMES[idx] if idx is not None and idx < len(FCO_RANK_NAMES) else None
+    return {'icon': src, 'tier': tier}
+
+
+def _fco_parse_season(html):
+    """경기 기록 '팀' 탭 → 현재 시즌 / 지난 시즌 / 역대 최고"""
+    def block(name):
+        m = re.search(r'season_grade_info__' + name + r'"(.*?)(?=season_grade_info__|info_range_set|$)', html, re.S)
+        if not m:
+            return None
+        part = m.group(1)
+        cur = re.search(r'grade_current">\s*<img src="([^"]+)"', part)
+        last = re.search(r'grade_last">\s*<img src="([^"]+)"', part)
+        desc = re.search(r'grade_desc">(.*?)</div>', part, re.S)
+        text = re.sub(r'<[^>]+>', '', desc.group(1)).strip() if desc else ''
+        text = re.sub(r'\s+', ' ', text)
+        return {
+            'rank': _fco_rank(cur.group(1) if cur else None),
+            'season_best': _fco_rank(last.group(1) if last else None),
+            'text': text,
+        }
+    out = {'current': block('current'), 'last': block('last'), 'best': block('best')}
+    return out if out['current'] else None
+
+
+@app.route('/api/user_season')
+def user_season_api():
+    """구단주명 → 공식경기·감독모드 현재 시즌 등급/전적 (실패하면 success False, 화면은 그 칸만 숨김)"""
+    from concurrent.futures import ThreadPoolExecutor
+    import random
+
+    nickname = request.args.get('nickname', '').strip()
+    if not nickname:
+        return jsonify({'success': False}), 400
+
+    now = datetime.now()
+    cached = _user_season_cache.get(nickname)
+    if cached and (now - cached['time']).total_seconds() < 600:
+        return jsonify(cached['data'])
+
+    try:
+        sn = _fco_find_sn(nickname)
+    except Exception:
+        sn = None
+    if not sn:
+        return jsonify({'success': False})
+
+    def one(mode):
+        try:
+            _, html = _fco_web_get(
+                f'{FCO_WEB}/Profile/Stat/TeamInfo/{sn}?n1Type={mode}&rd={random.random()}',
+                referer=f'{FCO_WEB}/profile/stat/popup/{sn}')
+            return _fco_parse_season(html)
+        except Exception:
+            return None
+
+    with ThreadPoolExecutor(max_workers=2) as ex:
+        official, manager = ex.map(one, [50, 52])
+
+    data = {'success': bool(official or manager), 'modes': {'50': official, '52': manager}}
+    if data['success']:
+        if len(_user_season_cache) > 500:
+            _user_season_cache.clear()
+        _user_season_cache[nickname] = {'data': data, 'time': now}
+    return jsonify(data)
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
