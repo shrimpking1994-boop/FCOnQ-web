@@ -4483,5 +4483,115 @@ def user_season_api():
     return jsonify(data)
 
 
+# ===== 사이트 사용량 집계 (어제 티어리스트 조회 · 스쿼드 제작·조회 · 선수 정보 조회) =====
+# 화면이 /api/stat_hit 로 "1회" 신호를 보내면 날짜(한국시간)별로 더해 둠
+SITE_STAT_METRICS = {'tierlist', 'squad', 'card'}
+_site_stat_buffer = defaultdict(int)       # (날짜, 항목) → 아직 DB에 안 넣은 횟수
+_site_stat_last_flush = [time.time()]
+_site_stat_table_ready = [False]
+_site_stat_ip_hits = {}                    # (IP, 항목, 분) → 횟수 (같은 사람 연타 방지)
+_site_stat_cache = {'time': 0, 'data': None}
+SITE_STAT_FLUSH_SEC = 30                   # 30초마다 모아서 DB에 반영
+SITE_STAT_IP_PER_MIN = 20                  # 한 사람이 1분에 한 항목으로 셀 수 있는 최대 횟수
+
+
+def _site_stat_kst_date():
+    return datetime.now(pytz.timezone('Asia/Seoul')).date()
+
+
+def _site_stat_ensure_table(cur):
+    if _site_stat_table_ready[0]:
+        return
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS site_daily_stats (
+            stat_date DATE NOT NULL,
+            metric VARCHAR(30) NOT NULL,
+            count INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (stat_date, metric)
+        )
+    """)
+    _site_stat_table_ready[0] = True
+
+
+def _site_stat_flush(force=False):
+    if not _site_stat_buffer:
+        return
+    if not force and time.time() - _site_stat_last_flush[0] < SITE_STAT_FLUSH_SEC:
+        return
+    rows = list(_site_stat_buffer.items())
+    _site_stat_buffer.clear()
+    _site_stat_last_flush[0] = time.time()
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        _site_stat_ensure_table(cur)
+        execute_values(cur, """
+            INSERT INTO site_daily_stats (stat_date, metric, count) VALUES %s
+            ON CONFLICT (stat_date, metric)
+            DO UPDATE SET count = site_daily_stats.count + EXCLUDED.count
+        """, [(d, m, c) for (d, m), c in rows])
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        print(f"사용량 집계 저장 실패: {e}")
+        for k, c in rows:                  # 실패하면 다음 기회에 다시 넣기
+            _site_stat_buffer[k] += c
+    finally:
+        if conn:
+            conn.close()
+
+
+import atexit
+atexit.register(lambda: _site_stat_flush(force=True))   # 서버 재시작 직전 남은 횟수 저장
+
+
+@app.route('/api/stat_hit', methods=['POST'])
+def site_stat_hit():
+    data = request.get_json(silent=True) or {}
+    metric = data.get('m')
+    if metric not in SITE_STAT_METRICS:
+        return jsonify({'ok': False}), 400
+
+    minute = int(time.time() // 60)
+    key = (get_client_ip(), metric, minute)
+    if len(_site_stat_ip_hits) > 20000:
+        _site_stat_ip_hits.clear()
+    _site_stat_ip_hits[key] = _site_stat_ip_hits.get(key, 0) + 1
+    if _site_stat_ip_hits[key] <= SITE_STAT_IP_PER_MIN:
+        _site_stat_buffer[(_site_stat_kst_date(), metric)] += 1
+    _site_stat_flush()
+    return jsonify({'ok': True})
+
+
+@app.route('/api/site_stats')
+def site_stats_api():
+    """어제(한국시간) 사용량 — 홈·커뮤니티 상단 띠에 표시 (10분 캐시)"""
+    if _site_stat_cache['data'] and time.time() - _site_stat_cache['time'] < 600:
+        return jsonify(_site_stat_cache['data'])
+    _site_stat_flush(force=True)
+    yesterday = _site_stat_kst_date() - timedelta(days=1)
+    counts = {m: 0 for m in SITE_STAT_METRICS}
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        _site_stat_ensure_table(cur)
+        conn.commit()
+        cur.execute("SELECT metric, count FROM site_daily_stats WHERE stat_date = %s", (yesterday,))
+        for row in cur.fetchall():
+            counts[row['metric']] = row['count']
+        cur.close()
+    except Exception as e:
+        print(f"사용량 집계 조회 실패: {e}")
+        return jsonify({'success': False})
+    finally:
+        if conn:
+            conn.close()
+    data = {'success': True, 'date': yesterday.isoformat(), 'counts': counts}
+    _site_stat_cache.update(time=time.time(), data=data)
+    return jsonify(data)
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

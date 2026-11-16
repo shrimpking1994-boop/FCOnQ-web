@@ -2468,7 +2468,18 @@
     }
 
     function toggleTeamcolor(idx) {
-        document.getElementById('tcrow-' + idx).classList.toggle('open');
+        const row = document.getElementById('tcrow-' + idx);
+        row.classList.toggle('open');
+        if (row.classList.contains('open')) fcqStatHit('tierlist');   // 드롭다운이 열릴 때만 1회
+    }
+
+    // 사이트 사용량 집계: 서버에 "1회" 신호 (홈·커뮤니티 상단 '어제 OO회' 띠용)
+    function fcqStatHit(m) {
+        try {
+            const body = JSON.stringify({ m });
+            if (navigator.sendBeacon && navigator.sendBeacon('/api/stat_hit', new Blob([body], { type: 'application/json' }))) return;
+            fetch('/api/stat_hit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => { });
+        } catch (e) { }
     }
 
     function copyTcLink(e, tc) {

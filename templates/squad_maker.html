@@ -4661,6 +4661,23 @@
 
         updateFormationLabel();
         updateTeamColor();
+        statCountSquad();
+    }
+
+    // ===== 사이트 사용량 집계: 그린필드가 11명으로 꽉 찰 때 1회 (직전과 같은 11명이면 제외) =====
+    let statLastSquadSig = null;
+    function statCountSquad() {
+        if (document.documentElement.classList.contains('sm-embed')) return;   // 유저 검색 안의 보기 전용 화면은 제외
+        const players = Object.values(squadData).filter(Boolean);
+        if (players.length !== 11) return;
+        const sig = players.map(p => `${p.spid}_${p.boost || ''}`).sort().join(',');
+        if (sig === statLastSquadSig) return;
+        statLastSquadSig = sig;
+        try {
+            const body = JSON.stringify({ m: 'squad' });
+            if (navigator.sendBeacon && navigator.sendBeacon('/api/stat_hit', new Blob([body], { type: 'application/json' }))) return;
+            fetch('/api/stat_hit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => { });
+        } catch (e) { }
     }
 
     // 포지션 글자 색: 공격수 빨강 / 미드필더 연두 / 수비수 하늘 / 골키퍼 노랑

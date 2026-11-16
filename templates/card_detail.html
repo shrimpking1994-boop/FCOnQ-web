@@ -1716,6 +1716,17 @@
 </div><!-- /선수 후기 탭 -->
 
 <script>
+    // 사이트 사용량 집계: 선수 정보 페이지가 열릴 때 1회 (홈·커뮤니티 상단 '어제 OO회' 띠용)
+    (function () {
+        try {
+            const body = JSON.stringify({ m: 'card' });
+            if (navigator.sendBeacon && navigator.sendBeacon('/api/stat_hit', new Blob([body], { type: 'application/json' }))) return;
+            fetch('/api/stat_hit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => { });
+        } catch (e) { }
+    })();
+</script>
+
+<script>
     document.addEventListener('DOMContentLoaded', function () {
         const originalStats = {
             positionOverall: {},
