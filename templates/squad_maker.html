@@ -4483,16 +4483,33 @@
     let captureBlob = null;
     let captureUrl = null;
 
+    let captureLibPromise = null;
     function loadCaptureLib() {
         if (window.htmlToImage) return Promise.resolve();
-        return new Promise((resolve, reject) => {
+        if (captureLibPromise) return captureLibPromise;   // 미리 불러오는 중이면 그걸 기다림
+        captureLibPromise = new Promise((resolve, reject) => {
             const sc = document.createElement('script');
             sc.src = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
             sc.onload = resolve;
-            sc.onerror = reject;
+            sc.onerror = () => { captureLibPromise = null; reject(); };
             document.head.appendChild(sc);
         });
+        return captureLibPromise;
     }
+
+    // 캡처 도구는 페이지가 한가할 때 미리 불러두기 (보기 전용 화면은 제외)
+    if (!document.documentElement.classList.contains('sm-embed')) {
+        const preloadCapture = () => loadCaptureLib().catch(() => { });
+        if ('requestIdleCallback' in window) requestIdleCallback(preloadCapture, { timeout: 4000 });
+        else setTimeout(preloadCapture, 2500);
+    }
+
+    // 사파리(아이폰 포함)만 글꼴·이미지 준비용으로 캡처를 한 번 더 함
+    const CAPTURE_TWICE = /iP(hone|ad|od)/.test(navigator.userAgent)
+        || /^((?!chrome|chromium|crios|fxios|edg|android).)*safari/i.test(navigator.userAgent);
+
+    // 한 번 받아온 선수 이미지는 기억해두고 다음 캡처에 재사용
+    const captureImgCache = new Map();
 
     // 다른 사이트(넥슨) 이미지는 우리 서버 통로를 거쳐 데이터로 바꿔 넣기
     async function inlineCaptureImages(root) {
@@ -4507,10 +4524,15 @@
             restore.push([img, img.getAttribute('src'), img.getAttribute('onerror')]);
             img.removeAttribute('onerror');
             try {
-                const res = await fetch('/img_proxy?url=' + encodeURIComponent(abs.href));
-                if (!res.ok) throw new Error();
-                const blob = await res.blob();
-                const dataUrl = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+                let dataUrl = captureImgCache.get(abs.href);
+                if (!dataUrl) {
+                    const res = await fetch('/img_proxy?url=' + encodeURIComponent(abs.href));
+                    if (!res.ok) throw new Error();
+                    const blob = await res.blob();
+                    dataUrl = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+                    if (captureImgCache.size > 300) captureImgCache.clear();
+                    captureImgCache.set(abs.href, dataUrl);
+                }
                 img.src = dataUrl;
             } catch (e) {
                 img.src = blank;   // 못 불러온 이미지는 비워서 캡처 전체가 실패하지 않게
@@ -4530,6 +4552,7 @@
         const label = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '⏳ 캡처 중...';
+        if (typeof gtag === 'function') gtag('event', 'squad_capture_click');   // 버튼 누름 (미리보기 전 이탈 확인용)
         let restoreImages = null;
         try {
             await loadCaptureLib();
@@ -4549,7 +4572,7 @@
                 filter: node => !(node.classList && node.classList.contains('sm-cap-hide')),
                 imagePlaceholder: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
             };
-            await htmlToImage.toBlob(target, opts);   // 첫 번째는 글꼴·이미지 준비용 (사파리 대비)
+            if (CAPTURE_TWICE) await htmlToImage.toBlob(target, opts);   // 사파리만: 첫 번째는 글꼴·이미지 준비용
             captureBlob = await htmlToImage.toBlob(target, opts);
             if (!captureBlob) throw new Error('empty');
             openCapture();
