@@ -2,6 +2,8 @@
 {% set is_admin = session.get('user_role') == 'admin' %}
 {% set is_update = category == '업데이트' %}
 {% set pop_q = 'popular=true&' if show_popular and not is_update else '' %}
+{% set cat_icons = {'잡담': '💬', '꿀팁': '💡', '스쿼드': '⚽', '선수 후기': '📝', '전술': '📋', '강화/득템': '💎',
+'감독모드': '🎮', '미니 페이스온': '🙂', '명장면': '🎬', '업데이트': '🛠️'} %}
 {% set categories = [
 ('잡담', '잡담'), ('꿀팁', '꿀팁'), ('스쿼드', '스쿼드'), ('선수 후기', '선수 후기'),
 ('전술', '전술'), ('강화/득템', '강화/득템'), ('감독모드', '감독모드'),
@@ -86,10 +88,13 @@
             </span>
             {% endif %}
             <a href="/community/post/{{ post.id }}{% if board_qs %}?{{ board_qs }}{% endif %}" class="cm-link">
-                {% if post.has_image and not post.is_deleted %}
-                <img class="cm-thumb" src="/community/post/{{ post.id }}/image" alt="" loading="lazy"
-                    onerror="this.remove()">
-                {% endif %}
+                <!-- 썸네일 칸: 이미지가 없으면(또는 못 불러오면) 카테고리 아이콘으로 줄 맞춤 -->
+                <span class="cm-thumb">
+                    <span class="cm-thumb-ico">{{ cat_icons.get(post.category, '📄') }}</span>
+                    {% if post.has_image and not post.is_deleted %}
+                    <img src="/community/post/{{ post.id }}/image" alt="" loading="lazy" onerror="this.remove()">
+                    {% endif %}
+                </span>
                 <span class="cm-body">
                     <span class="cm-title">
                         <span class="cm-cat-cell">{% if post.category == '미니 페이스온' %}미페{% else %}{{ post.category }}{%
@@ -99,8 +104,6 @@
                         {% if post.comment_count > 0 %}<span class="cm-cmt">[{{ post.comment_count }}]</span>{% endif %}
                         {% if post.has_video %}<span class="cm-ico" title="영상">▶️</span>{% endif %}
                     </span>
-                    {% if post.preview and post.preview != post.title and not is_update %}<span class="cm-preview">{{
-                        post.preview }}</span>{% endif %}
                     <span class="cm-meta">
                         <span class="cm-author">{{ post.author | display_author }}{% if post.ip_display %} <span
                                 class="cm-ip">{{ post.ip_display }}</span>{% endif %}</span>
@@ -380,7 +383,7 @@
         font-size: 0.8rem;
     }
 
-    /* 글 목록 (반 카드형: 썸네일 + 제목 + 미리보기 + 정보) */
+    /* 글 목록 (에펨코리아 인기글형: 썸네일 칸 + 제목 + 정보) */
     .cm-list {
         background: var(--card-bg);
         border-radius: 10px;
@@ -428,7 +431,7 @@
         display: flex;
         align-items: center;
         gap: 14px;
-        padding: 12px 16px;
+        padding: 10px 16px;
         color: var(--text-primary);
         text-decoration: none;
     }
@@ -446,13 +449,31 @@
     }
 
     .cm-thumb {
-        width: 120px;
-        height: 80px;
+        position: relative;
+        width: 84px;
+        height: 56px;
         flex-shrink: 0;
-        object-fit: cover;
-        border-radius: 8px;
-        background: var(--secondary-bg);
+        border-radius: 6px;
+        overflow: hidden;
+        background: rgba(127, 127, 127, 0.1);
         border: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cm-thumb img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .cm-thumb-ico {
+        font-size: 1.35rem;
+        opacity: 0.55;
+        filter: grayscale(0.2);
     }
 
     .cm-body {
@@ -460,7 +481,7 @@
         min-width: 0;
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 6px;
     }
 
     .cm-title {
@@ -468,7 +489,7 @@
         align-items: center;
         gap: 6px;
         min-width: 0;
-        font-size: 1rem;
+        font-size: 1.02rem;
     }
 
     .cm-cat-cell {
@@ -498,16 +519,6 @@
     .cm-ico {
         flex-shrink: 0;
         font-size: 0.8rem;
-    }
-
-    /* 본문 미리보기: 두 줄까지, 긴 링크도 칸 안에서 줄바꿈 */
-    .cm-preview {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        line-height: 1.5;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
     .cm-meta {
@@ -706,22 +717,42 @@
 
         /* 글 한 개: 왼쪽 썸네일 + 오른쪽 글 */
         .cm-link {
-            align-items: flex-start;
             gap: 10px;
-            padding: 10px 12px;
+            padding: 9px 12px;
         }
 
         .cm-thumb {
-            width: 72px;
-            height: 72px;
+            width: 64px;
+            height: 46px;
         }
 
+        .cm-thumb-ico {
+            font-size: 1.1rem;
+        }
+
+        /* 모바일: 제목이 길면 두 줄까지 보여주기 */
         .cm-title {
+            align-items: flex-start;
             font-size: 0.93rem;
         }
 
-        .cm-preview {
-            font-size: 0.8rem;
+        .cm-title-text {
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.35;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+        }
+
+        .cm-cat-cell,
+        .cm-cmt {
+            margin-top: 1px;
+        }
+
+        .cm-body {
+            gap: 4px;
         }
 
         .cm-meta {
