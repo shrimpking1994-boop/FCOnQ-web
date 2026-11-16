@@ -43,7 +43,8 @@
                 <span>{{ post.created_at.strftime('%Y.%m.%d %H:%M') }}</span>
                 <span class="pv-stats">
                     <span>조회 {{ post.views }}</span>
-                    <span>추천 {{ post.likes }}</span>
+                    {% set net_votes = (post.likes or 0) - (post.dislikes or 0) %}
+                    <span {% if net_votes < 0 %}style="color:#60a5fa" {% endif %}>추천 {{ net_votes }}</span>
                     <span>댓글 {{ comments | rejectattr('is_deleted') | list | length }}</span>
                 </span>
             </div>

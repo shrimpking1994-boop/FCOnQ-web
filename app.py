@@ -1007,7 +1007,7 @@ def build_board(cur, args, anchor_post=None, with_notices=True):
 
     # 목록 (본문 전체는 가져오지 않음: 사진이 본문에 들어 있어 글당 수백 KB)
     cur.execute("""
-        SELECT id, category, title, preview, author, author_ip, created_at, views, likes,
+        SELECT id, category, title, preview, author, author_ip, created_at, views, likes, dislikes,
                is_notice, is_deleted,
                (POSITION('<img' IN content) > 0) AS has_image,
                (POSITION('<iframe' IN content) > 0

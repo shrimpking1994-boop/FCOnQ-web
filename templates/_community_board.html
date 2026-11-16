@@ -109,7 +109,8 @@
                                 class="cm-ip">{{ post.ip_display }}</span>{% endif %}</span>
                         <span class="cm-date">{{ post.display_date }}</span>
                         <span>조회 {{ post.views }}</span>
-                        <span>추천 {{ post.likes }}</span>
+                        {% set net_votes = (post.likes or 0) - (post.dislikes or 0) %}
+                        <span {% if net_votes < 0 %}class="cm-neg" {% endif %}>추천 {{ net_votes }}</span>
                     </span>
                 </span>
             </a>
@@ -532,6 +533,11 @@
     .cm-meta>span+span::before {
         content: '·';
         margin: 0 6px;
+    }
+
+    /* 비추천이 더 많은 글: 추천 수를 마이너스로 */
+    .cm-neg {
+        color: #60a5fa;
     }
 
     .cm-author {
