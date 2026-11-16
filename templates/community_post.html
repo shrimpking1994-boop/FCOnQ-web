@@ -44,7 +44,8 @@
                 <span class="pv-stats">
                     <span>조회 {{ post.views }}</span>
                     {% set net_votes = (post.likes or 0) - (post.dislikes or 0) %}
-                    <span {% if net_votes < 0 %}style="color:#60a5fa" {% endif %}>추천 {{ net_votes }}</span>
+                    <span class="{% if net_votes > 0 %}pv-pos{% elif net_votes < 0 %}pv-neg{% endif %}">추천 {{ net_votes
+                        }}</span>
                     <span>댓글 {{ comments | rejectattr('is_deleted') | list | length }}</span>
                 </span>
             </div>
@@ -477,6 +478,17 @@
         gap: 10px;
         margin-left: auto;
     }
+
+    /* 추천 수 색: 플러스 초록, 마이너스 빨강, 0은 기본 */
+    .pv-pos {
+        color: #22c55e;
+    }
+
+    .pv-neg {
+        color: #ef4444;
+    }
+
+
 
     .pv-actions {
         display: flex;

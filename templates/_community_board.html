@@ -110,7 +110,8 @@
                         <span class="cm-date">{{ post.display_date }}</span>
                         <span>조회 {{ post.views }}</span>
                         {% set net_votes = (post.likes or 0) - (post.dislikes or 0) %}
-                        <span {% if net_votes < 0 %}class="cm-neg" {% endif %}>추천 {{ net_votes }}</span>
+                        <span class="{% if net_votes > 0 %}cm-pos{% elif net_votes < 0 %}cm-neg{% endif %}">추천 {{
+                            net_votes }}</span>
                     </span>
                 </span>
             </a>
@@ -535,9 +536,18 @@
         margin: 0 6px;
     }
 
-    /* 비추천이 더 많은 글: 추천 수를 마이너스로 */
+    /* 추천 수 색: 플러스 초록, 마이너스 빨강, 0은 기본 */
+    .cm-pos {
+        color: #22c55e;
+    }
+
     .cm-neg {
-        color: #60a5fa;
+        color: #ef4444;
+    }
+
+    /* 구분 점(·)은 추천 색을 따라가지 않게 */
+    .cm-meta>span+span::before {
+        color: var(--text-muted);
     }
 
     .cm-author {
