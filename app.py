@@ -1319,9 +1319,17 @@ def add_comment(post_id):
             INSERT INTO community.comments 
             (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, created_at, is_op)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
         """, (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, datetime.now(pytz.UTC), is_op))
-        
+        new_comment_id = cur.fetchone()['id']
+
         conn.commit()
+
+        # 비회원: 이 브라우저에 '내가 쓴 댓글' 기록 (답글 알림용, 최근 100개)
+        if not user_id:
+            my_comments = [cid for cid in session.get('my_comments', []) if cid != new_comment_id]
+            session['my_comments'] = (my_comments + [new_comment_id])[-100:]
+            session.permanent = True
         return redirect(url_for('community_post', post_id=post_id))
         
     except Exception as e:
@@ -4591,6 +4599,72 @@ def site_stats_api():
     data = {'success': True, 'date': yesterday.isoformat(), 'counts': counts}
     _site_stat_cache.update(time=time.time(), data=data)
     return jsonify(data)
+
+
+# ===== 새 댓글 알림 (내 글에 달린 댓글 + 내 댓글에 달린 답글, 최근 7일) =====
+# 비회원: 이 브라우저 세션에 기록된 내 글·댓글 / 회원: 계정 기준 (어느 기기에서나)
+NOTI_DAYS = 7
+NOTI_LIMIT = 30
+
+
+@app.route('/api/notifications')
+def notifications_api():
+    user_id = session.get('user_id')
+    my_posts = set(session.get('my_posts', []))
+    my_comments = set(session.get('my_comments', []))
+    if not user_id and not my_posts and not my_comments:
+        return jsonify({'active': False, 'items': []})   # 글·댓글을 쓴 적 없으면 알림 아이콘도 숨김
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        since = datetime.now(pytz.UTC) - timedelta(days=NOTI_DAYS)
+        if user_id:
+            cur.execute("SELECT id FROM community.posts WHERE user_id = %s AND created_at > %s - interval '60 days'",
+                        (user_id, since))
+            my_posts |= {r['id'] for r in cur.fetchall()}
+            cur.execute("SELECT id FROM community.comments WHERE user_id = %s AND created_at > %s - interval '60 days'",
+                        (user_id, since))
+            my_comments |= {r['id'] for r in cur.fetchall()}
+        if not my_posts and not my_comments:
+            return jsonify({'active': bool(user_id), 'items': []})
+
+        cur.execute("""
+            SELECT c.id, c.post_id, c.parent_comment_id, c.author, c.user_id, c.content, c.created_at,
+                   p.title
+            FROM community.comments c
+            JOIN community.posts p ON p.id = c.post_id
+            WHERE c.created_at > %s
+              AND c.is_deleted = false
+              AND COALESCE(p.is_deleted, false) = false
+              AND (c.post_id = ANY(%s::int[]) OR c.parent_comment_id = ANY(%s::int[]))
+              AND NOT (c.id = ANY(%s::int[]))
+              AND (%s IS NULL OR c.user_id IS NULL OR c.user_id <> %s)
+            ORDER BY c.created_at DESC
+            LIMIT %s
+        """, (since, list(my_posts), list(my_comments), list(my_comments), user_id, user_id, NOTI_LIMIT))
+        items = []
+        for r in cur.fetchall():
+            is_reply = r['parent_comment_id'] in my_comments
+            text = re.sub(r'\s+', ' ', r['content'] or '').strip()
+            items.append({
+                'id': r['id'],
+                'post_id': r['post_id'],
+                'title': (r['title'] or '')[:40],
+                'author': display_author(r['author']),
+                'snippet': text[:40] + ('…' if len(text) > 40 else ''),
+                'type': 'reply' if is_reply else 'comment',
+                'created_at': r['created_at'].isoformat() if r['created_at'] else None,
+            })
+        cur.close()
+        return jsonify({'active': True, 'items': items})
+    except Exception as e:
+        print(f"알림 조회 실패: {e}")
+        return jsonify({'active': False, 'items': []})
+    finally:
+        if conn:
+            conn.close()
 
 
 if __name__ == '__main__':

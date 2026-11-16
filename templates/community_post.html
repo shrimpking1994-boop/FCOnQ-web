@@ -93,7 +93,8 @@
         <div class="pv-cmt-list">
             {% for comment in comments %}
             {% if not comment.parent_comment_id %}
-            <div class="pv-cmt {% if comment.is_deleted %}is-deleted{% endif %} {% if comment.is_op %}is-op{% endif %}">
+            <div id="c-{{ comment.id }}"
+                class="pv-cmt {% if comment.is_deleted %}is-deleted{% endif %} {% if comment.is_op %}is-op{% endif %}">
                 <div class="pv-cmt-head">
                     <div class="pv-cmt-who">
                         {% if comment.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
@@ -143,7 +144,7 @@
 
             {% for reply in comments %}
             {% if reply.parent_comment_id == comment.id %}
-            <div
+            <div id="c-{{ reply.id }}"
                 class="pv-cmt pv-reply {% if reply.is_deleted %}is-deleted{% endif %} {% if reply.is_op %}is-op{% endif %}">
                 <div class="pv-cmt-head">
                     <div class="pv-cmt-who">
@@ -349,6 +350,18 @@
             })
             .catch(() => alert('차단 중 오류가 발생했습니다'));
     }
+
+    // 알림에서 들어오면 해당 댓글로 스크롤 + 잠깐 강조
+    (function () {
+        const m = /^#c-(\d+)$/.exec(location.hash);
+        if (!m) return;
+        const el = document.getElementById('c-' + m[1]);
+        if (!el) return;
+        setTimeout(() => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('pv-flash');
+        }, 150);
+    })();
 
     function toggleNotice(postId) {
         fetch(`/community/post/${postId}/toggle_notice`, {
@@ -750,6 +763,23 @@
 
     .pv-cmt.is-op .pv-cmt-who strong {
         color: var(--pv-accent);
+    }
+
+    /* 알림으로 이동한 댓글 강조 */
+    .pv-cmt.pv-flash {
+        animation: pvFlash 2.4s ease-out;
+    }
+
+    @keyframes pvFlash {
+
+        0%,
+        35% {
+            background-color: rgba(250, 204, 21, 0.28);
+        }
+
+        100% {
+            background-color: transparent;
+        }
     }
 
     .pv-reply-mark {

@@ -1004,6 +1004,167 @@
             }
         }
 
+        /* ===== 새 댓글 알림 (🔔) ===== */
+        .noti-wrap {
+            position: relative;
+        }
+
+        .noti-wrap[hidden] {
+            display: none;
+        }
+
+        .noti-btn {
+            position: relative;
+        }
+
+        .noti-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            line-height: 17px;
+            text-align: center;
+            box-shadow: 0 0 0 2px var(--bg-main);
+        }
+
+        .noti-badge[hidden] {
+            display: none;
+        }
+
+        .noti-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 330px;
+            max-height: 420px;
+            display: none;
+            flex-direction: column;
+            background: var(--bg-secondary, #1f2128);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            z-index: 2000;
+            overflow: hidden;
+        }
+
+        .noti-wrap.open .noti-panel {
+            display: flex;
+        }
+
+        .noti-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .noti-readall {
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .noti-readall:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        .noti-list {
+            overflow-y: auto;
+        }
+
+        .noti-item {
+            display: block;
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .noti-item:last-child {
+            border-bottom: none;
+        }
+
+        .noti-item:hover {
+            background: rgba(127, 127, 127, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .noti-item.unread {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .noti-item.unread .noti-line1::before {
+            content: '';
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 6px;
+            border-radius: 50%;
+            background: #ef4444;
+            vertical-align: middle;
+        }
+
+        .noti-line1 {
+            color: var(--text-primary);
+        }
+
+        .noti-line1 b {
+            font-weight: 700;
+        }
+
+        .noti-line2 {
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .noti-line3 {
+            margin-top: 3px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .noti-empty {
+            padding: 28px 14px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+        }
+
+        @media (max-width: 768px) {
+            .noti-panel {
+                position: fixed;
+                top: 52px;
+                right: 8px;
+                left: 8px;
+                width: auto;
+                max-height: 70vh;
+            }
+
+            .noti-badge {
+                top: -6px;
+                right: -6px;
+            }
+        }
+
         /* ===== PC 오른쪽 광고 (PR 작업) ===== */
         #pc-right-rail {
             display: none;
@@ -1068,6 +1229,24 @@
 
             <!-- 로그인 / 다크모드 (같은 줄 오른쪽 끝) -->
             <div class="top-bar-right">
+                <!-- 새 댓글 알림: 글·댓글을 쓴 적이 있거나 로그인했을 때만 보임 -->
+                <div class="noti-wrap" id="notiWrap" hidden>
+                    <button type="button" class="theme-btn noti-btn" id="notiBtn" aria-label="알림">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                        </svg>
+                        <span class="noti-badge" id="notiBadge" hidden></span>
+                    </button>
+                    <div class="noti-panel" id="notiPanel">
+                        <div class="noti-head">
+                            <span>알림</span>
+                            <button type="button" class="noti-readall" id="notiReadAll">모두 읽음</button>
+                        </div>
+                        <div class="noti-list" id="notiList"></div>
+                    </div>
+                </div>
                 <div class="login-section" id="loginSection">
                     <!-- JavaScript로 동적 렌더링 -->
                 </div>
@@ -1314,6 +1493,98 @@
                 loginSection.innerHTML = `<a href="/login" class="login-btn">로그인</a>`;
             }
         });
+    </script>
+
+    <!-- 새 댓글 알림 -->
+    <script>
+        (function () {
+            if (document.documentElement.classList.contains('sm-embed')) return;
+            const READ_KEY = 'fcqNotiRead', INIT_KEY = 'fcqNotiInit';
+            const store = {
+                get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } },
+            };
+            let readIds = new Set();
+            try { readIds = new Set(JSON.parse(store.get(READ_KEY) || '[]')); } catch (e) { }
+            const saveRead = () => store.set(READ_KEY, JSON.stringify([...readIds].slice(-400)));
+
+            // 지금 보고 있는 글의 댓글은 읽은 것으로 처리
+            document.querySelectorAll('[id^="c-"]').forEach(el => {
+                const id = Number(el.id.slice(2));
+                if (id) readIds.add(id);
+            });
+            saveRead();
+
+            const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            function ago(iso) {
+                const s = (Date.now() - new Date(iso).getTime()) / 1000;
+                if (s < 60) return '방금 전';
+                if (s < 3600) return Math.floor(s / 60) + '분 전';
+                if (s < 86400) return Math.floor(s / 3600) + '시간 전';
+                return Math.floor(s / 86400) + '일 전';
+            }
+
+            const wrap = document.getElementById('notiWrap');
+            const badge = document.getElementById('notiBadge');
+            const list = document.getElementById('notiList');
+            let items = [];
+
+            function render() {
+                const unread = items.filter(it => !readIds.has(it.id)).length;
+                badge.hidden = unread === 0;
+                badge.textContent = unread > 99 ? '99+' : unread;
+                list.innerHTML = items.length
+                    ? items.map(it => `
+                        <a class="noti-item ${readIds.has(it.id) ? '' : 'unread'}" data-id="${it.id}"
+                           href="/community/post/${it.post_id}#c-${it.id}">
+                            <div class="noti-line1"><b>${esc(it.author)}</b>님이 ${it.type === 'reply' ? '내 댓글에 답글' : '내 글에 댓글'}을 남겼어요</div>
+                            <div class="noti-line2">“${esc(it.snippet)}”</div>
+                            <div class="noti-line3">${esc(it.title)} · ${ago(it.created_at)}</div>
+                        </a>`).join('')
+                    : '<div class="noti-empty">최근 7일 동안 새 댓글이 없어요</div>';
+            }
+
+            fetch('/api/notifications').then(r => r.json()).then(data => {
+                if (!data || !data.active) return;
+                items = data.items || [];
+                // 처음 쓰는 기기: 지금 있는 알림은 읽은 것으로 (예전 댓글이 한꺼번에 뜨지 않게)
+                if (!store.get(INIT_KEY)) {
+                    items.forEach(it => readIds.add(it.id));
+                    saveRead();
+                    store.set(INIT_KEY, '1');
+                }
+                wrap.hidden = false;
+                render();
+            }).catch(() => { });
+
+            document.getElementById('notiBtn').addEventListener('click', e => {
+                e.stopPropagation();
+                wrap.classList.toggle('open');
+            });
+            document.addEventListener('click', e => {
+                if (!wrap.contains(e.target)) wrap.classList.remove('open');
+            });
+            document.getElementById('notiReadAll').addEventListener('click', e => {
+                e.stopPropagation();
+                items.forEach(it => readIds.add(it.id));
+                saveRead();
+                render();
+            });
+            list.addEventListener('click', e => {
+                const a = e.target.closest('.noti-item');
+                if (!a) return;
+                readIds.add(Number(a.dataset.id));
+                saveRead();
+                if (typeof gtag === 'function') gtag('event', 'noti_click');
+                // 같은 글이면 새로고침해서 댓글 위치로 이동
+                const url = new URL(a.href);
+                if (url.pathname === location.pathname) {
+                    e.preventDefault();
+                    location.href = a.href;
+                    location.reload();
+                }
+            });
+        })();
     </script>
 
     <!-- 짱대낙 광고 배너 -->
