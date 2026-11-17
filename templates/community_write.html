@@ -33,6 +33,11 @@
         <div class="pw-author-fixed">작성자 <strong>{{ session.get('user_name', '익명') }}</strong></div>
         {% endif %}
 
+        <!-- 스쿼드 메이커에서 넘어왔을 때 안내 -->
+        {% if request.args.get('from') == 'squad_maker' %}
+        <div class="pw-squad-hint" id="pwSquadHint">💬 팀평 요청, 자랑, 고민 무엇이든 자유롭게 써주세요</div>
+        {% endif %}
+
         <!-- 본문 -->
         <div class="pw-editor-box">
             <div id="editor"></div>
@@ -47,4 +52,44 @@
 </div>
 
 {% include "_community_editor.html" %}
+
+{% if request.args.get('from') == 'squad_maker' %}
+<style>
+    .pw-squad-hint {
+        margin: 0 0 10px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        color: var(--text-primary);
+        font-size: 0.88rem;
+    }
+</style>
+<script>
+    // 스쿼드 메이커 '글쓰기'로 넘어온 경우: 제목과 그린필드 캡처를 미리 채워두기
+    (function () {
+        let draft = null;
+        try { draft = JSON.parse(sessionStorage.getItem('fcqSquadDraft') || 'null'); } catch (e) { }
+        if (!draft || Date.now() - (draft.ts || 0) > 30 * 60 * 1000) return;   // 30분 지난 건 무시
+        try { sessionStorage.removeItem('fcqSquadDraft'); } catch (e) { }
+
+        const titleInput = document.querySelector('#postForm input[name="title"]');
+        if (titleInput && !titleInput.value && draft.title) titleInput.value = draft.title.slice(0, 200);
+
+        if (!draft.image) return;
+        let tries = 0;
+        (function insertImage() {
+            const box = document.getElementById('editor');
+            const q = window.Quill && box ? window.Quill.find(box) : null;
+            if (!q || typeof q.insertEmbed !== 'function') {
+                if (++tries < 40) setTimeout(insertImage, 100);   // 편집기 준비될 때까지 최대 4초
+                return;
+            }
+            q.insertEmbed(0, 'image', draft.image, 'user');
+            q.insertText(1, '\n', 'user');
+            q.setSelection(2, 0);
+        })();
+    })();
+</script>
+{% endif %}
 {% endblock %}
