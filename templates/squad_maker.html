@@ -4609,7 +4609,7 @@
         const tc = tcCornerClub && tcCornerClub.name ? tcCornerClub.name.trim() : '';
         const price = (document.getElementById('total-price')?.textContent || '').trim();
         const fm = (document.getElementById('formation-label')?.textContent || '').trim();
-        return [tc, price && price !== '—' ? price : '', fm && fm !== '—' ? fm : ''].filter(Boolean).join(' ');
+        return [tc, price && price !== '—' ? price : '', fm && fm !== '—' ? fm : ''].filter(Boolean).join(' · ');
     }
 
     // 글에 넣기 좋게: 가로 최대 900px JPG로 줄이기 (용량 ↓)
