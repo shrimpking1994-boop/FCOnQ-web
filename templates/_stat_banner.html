@@ -6,20 +6,14 @@
 </div>
 
 <style>
+    /* 박스 없이 글자 한 줄: 있는 듯 없는 듯 */
     .sb-bar {
         --sb-num: #ffd666;
-        --sb-bg: linear-gradient(90deg, rgba(88, 101, 184, 0.42), rgba(88, 101, 184, 0.22));
-        --sb-h: 42px;
-        border: 1px solid rgba(88, 101, 184, 0.45);
-        border-radius: 10px;
-        background: var(--sb-bg);
-        overflow: hidden;
+        --sb-h: 30px;
     }
 
     html:not([data-theme="dark"]) .sb-bar {
         --sb-num: #c2410c;
-        --sb-bg: linear-gradient(90deg, rgba(88, 101, 184, 0.16), rgba(88, 101, 184, 0.06));
-        border-color: rgba(88, 101, 184, 0.3);
     }
 
     .sb-bar.sb-hide {
@@ -39,12 +33,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 5px;
         height: var(--sb-h);
-        padding: 0 12px;
-        color: var(--text-primary);
-        font-size: 0.95rem;
-        font-weight: 600;
+        padding: 0 8px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
         text-decoration: none;
         white-space: nowrap;
     }
@@ -55,30 +49,21 @@
 
     .sb-item b {
         color: var(--sb-num);
-        font-size: 1.05rem;
         font-weight: 800;
     }
 
     .sb-go {
-        margin-left: 2px;
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-        opacity: 0.7;
+        font-size: 0.8rem;
+        opacity: 0.6;
     }
 
     @media (max-width: 768px) {
         .sb-bar {
-            --sb-h: 38px;
-            border-radius: 8px;
+            --sb-h: 28px;
         }
 
         .sb-item {
-            font-size: 0.85rem;
-            gap: 4px;
-        }
-
-        .sb-item b {
-            font-size: 0.95rem;
+            font-size: 0.8rem;
         }
     }
 
