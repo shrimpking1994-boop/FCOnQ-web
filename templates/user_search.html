@@ -1373,7 +1373,7 @@
                     </div>`).join('')
                 : '<div class="us-msg" style="padding:20px 0;">최근 공식경기 기록이 없어요.</div>';
             const streak = ms.length
-                ? `<span class="us-streak">${ms.slice().reverse().map(m =>
+                ? `<span class="us-streak">${ms.map(m =>
                     `<span style="background:${m.result === '승' ? '#16a34a' : m.result === '패' ? '#ef4444' : '#6b7280'}"></span>`).join('')}</span>`
                 : '';
             return `
