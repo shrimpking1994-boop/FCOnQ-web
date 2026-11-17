@@ -3335,6 +3335,45 @@ def get_new_trait_stats():
         'nexon_prev_date': prev_dates.get('nexon', '')
     })    
 
+# ===== 키보드 티어리스트: 키보드 vs 패드 랭커 통계 (keyboard_stats.py가 매일 계산) =====
+@app.route('/api/get_keyboard_stats')
+def get_keyboard_stats():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT crawl_date, data FROM card_tierlist_keyboard
+            ORDER BY crawl_date DESC LIMIT 1
+        """)
+        row = cur.fetchone()
+        cur.execute("SELECT team_name, logo_url FROM team_logos")
+        table_logos = {r['team_name']: r['logo_url'] for r in cur.fetchall()}
+    except Exception:
+        conn.rollback()
+        row = None
+    finally:
+        cur.close()
+        conn.close()
+
+    if not row:
+        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
+
+    data = row['data']
+    if isinstance(data, str):
+        data = json.loads(data)
+
+    # 팀컬러: 티어리스트와 같이 '단일 팀' 등은 빼고 TOP 5, 로고는 로고 테이블 우선
+    for dev in (data.get('devices') or {}).values():
+        tcs = [t for t in dev.get('teamcolors', []) if t.get('name') not in TIERLIST_EXCLUDE_TEAMCOLORS]
+        for t in tcs:
+            t['logo'] = table_logos.get(t['name']) or t.get('logo')
+        dev['teamcolors'] = tcs[:5]
+    for r in data.get('top_keyboard', []):
+        r['logo'] = table_logos.get(r.get('teamcolor')) or r.get('logo')
+
+    d = row['crawl_date']
+    return jsonify({'success': True, 'date': f"{d.month}월 {d.day}일", 'data': data})
+
 # ===== 스쿼드 메이커 캡처용 이미지 통로 =====
 # 넥슨 이미지를 우리 서버를 거쳐 전달 (브라우저 보안 규칙 때문에 캡처 시 필요)
 IMG_PROXY_HOSTS = ('nexoncdn.co.kr', 'nexon.com')

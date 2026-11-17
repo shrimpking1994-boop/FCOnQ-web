@@ -1716,6 +1716,543 @@
             width: 64px;
         }
     }
+
+    /* ===== 키보드 탭 ===== */
+    .kb-wrap {
+        --kb-key: #20c997;
+        --kb-pad: #7c8cff;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-top: 6px;
+    }
+
+    .kb-box {
+        background: var(--bg-main);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 16px 18px;
+    }
+
+    .kb-title {
+        color: var(--text-primary);
+        font-size: 1.05rem;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .kb-sub {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-bottom: 14px;
+    }
+
+    .kb-key-c {
+        color: var(--kb-key);
+    }
+
+    .kb-pad-c {
+        color: var(--kb-pad);
+    }
+
+    /* 맨 위 요약 */
+    .kb-hero-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .kb-hero-side {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .kb-hero-side.pad {
+        align-items: flex-end;
+    }
+
+    .kb-hero-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .kb-hero-pct {
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1.1;
+    }
+
+    .kb-hero-cnt {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+    }
+
+    .kb-split {
+        display: flex;
+        height: 14px;
+        border-radius: 7px;
+        overflow: hidden;
+        background: var(--kb-pad);
+    }
+
+    .kb-split-key {
+        background: var(--kb-key);
+    }
+
+    .kb-hero-note {
+        margin-top: 12px;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        text-align: center;
+    }
+
+    .kb-hero-note b {
+        color: var(--text-primary);
+    }
+
+    /* 순위 구간별 막대 */
+    .kb-band {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        align-items: center;
+        gap: 12px;
+        padding: 5px 0;
+    }
+
+    .kb-band-label {
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .kb-band-bar {
+        position: relative;
+        display: flex;
+        height: 26px;
+        border-radius: 6px;
+        overflow: hidden;
+        background: rgba(124, 140, 255, 0.28);
+    }
+
+    .kb-band-bar::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        border-left: 1px dashed rgba(255, 255, 255, 0.35);
+    }
+
+    .kb-band-fill {
+        background: var(--kb-key);
+        display: flex;
+        align-items: center;
+        padding-left: 8px;
+        color: #0b2b22;
+        font-size: 0.8rem;
+        font-weight: 800;
+        white-space: nowrap;
+        transition: width 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .kb-band-pad {
+        position: absolute;
+        right: 8px;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .kb-legend {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 10px;
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+    }
+
+    .kb-legend i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        margin-right: 5px;
+        vertical-align: -1px;
+    }
+
+    /* 평균 구단가치 */
+    .kb-value-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .kb-value {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 14px;
+        text-align: center;
+    }
+
+    .kb-value-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .kb-value-num {
+        margin-top: 4px;
+        font-size: 1.5rem;
+        font-weight: 900;
+    }
+
+    /* 키보드 vs 패드 두 칸 비교 */
+    .kb-duo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .kb-col {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+        min-width: 0;
+    }
+
+    .kb-col-title {
+        font-size: 0.9rem;
+        font-weight: 800;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .kb-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .kb-row:last-child {
+        border-bottom: none;
+    }
+
+    .kb-rank {
+        width: 18px;
+        flex-shrink: 0;
+        text-align: center;
+        font-weight: 800;
+        color: var(--text-secondary);
+    }
+
+    .kb-rank.r1 {
+        color: #f5b301;
+    }
+
+    .kb-rank.r2 {
+        color: #b8c2cc;
+    }
+
+    .kb-rank.r3 {
+        color: #cd7f32;
+    }
+
+    .kb-logo {
+        width: 26px;
+        height: 26px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .kb-row-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .kb-row-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .kb-name {
+        color: var(--text-primary);
+        font-size: 0.88rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .kb-pct {
+        color: var(--text-primary);
+        font-size: 0.82rem;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .kb-mini-bar {
+        height: 5px;
+        margin-top: 5px;
+        border-radius: 3px;
+        background: var(--border-color);
+        overflow: hidden;
+    }
+
+    .kb-mini-bar span {
+        display: block;
+        height: 100%;
+        border-radius: 3px;
+    }
+
+    .kb-col.key .kb-mini-bar span {
+        background: var(--kb-key);
+    }
+
+    .kb-col.pad .kb-mini-bar span {
+        background: var(--kb-pad);
+    }
+
+    /* 키보드 랭커 상위 30명 */
+    .kb-rankers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(15, auto);
+        grid-auto-flow: column;
+        column-gap: 20px;
+    }
+
+    .kb-ranker {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-bottom: 1px solid var(--border-color);
+        color: inherit;
+        text-decoration: none;
+        min-width: 0;
+    }
+
+    .kb-ranker-rank {
+        width: 92px;
+        flex-shrink: 0;
+        color: var(--kb-key);
+        font-size: 0.9rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .kb-ranker-rank small {
+        margin-left: 4px;
+        color: var(--text-secondary);
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+    .kb-ranker-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .kb-ranker-nick {
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .kb-ranker-tc {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .kb-ranker-tc img {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+    }
+
+    /* 키보드 랭커 1~3위: 금·은·동 (유저 검색 등급 디자인과 같은 결) */
+    .kb-ranker-rank b {
+        font-weight: 800;
+    }
+
+    .kb-ranker.kb-medal {
+        position: relative;
+        overflow: hidden;
+        margin: 3px 0;
+        border-radius: 8px;
+        border-bottom-color: transparent;
+        background:
+            radial-gradient(120% 120% at 0% 50%, color-mix(in srgb, var(--m1) 22%, transparent) 0%, transparent 65%),
+            var(--bg-main);
+        box-shadow: inset 3px 0 0 var(--m1), 0 0 0 1px color-mix(in srgb, var(--m1) 35%, transparent);
+    }
+
+    .kb-ranker.kb-medal::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 45%;
+        height: 100%;
+        background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--m1) 14%, transparent) 0 6px, transparent 6px 14px);
+        -webkit-mask-image: radial-gradient(90% 100% at 100% 50%, #000 0%, transparent 75%);
+        mask-image: radial-gradient(90% 100% at 100% 50%, #000 0%, transparent 75%);
+        pointer-events: none;
+    }
+
+    .kb-ranker.kb-medal>* {
+        position: relative;
+    }
+
+    .kb-ranker.kb-medal .kb-ranker-rank b {
+        font-size: 1rem;
+        background: linear-gradient(100deg, var(--m1) 0%, var(--m2) 45%, var(--m1) 55%, var(--m1) 100%);
+        background-size: 250% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: kb-shine 3.5s ease-in-out infinite;
+    }
+
+    @keyframes kb-shine {
+        0% {
+            background-position: 100% 0;
+        }
+
+        60%,
+        100% {
+            background-position: 0% 0;
+        }
+    }
+
+    .kb-ranker.kb-m1 {
+        --m1: #e0b43a;
+        --m2: #fff4c2;
+        box-shadow: inset 3px 0 0 var(--m1), 0 0 0 1px rgba(224, 180, 58, 0.45), 0 0 16px rgba(224, 180, 58, 0.2);
+    }
+
+    .kb-ranker.kb-m2 {
+        --m1: #aab4c3;
+        --m2: #ffffff;
+    }
+
+    .kb-ranker.kb-m3 {
+        --m1: #c27a42;
+        --m2: #ffd9b8;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .kb-ranker.kb-medal .kb-ranker-rank b {
+            animation: none;
+        }
+    }
+
+    .kb-ranker-value {
+        flex-shrink: 0;
+        color: #d97706;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .kb-ranker-go {
+        flex-shrink: 0;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        opacity: 0.6;
+    }
+
+    @media (max-width: 768px) {
+        .kb-box {
+            padding: 14px 12px;
+        }
+
+        .kb-hero-pct {
+            font-size: 1.6rem;
+        }
+
+        .kb-band {
+            grid-template-columns: 92px 1fr;
+            gap: 8px;
+        }
+
+        .kb-band-label {
+            font-size: 0.74rem;
+        }
+
+        .kb-duo,
+        .kb-value-grid {
+            gap: 8px;
+        }
+
+        .kb-col {
+            padding: 8px;
+        }
+
+        .kb-logo {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* 모바일: 팀컬러 이름이 잘리지 않게 줄바꿈 허용 */
+        .kb-name {
+            font-size: 0.78rem;
+            white-space: normal;
+            word-break: keep-all;
+            line-height: 1.25;
+        }
+
+        .kb-row {
+            gap: 6px;
+        }
+
+        .kb-rank {
+            width: 14px;
+            font-size: 0.85rem;
+        }
+
+        .kb-pct {
+            font-size: 0.75rem;
+        }
+
+        .kb-value-num {
+            font-size: 1.25rem;
+        }
+
+        .kb-rankers {
+            grid-template-columns: 1fr;
+            grid-template-rows: none;
+            grid-auto-flow: row;
+        }
+
+        .kb-ranker-rank {
+            width: 84px;
+        }
+    }
 </style>
 
 <h1 class="visually-hidden">FC온라인 티어리스트</h1>
@@ -1724,6 +2261,7 @@
     <div class="tierlist-tabs">
         <button class="tierlist-tab-btn active" onclick="switchTab('teamcolor')">팀컬러</button>
         <button class="tierlist-tab-btn" onclick="switchTab('card')">선수</button>
+        <button class="tierlist-tab-btn" onclick="switchTab('keyboard')">키보드</button>
         <button class="tierlist-tab-btn" onclick="switchTab('trait')">신규 특성</button>
         <!-- 시세 탭: 조회가 적어 잠시 숨김 (되살릴 때 주석만 풀면 됨) -->
         <!-- <button class="tierlist-tab-btn" onclick="switchTab('price')">시세</button> -->
@@ -1866,6 +2404,29 @@
         </div>
     </div>
 
+    <!-- 키보드 탭 콘텐츠 -->
+    <div class="tab-content" id="tab-keyboard">
+        <div class="card-info-line">
+            <span id="keyboardInfoDate">📅 기준일 확인 중</span>
+            <button class="card-info-btn" onclick="toggleCardInfo('keyboardInfoDetail')" aria-label="설명 보기">i</button>
+        </div>
+        <div class="card-info-detail" id="keyboardInfoDetail">
+            <ul>
+                <li>📊 <b>분석 대상</b>: 넥슨 공식 랭킹 상위 1만 명 유저 중 사용 기기(키보드 / 패드)가 확인된 랭커입니다.</li>
+                <li>⌨️ <b>기기 기준</b>: 넥슨 공식 홈페이지 구단주 프로필에 표시된 '키보드 유저 / 패드 유저' 정보를 기준으로 합니다.</li>
+                <li>⚽ <b>포메이션</b>: 랭커 스쿼드의 선발 11명 위치로 판단하며, 스쿼드 메이커의 포메이션 표시와 같은 기준입니다.</li>
+                <li>👤 <b>키보드 랭커</b>: 구단주명을 누르면 유저 검색으로 바로 이동합니다.</li>
+                <li>🔄 <b>업데이트</b>: 당일 오전 10시 이후 기준으로 매일 갱신됩니다.</li>
+            </ul>
+        </div>
+
+        <div id="keyboardWrap" class="kb-wrap">
+            <div class="empty-state">
+                <h3 class="loading-pulse">⌨️ 키보드 / 패드 랭커 정보를 불러오는 중이에요.</h3>
+            </div>
+        </div>
+    </div>
+
     <!-- 시세 탭 콘텐츠 -->
     <div class="tab-content" id="tab-price">
         <div class="card-info-line">
@@ -1941,6 +2502,10 @@
             if (!teamChartCanvas) {
                 loadTierlist();
             }
+        }
+
+        if (tab === 'keyboard') {
+            loadKeyboardStats();
         }
 
         if (tab === 'trait') {
@@ -2508,6 +3073,180 @@
         return seasonLogos[seasonId] || '';
     }
 
+    // ===== 키보드 탭 =====
+    let keyboardData = null;
+
+    function kbEsc(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // BP → '171억' / '1조 2,345억'
+    function kbValue(v) {
+        const eok = Math.round((v || 0) / 1e8);
+        if (eok >= 10000) {
+            const jo = Math.floor(eok / 10000), rest = eok % 10000;
+            return rest ? `${jo}조 ${rest.toLocaleString()}억` : `${jo}조`;
+        }
+        return `${eok.toLocaleString()}억`;
+    }
+
+    async function loadKeyboardStats() {
+        if (keyboardData) return;
+        const wrap = document.getElementById('keyboardWrap');
+        try {
+            const res = await fetch('/api/get_keyboard_stats');
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            keyboardData = json.data;
+            document.getElementById('keyboardInfoDate').textContent = `📅 ${json.date} 기준`;
+            renderKeyboardStats();
+        } catch (e) {
+            wrap.innerHTML = `<div class="empty-state"><h3>키보드 / 패드 정보를 불러오지 못했어요.</h3></div>`;
+        }
+    }
+
+    function kbRankList(list, cls, withLogo) {
+        if (!list || !list.length) return '<div class="kb-sub" style="margin:10px 0 0">데이터가 없어요.</div>';
+        const max = Math.max(...list.map(x => x.pct)) || 1;
+        return list.map((x, i) => `
+            <div class="kb-row">
+                <span class="kb-rank ${i < 3 ? 'r' + (i + 1) : ''}">${i + 1}</span>
+                ${withLogo ? (x.logo ? `<img class="kb-logo" src="${kbEsc(x.logo)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="kb-logo"></span>') : ''}
+                <div class="kb-row-body">
+                    <div class="kb-row-top">
+                        <span class="kb-name">${kbEsc(x.name)}</span>
+                        <span class="kb-pct">${Number(x.pct).toFixed(1)}%</span>
+                    </div>
+                    <div class="kb-mini-bar"><span style="width:${(x.pct / max * 100).toFixed(1)}%"></span></div>
+                </div>
+            </div>`).join('');
+    }
+
+    function kbDuo(key, withLogo) {
+        const dv = keyboardData.devices || {};
+        return `
+            <div class="kb-duo">
+                <div class="kb-col key">
+                    <div class="kb-col-title kb-key-c">⌨️ 키보드</div>
+                    ${kbRankList((dv.keyboard || {})[key], 'key', withLogo)}
+                </div>
+                <div class="kb-col pad">
+                    <div class="kb-col-title kb-pad-c">🎮 패드</div>
+                    ${kbRankList((dv.pad || {})[key], 'pad', withLogo)}
+                </div>
+            </div>`;
+    }
+
+    function renderKeyboardStats() {
+        const d = keyboardData;
+        const t = d.totals || {};
+        const kbN = t.keyboard || 0, padN = t.pad || 0, all = kbN + padN || 1;
+        const kbPct = (kbN / all * 100).toFixed(1), padPct = (padN / all * 100).toFixed(1);
+        const bands = d.bands || [];
+        const dv = d.devices || {};
+        const kbAvg = (dv.keyboard || {}).avg_value || 0, padAvg = (dv.pad || {}).avg_value || 0;
+        const top = d.top_keyboard || [];
+
+        // 1) 요약
+        const hero = `
+            <div class="kb-box">
+                <div class="kb-hero-top">
+                    <div class="kb-hero-side">
+                        <span class="kb-hero-label">⌨️ 키보드</span>
+                        <span class="kb-hero-pct kb-key-c">${kbPct}%</span>
+                        <span class="kb-hero-cnt">${kbN.toLocaleString()}명</span>
+                    </div>
+                    <div class="kb-hero-side pad">
+                        <span class="kb-hero-label">패드 🎮</span>
+                        <span class="kb-hero-pct kb-pad-c">${padPct}%</span>
+                        <span class="kb-hero-cnt">${padN.toLocaleString()}명</span>
+                    </div>
+                </div>
+                <div class="kb-split"><div class="kb-split-key" style="width:${kbPct}%"></div></div>
+            </div>`;
+
+        // 2) 순위 구간별 키보드 비율
+        let bandNote = '';
+        if (bands.length >= 2) {
+            const f = bands[0], l = bands[bands.length - 1];
+            bandNote = `상위 ${f.to.toLocaleString()}명은 키보드 ${Number(f.keyboard_pct).toFixed(1)}%, ${l.from.toLocaleString()}~${l.to.toLocaleString()}위는 키보드 ${Number(l.keyboard_pct).toFixed(1)}%예요.`;
+        }
+        const bandBox = `
+            <div class="kb-box">
+                <div class="kb-title">📶 순위 구간별 키보드 비율</div>
+                <div class="kb-sub">${bandNote || `${(d.band_size || 1000).toLocaleString()}명 단위로 나눈 구간별 키보드 유저 비율이에요.`}</div>
+                ${bands.map(b => `
+                    <div class="kb-band">
+                        <span class="kb-band-label">${b.from.toLocaleString()}~${b.to.toLocaleString()}위</span>
+                        <div class="kb-band-bar">
+                            <div class="kb-band-fill" style="width:0%" data-w="${b.keyboard_pct}">${Number(b.keyboard_pct).toFixed(1)}%</div>
+                            <span class="kb-band-pad">${(100 - b.keyboard_pct).toFixed(1)}%</span>
+                        </div>
+                    </div>`).join('')}
+                <div class="kb-legend">
+                    <span><i style="background:var(--kb-key)"></i>키보드</span>
+                    <span><i style="background:rgba(124,140,255,0.5)"></i>패드</span>
+                    <span>┆ 50% 기준선</span>
+                </div>
+            </div>`;
+
+        // 3) 평균 구단가치
+        let valueNote = '';
+        if (kbAvg && padAvg && kbAvg !== padAvg) {
+            const hi = kbAvg > padAvg ? '키보드' : '패드';
+            valueNote = `${hi} 랭커가 평균 ${kbValue(Math.abs(kbAvg - padAvg))} 더 높아요.`;
+        }
+        const valueBox = `
+            <div class="kb-box">
+                <div class="kb-title">💰 평균 구단가치</div>
+                <div class="kb-sub">${valueNote || '랭커 스쿼드 전체 구단가치의 평균이에요.'}</div>
+                <div class="kb-value-grid">
+                    <div class="kb-value"><div class="kb-value-label">⌨️ 키보드</div><div class="kb-value-num kb-key-c">${kbValue(kbAvg)}</div></div>
+                    <div class="kb-value"><div class="kb-value-label">🎮 패드</div><div class="kb-value-num kb-pad-c">${kbValue(padAvg)}</div></div>
+                </div>
+            </div>`;
+
+        // 4) 팀컬러 / 포메이션 TOP 5
+        const tcBox = `
+            <div class="kb-box">
+                <div class="kb-title">🏆 인기 팀컬러 TOP 5</div>
+                <div class="kb-sub">각 기기 랭커 중 해당 팀컬러를 쓰는 비율이에요.</div>
+                ${kbDuo('teamcolors', true)}
+            </div>`;
+        const fmBox = `
+            <div class="kb-box">
+                <div class="kb-title">⚽ 인기 포메이션 TOP 5</div>
+                <div class="kb-sub">선발 11명 위치 기준이에요.</div>
+                ${kbDuo('formations', false)}
+            </div>`;
+
+        // 5) 키보드 랭커 상위 30명
+        const rankerBox = `
+            <div class="kb-box">
+                <div class="kb-title">⌨️ 키보드 랭커 TOP ${top.length}</div>
+                <div class="kb-sub">구단주명을 누르면 유저 검색으로 이동해요.</div>
+                <div class="kb-rankers">
+                    ${top.map((r, i) => `
+                        <a class="kb-ranker${i < 3 ? ' kb-medal kb-m' + (i + 1) : ''}" href="/user_search?nickname=${encodeURIComponent(r.nickname)}">
+                            <span class="kb-ranker-rank"><b>${i + 1}위</b><small>(${r.rank.toLocaleString()}위)</small></span>
+                            <div class="kb-ranker-body">
+                                <div class="kb-ranker-nick">${kbEsc(r.nickname)}</div>
+                                <div class="kb-ranker-tc">${r.logo ? `<img src="${kbEsc(r.logo)}" alt="" loading="lazy" onerror="this.remove()">` : ''}${kbEsc(r.teamcolor)}</div>
+                            </div>
+                            <span class="kb-ranker-value">${r.squad_value >= 1e8 ? kbValue(r.squad_value) : '-'}</span>
+                            <span class="kb-ranker-go">›</span>
+                        </a>`).join('')}
+                </div>
+            </div>`;
+
+        const wrap = document.getElementById('keyboardWrap');
+        wrap.innerHTML = hero + bandBox + valueBox + tcBox + fmBox + rankerBox;
+        // 막대가 왼쪽에서 차오르는 효과
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            wrap.querySelectorAll('.kb-band-fill').forEach(el => { el.style.width = el.dataset.w + '%'; });
+        }));
+    }
+
     // ===== 신규 특성 탭 =====
     let newTraitData = null;
     const _posParam = new URLSearchParams(location.search).get('pos');
@@ -2984,6 +3723,8 @@
 
         if (lastTab === 'teamcolor') {
             loadTierlist();
+        } else if (lastTab === 'keyboard') {
+            loadKeyboardStats();
         } else if (lastTab === 'trait') {
             loadNewTraitStats();
         } else if (lastTab === 'price') {
