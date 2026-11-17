@@ -10,7 +10,6 @@
         --sb-num: #ffd666;
         --sb-bg: linear-gradient(90deg, rgba(88, 101, 184, 0.42), rgba(88, 101, 184, 0.22));
         --sb-h: 42px;
-        height: var(--sb-h);
         border: 1px solid rgba(88, 101, 184, 0.45);
         border-radius: 10px;
         background: var(--sb-bg);
@@ -28,7 +27,7 @@
     }
 
     .sb-view {
-        height: 100%;
+        height: var(--sb-h);
         overflow: hidden;
     }
 
@@ -122,7 +121,7 @@
 
         function startRolling(n) {
             let idx = 0, paused = false;
-            const h = () => bar.clientHeight;
+            const h = () => track.firstElementChild.offsetHeight;
 
             setInterval(() => {
                 if (paused || document.hidden) return;
