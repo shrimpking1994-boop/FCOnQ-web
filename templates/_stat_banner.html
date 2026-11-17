@@ -1,0 +1,155 @@
+{# SB 작업: 어제 이용 통계 띠 (홈 · 커뮤니티 목록 상단에서 include) #}
+<div class="sb-bar" id="sbBar" aria-live="off">
+    <div class="sb-view">
+        <div class="sb-track" id="sbTrack"></div>
+    </div>
+</div>
+
+<style>
+    .sb-bar {
+        --sb-num: #ffd666;
+        --sb-bg: linear-gradient(90deg, rgba(88, 101, 184, 0.42), rgba(88, 101, 184, 0.22));
+        --sb-h: 42px;
+        height: var(--sb-h);
+        border: 1px solid rgba(88, 101, 184, 0.45);
+        border-radius: 10px;
+        background: var(--sb-bg);
+        overflow: hidden;
+    }
+
+    html:not([data-theme="dark"]) .sb-bar {
+        --sb-num: #c2410c;
+        --sb-bg: linear-gradient(90deg, rgba(88, 101, 184, 0.16), rgba(88, 101, 184, 0.06));
+        border-color: rgba(88, 101, 184, 0.3);
+    }
+
+    .sb-bar.sb-hide {
+        display: none;
+    }
+
+    .sb-view {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .sb-track {
+        transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .sb-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: var(--sb-h);
+        padding: 0 12px;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .sb-item:hover {
+        color: var(--text-primary);
+    }
+
+    .sb-item b {
+        color: var(--sb-num);
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .sb-go {
+        margin-left: 2px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        opacity: 0.7;
+    }
+
+    @media (max-width: 768px) {
+        .sb-bar {
+            --sb-h: 38px;
+            border-radius: 8px;
+        }
+
+        .sb-item {
+            font-size: 0.85rem;
+            gap: 4px;
+        }
+
+        .sb-item b {
+            font-size: 0.95rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .sb-track {
+            transition: none;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        const bar = document.getElementById('sbBar');
+        const track = document.getElementById('sbTrack');
+        if (!bar || !track) return;
+
+        // 멘트 순서: 티어리스트 → 스쿼드 → 선수 정보
+        const ITEMS = [
+            ['tierlist', '어제 티어리스트 팀컬러 조회', '/tierlist?tab=card'],
+            ['squad', '어제 스쿼드 제작·조회', '/squad_maker'],
+            ['card', '어제 선수 정보 조회', '/search'],
+        ];
+        const INTERVAL = 3000;
+
+        fetch('/api/site_stats')
+            .then(r => r.json())
+            .then(data => {
+                const counts = (data && data.success && data.counts) || {};
+                const rows = ITEMS.filter(([k]) => (counts[k] || 0) > 0);
+                if (!rows.length) throw new Error('no data');
+
+                const html = rows.map(([k, label, href]) =>
+                    `<a class="sb-item" href="${href}" data-k="${k}">${label} <b>${Number(counts[k]).toLocaleString()}회</b><span class="sb-go">›</span></a>`
+                ).join('');
+                // 맨 끝에 첫 줄을 한 번 더 붙여서 끊김 없이 돌게 함
+                track.innerHTML = html + (rows.length > 1 ? html.split('</a>')[0] + '</a>' : '');
+                if (rows.length > 1) startRolling(rows.length);
+            })
+            .catch(() => bar.classList.add('sb-hide'));
+
+        function startRolling(n) {
+            let idx = 0, paused = false;
+            const h = () => bar.clientHeight;
+
+            setInterval(() => {
+                if (paused || document.hidden) return;
+                idx++;
+                track.style.transition = '';
+                track.style.transform = `translateY(-${idx * h()}px)`;
+                if (idx === n) {
+                    // 복제한 첫 줄에 도착하면 몰래 처음으로 되돌림
+                    setTimeout(() => {
+                        track.style.transition = 'none';
+                        track.style.transform = 'translateY(0)';
+                        idx = 0;
+                    }, 550);
+                }
+            }, INTERVAL);
+
+            // 마우스를 올리면 잠깐 멈춤 (PC)
+            bar.addEventListener('mouseenter', () => { paused = true; });
+            bar.addEventListener('mouseleave', () => { paused = false; });
+        }
+
+        // GA: 띠 클릭 기록
+        track.addEventListener('click', e => {
+            const a = e.target.closest('.sb-item');
+            if (a && typeof gtag === 'function') {
+                gtag('event', 'stat_banner_click', { item: a.dataset.k, page: location.pathname, transport_type: 'beacon' });
+            }
+        });
+    })();
+</script>

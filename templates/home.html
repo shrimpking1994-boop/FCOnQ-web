@@ -124,6 +124,17 @@
         }
     }
 
+    /* SB 띠: 검색창 위 */
+    .home-sb {
+        margin-bottom: 12px;
+    }
+
+    @media (max-width: 768px) {
+        .home-sb {
+            margin-bottom: 10px;
+        }
+    }
+
     /* ===== 요약 블록 (위아래 배치) ===== */
     .home-card {
         background: var(--bg-secondary);
@@ -887,6 +898,9 @@
 <div class="home-container">
 
     <h1 class="visually-hidden">FC온라인 전문 웹사이트 FCOnQ(엪씨온큐)</h1>
+
+    <!-- SB: 어제 이용 통계 띠 -->
+    <div class="home-sb">{% include "_stat_banner.html" %}</div>
 
     <!-- 선수 검색 -->
     <section class="home-search">

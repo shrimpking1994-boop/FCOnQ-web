@@ -26,5 +26,21 @@
 
 {% block content %}
 <h1 class="visually-hidden">FC온라인 커뮤니티</h1>
+<!-- SB: 어제 이용 통계 띠 (목록 페이지에만) -->
+<div class="cm-sb">{% include "_stat_banner.html" %}</div>
+<style>
+    .cm-sb {
+        max-width: 1200px;
+        margin: 16px auto 0;
+        padding: 0 20px;
+    }
+
+    @media (max-width: 768px) {
+        .cm-sb {
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+    }
+</style>
 {% include "_community_board.html" %}
 {% endblock %}
