@@ -120,7 +120,7 @@
                     {% endif %}
                 </div>
                 <div class="pv-cmt-body">{% if c.reply_to_name %}<span class="pv-reply-to">{{ c.reply_to_name }}</span>
-                    {% endif %}{{ c.content }}</div>
+                    {% endif %}<span class="pv-cmt-text">{{ c.content }}</span></div>
 
                 <!-- 답글 작성 폼 (숨김): 이 댓글에 다는 답글 -->
                 {% if not c.is_deleted %}
@@ -822,10 +822,14 @@
     }
 
     .pv-cmt-body {
-        white-space: pre-line;
         line-height: 1.6;
         font-size: 0.95rem;
         overflow-wrap: anywhere;
+    }
+
+    /* 댓글 내용만 줄바꿈 유지 (이름과 내용 사이 줄바꿈은 무시) */
+    .pv-cmt-text {
+        white-space: pre-line;
     }
 
     .pv-cmt-empty {
