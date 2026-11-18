@@ -93,40 +93,40 @@
 
         {% if comments %}
         <div class="pv-cmt-list">
-            {% for comment in comments %}
-            {% if not comment.parent_comment_id %}
-            <div id="c-{{ comment.id }}"
-                class="pv-cmt {% if comment.is_deleted %}is-deleted{% endif %} {% if comment.is_op %}is-op{% endif %}">
+            {% for c in comment_rows %}
+            <div id="c-{{ c.id }}"
+                class="pv-cmt {% if c.depth %}pv-reply pv-d{{ c.depth }}{% endif %} {% if c.is_deleted %}is-deleted{% endif %} {% if c.is_op %}is-op{% endif %}">
                 <div class="pv-cmt-head">
                     <div class="pv-cmt-who">
-                        {% if comment.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
-                        <strong>{{ comment.display_name }}</strong>
-                        {% if comment.is_op %}<span class="pv-op">글쓴이</span>{% endif %}
-                        {% if comment.ip_display %}<span class="pv-ip">{{ comment.ip_display }}</span>{% endif %}
-                        <span class="pv-cmt-date">{{ comment.created_at.strftime('%m.%d %H:%M') }}</span>
+                        {% if c.depth %}<span class="pv-reply-mark">ㄴ</span>{% endif %}
+                        {% if c.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
+                        <strong>{{ c.display_name }}</strong>
+                        {% if c.is_op %}<span class="pv-op">글쓴이</span>{% endif %}
+                        {% if c.ip_display %}<span class="pv-ip">{{ c.ip_display }}</span>{% endif %}
+                        <span class="pv-cmt-date">{{ c.created_at.strftime('%m.%d %H:%M') }}</span>
                     </div>
-                    {% if not comment.is_deleted %}
+                    {% if not c.is_deleted %}
                     <div class="pv-cmt-btns">
-                        <button type="button" onclick="showReplyForm({{ comment.id }})">답글</button>
+                        <button type="button" onclick="showReplyForm({{ c.id }})">답글</button>
                         <button type="button"
-                            onclick="deleteComment({{ comment.id }}, {{ 'true' if comment.user_id else 'false' }})">삭제</button>
+                            onclick="deleteComment({{ c.id }}, {{ 'true' if c.user_id else 'false' }})">삭제</button>
                         {% if is_admin %}
-                        <button type="button" class="pv-admin"
-                            onclick="adminDeleteComment({{ comment.id }})">관리자삭제</button>
-                        {% if not comment.user_id and comment.author_ip %}
-                        <button type="button" class="pv-admin"
-                            onclick="adminBanIp('comment', {{ comment.id }})">IP차단</button>
+                        <button type="button" class="pv-admin" onclick="adminDeleteComment({{ c.id }})">관리자삭제</button>
+                        {% if not c.user_id and c.author_ip %}
+                        <button type="button" class="pv-admin" onclick="adminBanIp('comment', {{ c.id }})">IP차단</button>
                         {% endif %}
                         {% endif %}
                     </div>
                     {% endif %}
                 </div>
-                <div class="pv-cmt-body">{{ comment.content }}</div>
+                <div class="pv-cmt-body">{% if c.reply_to_name %}<span class="pv-reply-to">{{ c.reply_to_name }}</span>
+                    {% endif %}{{ c.content }}</div>
 
-                <!-- 답글 작성 폼 (숨김) -->
-                <div id="replyForm-{{ comment.id }}" class="pv-reply-form" hidden>
+                <!-- 답글 작성 폼 (숨김): 이 댓글에 다는 답글 -->
+                {% if not c.is_deleted %}
+                <div id="replyForm-{{ c.id }}" class="pv-reply-form" hidden>
                     <form method="POST" action="/community/comment/{{ post.id }}" class="pv-form">
-                        <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+                        <input type="hidden" name="parent_comment_id" value="{{ c.id }}">
                         {% if not session.get('user_id') %}
                         <div class="pv-form-row">
                             <input type="text" name="author" value="큐붕이" required maxlength="100" placeholder="작성자"
@@ -135,48 +135,16 @@
                                 class="pv-input pv-input-sm">
                         </div>
                         {% endif %}
-                        <textarea name="content" required rows="3" placeholder="답글을 입력하세요" class="pv-input"></textarea>
+                        <textarea name="content" required rows="3" placeholder="{{ c.display_name }}님에게 답글 쓰기"
+                            class="pv-input"></textarea>
                         <div class="pv-form-btns">
-                            <button type="button" onclick="hideReplyForm({{ comment.id }})" class="pv-btn">취소</button>
+                            <button type="button" onclick="hideReplyForm({{ c.id }})" class="pv-btn">취소</button>
                             <button type="submit" class="pv-btn pv-btn-submit">등록</button>
                         </div>
                     </form>
                 </div>
+                {% endif %}
             </div>
-
-            {% for reply in comments %}
-            {% if reply.parent_comment_id == comment.id %}
-            <div id="c-{{ reply.id }}"
-                class="pv-cmt pv-reply {% if reply.is_deleted %}is-deleted{% endif %} {% if reply.is_op %}is-op{% endif %}">
-                <div class="pv-cmt-head">
-                    <div class="pv-cmt-who">
-                        <span class="pv-reply-mark">ㄴ</span>
-                        {% if reply.is_deleted and is_admin %}<span class="pv-deleted">삭제됨</span>{% endif %}
-                        <strong>{{ reply.display_name }}</strong>
-                        {% if reply.is_op %}<span class="pv-op">글쓴이</span>{% endif %}
-                        {% if reply.ip_display %}<span class="pv-ip">{{ reply.ip_display }}</span>{% endif %}
-                        <span class="pv-cmt-date">{{ reply.created_at.strftime('%m.%d %H:%M') }}</span>
-                    </div>
-                    {% if not reply.is_deleted %}
-                    <div class="pv-cmt-btns">
-                        <button type="button"
-                            onclick="deleteComment({{ reply.id }}, {{ 'true' if reply.user_id else 'false' }})">삭제</button>
-                        {% if is_admin %}
-                        <button type="button" class="pv-admin"
-                            onclick="adminDeleteComment({{ reply.id }})">관리자삭제</button>
-                        {% if not reply.user_id and reply.author_ip %}
-                        <button type="button" class="pv-admin"
-                            onclick="adminBanIp('comment', {{ reply.id }})">IP차단</button>
-                        {% endif %}
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="pv-cmt-body">{{ reply.content }}</div>
-            </div>
-            {% endif %}
-            {% endfor %}
-            {% endif %}
             {% endfor %}
         </div>
         {% else %}
@@ -763,6 +731,24 @@
         padding-left: 50px;
     }
 
+    /* 대댓글 단계별 들여쓰기 (펨코식, 최대 3단계) */
+    .pv-cmt.pv-reply.pv-d2,
+    .pv-cmt.pv-reply.pv-d2.is-op {
+        padding-left: 74px;
+    }
+
+    .pv-cmt.pv-reply.pv-d3,
+    .pv-cmt.pv-reply.pv-d3.is-op {
+        padding-left: 98px;
+    }
+
+    /* 누구에게 단 답글인지: 본문 앞 회색 이름 */
+    .pv-reply-to {
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-right: 2px;
+    }
+
     .pv-cmt.is-op .pv-cmt-who strong {
         color: var(--pv-accent);
     }
@@ -964,6 +950,16 @@
 
         .pv-cmt.pv-reply.is-op {
             padding-left: 30px;
+        }
+
+        .pv-cmt.pv-reply.pv-d2,
+        .pv-cmt.pv-reply.pv-d2.is-op {
+            padding-left: 44px;
+        }
+
+        .pv-cmt.pv-reply.pv-d3,
+        .pv-cmt.pv-reply.pv-d3.is-op {
+            padding-left: 58px;
         }
 
         .pv-input-sm {

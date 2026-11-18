@@ -828,6 +828,59 @@ def _is_anon_op(post, c):
                           c.get('author_ip'), c.get('password_hash'))
 
 
+# ===== 대댓글(펨코식): 누구에게 단 답글인지 reply_to_id 로 저장 =====
+# parent_comment_id 는 지금처럼 '맨 위 원댓글' 묶음용, reply_to_id 는 '바로 위 대상 댓글'
+_reply_col_ready = False
+REPLY_MAX_DEPTH = 3   # 들여쓰기 최대 단계 (그보다 깊으면 같은 단계에 붙음)
+
+
+def ensure_reply_to_column(cur):
+    """comments 테이블에 reply_to_id 칸이 없으면 추가 (서버 켜진 뒤 한 번만)"""
+    global _reply_col_ready
+    if _reply_col_ready:
+        return
+    cur.execute("ALTER TABLE community.comments ADD COLUMN IF NOT EXISTS reply_to_id INTEGER")
+    _reply_col_ready = True
+
+
+def build_comment_rows(comments):
+    """댓글을 화면 순서대로 펼침: 원댓글 → 그 아래 답글들(대상 댓글 바로 아래, 시간순)
+    각 줄에 depth(0=원댓글, 1~3=답글 단계)와 reply_to_name(누구에게 단 답글인지) 표시"""
+    by_id = {c['id']: c for c in comments}
+    children = {}
+    roots = []
+    for c in comments:
+        root_id = c.get('parent_comment_id')
+        if not root_id:
+            roots.append(c)
+            continue
+        if root_id not in by_id:
+            continue   # 원댓글이 안 보이면(삭제) 답글도 숨김 (기존과 같음)
+        target = c.get('reply_to_id')
+        if not target or target not in by_id:
+            target = root_id   # 예전 답글이거나 대상이 삭제됐으면 원댓글에 단 답글로
+        children.setdefault(target, []).append(c)
+
+    def sort_key(x):
+        return (x.get('created_at') is None, x.get('created_at'), x.get('id'))
+
+    rows = []
+
+    def walk(node, depth):
+        for child in sorted(children.get(node['id'], []), key=sort_key):
+            child['depth'] = min(depth, REPLY_MAX_DEPTH)
+            child['reply_to_name'] = node.get('display_name')
+            rows.append(child)
+            walk(child, depth + 1)
+
+    for r in sorted(roots, key=sort_key):
+        r['depth'] = 0
+        r['reply_to_name'] = None
+        rows.append(r)
+        walk(r, 1)
+    return rows
+
+
 def label_comment_authors(post, comments):
     """댓글 작성자 표시 정리
     - 글쓴이 본인 댓글: is_op=True (회원 글은 회원 ID, 비회원 글은 같은 브라우저/같은 IP/같은 비밀번호+IP 앞 두 자리)
@@ -1208,6 +1261,12 @@ def _community_post(conn, cur, post_id):
     is_admin = session.get('user_role') == 'admin'
 
     # 댓글 조회 (일반 사용자는 삭제되지 않은 댓글만)
+    try:
+        ensure_reply_to_column(cur)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"reply_to_id 칸 확인 실패: {e}")
     if is_admin:
         cur.execute("""
             SELECT * FROM community.comments 
@@ -1233,6 +1292,8 @@ def _community_post(conn, cur, post_id):
 
     # 큐붕이 번호 / 글쓴이 표시
     label_comment_authors(post, comments)
+    # 대댓글 순서·단계 정리 (펨코식)
+    comment_rows = build_comment_rows(comments)
     
     # 본문 정화 (예전 글 포함, 허용된 HTML만 출력)
     post['content'] = clean_post_html(post.get('content'))
@@ -1260,6 +1321,7 @@ def _community_post(conn, cur, post_id):
     return render_template('community_post.html',
                          post=post,
                          comments=comments,
+                         comment_rows=comment_rows,
                          current_post_id=post['id'],
                          **board)
 
@@ -1314,13 +1376,29 @@ def add_comment(post_id):
             is_op = (post_id in session.get('my_posts', [])
                      or _anon_op_match(target['author_ip'], target['password_hash'], author_ip, password_hash))
 
+        # 답글이면: 폼에서 온 값은 '바로 위 대상 댓글' → 원댓글 묶음(parent)과 대상(reply_to)으로 나눠 저장
+        ensure_reply_to_column(cur)
+        reply_to_id = None
+        if parent_comment_id:
+            try:
+                target_id = int(parent_comment_id)
+            except (TypeError, ValueError):
+                return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
+            cur.execute("SELECT id, parent_comment_id FROM community.comments WHERE id = %s AND post_id = %s",
+                        (target_id, post_id))
+            target_cmt = cur.fetchone()
+            if not target_cmt:
+                return jsonify({'success': False, 'message': '답글을 달 댓글을 찾을 수 없습니다'}), 404
+            reply_to_id = target_cmt['id']
+            parent_comment_id = target_cmt['parent_comment_id'] or target_cmt['id']
+
         # 댓글 삽입
         cur.execute("""
             INSERT INTO community.comments 
-            (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, created_at, is_op)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, reply_to_id, created_at, is_op)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
-        """, (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, datetime.now(pytz.UTC), is_op))
+        """, (post_id, author, content, user_id, password_hash, ip_hash, author_ip, parent_comment_id, reply_to_id, datetime.now(pytz.UTC), is_op))
         new_comment_id = cur.fetchone()['id']
 
         conn.commit()
@@ -1330,7 +1408,8 @@ def add_comment(post_id):
             my_comments = [cid for cid in session.get('my_comments', []) if cid != new_comment_id]
             session['my_comments'] = (my_comments + [new_comment_id])[-100:]
             session.permanent = True
-        return redirect(url_for('community_post', post_id=post_id))
+        # 방금 쓴 댓글 위치로 이동
+        return redirect(url_for('community_post', post_id=post_id) + f'#c-{new_comment_id}')
         
     except Exception as e:
         conn.rollback()
@@ -4669,23 +4748,26 @@ def notifications_api():
         if not my_posts and not my_comments:
             return jsonify({'active': bool(user_id), 'items': []})
 
+        ensure_reply_to_column(cur)
+        conn.commit()
         cur.execute("""
-            SELECT c.id, c.post_id, c.parent_comment_id, c.author, c.user_id, c.content, c.created_at,
+            SELECT c.id, c.post_id, c.parent_comment_id, c.reply_to_id, c.author, c.user_id, c.content, c.created_at,
                    p.title
             FROM community.comments c
             JOIN community.posts p ON p.id = c.post_id
             WHERE c.created_at > %s
               AND c.is_deleted = false
               AND COALESCE(p.is_deleted, false) = false
-              AND (c.post_id = ANY(%s::int[]) OR c.parent_comment_id = ANY(%s::int[]))
+              AND (c.post_id = ANY(%s::int[]) OR c.parent_comment_id = ANY(%s::int[])
+                   OR c.reply_to_id = ANY(%s::int[]))
               AND NOT (c.id = ANY(%s::int[]))
               AND (%s IS NULL OR c.user_id IS NULL OR c.user_id <> %s)
             ORDER BY c.created_at DESC
             LIMIT %s
-        """, (since, list(my_posts), list(my_comments), list(my_comments), user_id, user_id, NOTI_LIMIT))
+        """, (since, list(my_posts), list(my_comments), list(my_comments), list(my_comments), user_id, user_id, NOTI_LIMIT))
         items = []
         for r in cur.fetchall():
-            is_reply = r['parent_comment_id'] in my_comments
+            is_reply = r['reply_to_id'] in my_comments or r['parent_comment_id'] in my_comments
             text = re.sub(r'\s+', ' ', r['content'] or '').strip()
             items.append({
                 'id': r['id'],

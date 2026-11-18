@@ -75,6 +75,14 @@
 
         const titleInput = document.querySelector('#postForm input[name="title"]');
         if (titleInput && !titleInput.value && draft.title) titleInput.value = draft.title.slice(0, 200);
+        // 제목 끝에 커서를 놓아서 바로 질문을 이어 쓸 수 있게
+        function focusTitleEnd() {
+            if (!titleInput) return;
+            titleInput.focus();
+            const end = titleInput.value.length;
+            titleInput.setSelectionRange(end, end);
+        }
+        focusTitleEnd();
 
         if (!draft.image) return;
         let tries = 0;
@@ -87,7 +95,7 @@
             }
             q.insertEmbed(0, 'image', draft.image, 'user');
             q.insertText(1, '\n', 'user');
-            q.setSelection(2, 0);
+            focusTitleEnd();
         })();
     })();
 </script>
