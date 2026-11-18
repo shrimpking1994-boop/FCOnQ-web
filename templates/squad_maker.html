@@ -4608,7 +4608,9 @@
     // ===== 글쓰기: 그린필드 캡처 + 제목(팀컬러 구단가치 포메이션)을 담아 커뮤니티 글쓰기로 =====
     function squadPostTitle() {
         const tc = tcCornerClub && tcCornerClub.name ? tcCornerClub.name.trim() : '';
-        const price = (document.getElementById('total-price')?.textContent || '').trim();
+        // 억 단위는 소수점 첫째 자리에서 반올림해서 자연수로 (62.6억 → 63억, 34.3억 → 34억)
+        const price = (document.getElementById('total-price')?.textContent || '').trim()
+            .replace(/(\d+\.\d+)억/, (m, n) => Math.round(parseFloat(n)) + '억');
         const fm = (document.getElementById('formation-label')?.textContent || '').trim();
         const t = [tc, price && price !== '—' ? price : '', fm && fm !== '—' ? fm : ''].filter(Boolean).join(' · ');
         return t ? `[${t}] ` : '';
