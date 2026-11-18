@@ -1594,9 +1594,9 @@
             style="width: 250px; border-radius: 8px; cursor: pointer; display: block;">
     </a>
 
-    <!-- PC 오른쪽 광고 (스쿼드 메이커, 로그인, 정책, 글쓰기·수정 화면 제외) -->
-    {% set hide_side_ad = request.path.startswith(('/squad_maker', '/login', '/privacy', '/terms', '/delete-account',
-    '/community/write', '/admin')) or request.path.endswith('/edit') %}
+    <!-- PC 오른쪽 광고 (로그인, 정책, 글쓰기·수정 화면, 스쿼드 메이커 embed 제외) -->
+    {% set hide_side_ad = request.path.startswith(('/login', '/privacy', '/terms', '/delete-account',
+    '/community/write', '/admin')) or request.path.endswith('/edit') or request.args.get('embed') == '1' %}
     {% if not hide_side_ad %}
     <div id="pc-right-rail" data-slot-300="8764761811" data-slot-160="9743825669"></div>
     {% endif %}
