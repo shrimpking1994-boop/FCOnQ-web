@@ -113,6 +113,7 @@
                         <span>조회 {{ post.views }}</span>
                         {% set net_votes = (post.likes or 0) - (post.dislikes or 0) %}
                         {% if net_votes > 0 %}<span class="cm-pos">추천 {{ net_votes }}</span>{% endif %}
+                        {% if post.rating_count %}<span class="cm-rate">평가 {{ post.rating_count }}</span>{% endif %}
                     </span>
                 </span>
             </a>
@@ -537,6 +538,12 @@
     /* 추천: 플러스만 초록으로 강조, 0·마이너스는 회색 그대로 */
     .cm-pos {
         color: #22c55e;
+        font-weight: 600;
+    }
+
+    /* 스쿼드 평가 수 */
+    .cm-rate {
+        color: var(--cm-accent);
         font-weight: 600;
     }
 

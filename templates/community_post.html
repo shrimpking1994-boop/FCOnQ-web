@@ -71,6 +71,29 @@
             {{ post.content | safe }}
         </div>
 
+        <!-- 스쿼드 한 번 탭 평가 (스쿼드 + 이미지 글만) -->
+        {% if squad_rating %}
+        {% set sr = squad_rating %}
+        <div class="pv-rate {% if sr.my %}done{% endif %}" id="pvRate">
+            <div class="pv-rate-q">⚽ 이 스쿼드 어때요?</div>
+            <div class="pv-rate-btns">
+                {% for icon in ['🔥', '👍', '🔧'] %}
+                {% set n = sr.counts[loop.index0] %}
+                {% set pct = ((n * 100 / sr.total) | round | int) if sr.total else 0 %}
+                <button type="button" class="pv-rate-btn {% if sr.my == loop.index %}mine{% endif %}"
+                    data-choice="{{ loop.index }}" style="--p: {{ pct }}%" onclick="rateSquad({{ loop.index }})">
+                    <span class="pv-rate-ico">{{ icon }}</span>
+                    <span class="pv-rate-label">{{ sr.labels[loop.index0] }}</span>
+                    <span class="pv-rate-res"><b class="pv-rate-pct">{{ pct }}%</b> <span class="pv-rate-n">({{ n
+                            }})</span></span>
+                </button>
+                {% endfor %}
+            </div>
+            <div class="pv-rate-total">{% if sr.total %}<span id="pvRateTotal">{{ sr.total }}</span>명 참여{% if not sr.my
+                %} · 눌러서 결과 보기{% endif %}{% else %}첫 평가를 남겨보세요{% endif %}</div>
+        </div>
+        {% endif %}
+
         <!-- 추천 / 비추천 -->
         <div class="pv-vote">
             <button type="button" onclick="votePost({{ post.id }}, 'like')" id="likeBtn" class="pv-vote-btn pv-like">
@@ -214,6 +237,39 @@
                 }
             })
             .catch(error => alert('오류가 발생했습니다: ' + error));
+    }
+
+    // 스쿼드 한 번 탭 평가
+    let rateBusy = false;
+    function rateSquad(choice) {
+        const box = document.getElementById('pvRate');
+        if (!box || box.classList.contains('done') || rateBusy) return;
+        rateBusy = true;
+        fetch(`/community/squad_rate/${PV.postId}/${choice}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    alert(data.message || '평가 중 오류가 발생했습니다');
+                    return;
+                }
+                box.querySelectorAll('.pv-rate-btn').forEach((btn, i) => {
+                    const n = data.counts[i] || 0;
+                    const pct = data.total ? Math.round(n * 100 / data.total) : 0;
+                    btn.style.setProperty('--p', pct + '%');
+                    btn.querySelector('.pv-rate-pct').textContent = pct + '%';
+                    btn.querySelector('.pv-rate-n').textContent = `(${n})`;
+                    btn.classList.toggle('mine', data.my === i + 1);
+                });
+                box.querySelector('.pv-rate-total').innerHTML =
+                    `<span id="pvRateTotal">${data.total}</span>명 참여${data.already ? ' · 이미 평가했어요' : ''}`;
+                box.classList.add('done');
+                if (typeof gtag === 'function') gtag('event', 'squad_rate', { choice: choice });
+            })
+            .catch(() => alert('평가 중 오류가 발생했습니다'))
+            .finally(() => { rateBusy = false; });
     }
 
     function deletePost(postId) {
@@ -612,6 +668,123 @@
         text-align: right;
     }
 
+    /* 스쿼드 한 번 탭 평가 */
+    .pv-rate {
+        margin: 28px auto 0;
+        max-width: 520px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--secondary-bg);
+        text-align: center;
+    }
+
+    .pv-rate-q {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+    }
+
+    .pv-rate-btns {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .pv-rate-btn {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 10px 6px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--card-bg);
+        color: var(--text-secondary);
+        font-family: inherit;
+        cursor: pointer;
+        transition: border-color 0.15s, transform 0.1s;
+    }
+
+    .pv-rate-btn:hover {
+        border-color: var(--pv-accent);
+    }
+
+    .pv-rate-btn:active {
+        transform: scale(0.97);
+    }
+
+    /* 결과: 버튼 바닥부터 비율만큼 채움 */
+    .pv-rate-btn::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 0;
+        background: rgba(99, 102, 241, 0.16);
+        transition: height 0.5s ease;
+    }
+
+    .pv-rate.done .pv-rate-btn::before {
+        height: var(--p);
+    }
+
+    .pv-rate-btn>span {
+        position: relative;
+    }
+
+    .pv-rate-ico {
+        font-size: 1.35rem;
+        line-height: 1.2;
+    }
+
+    .pv-rate-label {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .pv-rate-res {
+        display: none;
+        font-size: 0.78rem;
+    }
+
+    .pv-rate.done .pv-rate-res {
+        display: block;
+    }
+
+    .pv-rate-pct {
+        color: var(--text-primary);
+    }
+
+    .pv-rate.done .pv-rate-btn {
+        cursor: default;
+    }
+
+    .pv-rate.done .pv-rate-btn:hover {
+        border-color: var(--line);
+    }
+
+    .pv-rate-btn.mine,
+    .pv-rate.done .pv-rate-btn.mine:hover {
+        border-color: var(--pv-accent);
+        box-shadow: 0 0 0 1px var(--pv-accent);
+    }
+
+    .pv-rate-btn.mine::before {
+        background: rgba(99, 102, 241, 0.3);
+    }
+
+    .pv-rate-total {
+        margin-top: 8px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+    }
+
     /* 추천 / 비추천 */
     .pv-vote {
         display: flex;
@@ -932,6 +1105,23 @@
 
         .pv-vote {
             margin: 24px 0 4px;
+        }
+
+        .pv-rate {
+            margin-top: 22px;
+            padding: 12px 10px;
+        }
+
+        .pv-rate-btns {
+            gap: 6px;
+        }
+
+        .pv-rate-ico {
+            font-size: 1.2rem;
+        }
+
+        .pv-rate-label {
+            font-size: 0.76rem;
         }
 
         .pv-comments {

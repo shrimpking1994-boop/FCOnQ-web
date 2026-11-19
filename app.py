@@ -1074,7 +1074,23 @@ def build_board(cur, args, anchor_post=None, with_notices=True):
     """, params + [COMMUNITY_PER_PAGE, (bp['page'] - 1) * COMMUNITY_PER_PAGE])
     posts = cur.fetchall()
 
+    # 스쿼드 글 평가 수 (한 번에 모아서)
+    squad_ids = [p['id'] for p in posts if p.get('category') == '스쿼드' and p.get('has_image')]
+    rate_counts = {}
+    if squad_ids:
+        try:
+            ensure_squad_rate_table(cur)
+            cur.execute("""
+                SELECT post_id, COUNT(*) AS n FROM community.squad_ratings
+                WHERE post_id = ANY(%s::int[]) GROUP BY post_id
+            """, (squad_ids,))
+            rate_counts = {r['post_id']: r['n'] for r in cur.fetchall()}
+        except Exception as e:
+            cur.connection.rollback()
+            print(f"스쿼드 평가 수 불러오기 실패: {e}")
+
     for p in posts:
+        p['rating_count'] = rate_counts.get(p['id'], 0)
         p['display_date'] = format_post_time(p['created_at'])
         p['ip_display'] = format_ip_display(p.get('author_ip'))
 
@@ -1311,6 +1327,16 @@ def _community_post(conn, cur, post_id):
     else:
         post['og_image'] = first_img
 
+    # 스쿼드 한 번 탭 평가 (스쿼드 + 이미지 글만)
+    squad_rating = None
+    if squad_rate_eligible(post):
+        try:
+            ensure_squad_rate_table(cur)
+            squad_rating = squad_rate_summary(cur, post['id'], squad_rate_voter_key())
+        except Exception as e:
+            conn.rollback()
+            print(f"스쿼드 평가 불러오기 실패: {e}")
+
     # 수정/삭제 버튼 노출: 관리자, 비로그인 글(비밀번호로 확인), 로그인 글은 작성자 본인만
     post['can_manage'] = (is_admin or not post.get('user_id')
                           or session.get('user_id') == post.get('user_id'))
@@ -1322,6 +1348,7 @@ def _community_post(conn, cur, post_id):
                          post=post,
                          comments=comments,
                          comment_rows=comment_rows,
+                         squad_rating=squad_rating,
                          current_post_id=post['id'],
                          **board)
 
@@ -2200,6 +2227,90 @@ def test_db():
 
     
     
+# ===== 스쿼드 한 번 탭 평가: 스쿼드 카테고리 + 이미지가 있는 글에만 =====
+SQUAD_RATE_LABELS = ['좋아요', '무난해요', '보완 필요']   # 1, 2, 3
+_squad_rate_ready = False
+
+
+def ensure_squad_rate_table(cur):
+    """평가 기록 테이블 (서버 켜진 뒤 한 번만 확인)"""
+    global _squad_rate_ready
+    if _squad_rate_ready:
+        return
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS community.squad_ratings (
+            id          SERIAL PRIMARY KEY,
+            post_id     INTEGER NOT NULL,
+            voter_key   TEXT NOT NULL,
+            rating      SMALLINT NOT NULL,
+            created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (post_id, voter_key)
+        )
+    """)
+    cur.connection.commit()   # 만든 테이블이 확실히 남도록 바로 저장
+    _squad_rate_ready = True
+
+
+def squad_rate_voter_key():
+    """한 사람 한 번: 로그인은 회원 번호, 비로그인은 IP(해시)"""
+    if session.get('user_id'):
+        return f"u:{session['user_id']}"
+    return "ip:" + hash_ip(get_client_ip())
+
+
+def squad_rate_eligible(post):
+    return (post.get('category') == '스쿼드' and not post.get('is_deleted')
+            and '<img' in (post.get('content') or ''))
+
+
+def squad_rate_summary(cur, post_id, voter_key):
+    cur.execute("""
+        SELECT rating, COUNT(*) AS n FROM community.squad_ratings
+        WHERE post_id = %s GROUP BY rating
+    """, (post_id,))
+    counts = [0, 0, 0]
+    for r in cur.fetchall():
+        if 1 <= r['rating'] <= 3:
+            counts[r['rating'] - 1] = r['n']
+    cur.execute("SELECT rating FROM community.squad_ratings WHERE post_id = %s AND voter_key = %s",
+                (post_id, voter_key))
+    mine = cur.fetchone()
+    return {'counts': counts, 'total': sum(counts), 'my': mine['rating'] if mine else None,
+            'labels': SQUAD_RATE_LABELS}
+
+
+@app.route('/community/squad_rate/<int:post_id>/<int:choice>', methods=['POST'])
+def squad_rate(post_id, choice):
+    """스쿼드 글 한 번 탭 평가 (1 좋아요 / 2 무난해요 / 3 보완 필요)"""
+    if choice not in (1, 2, 3):
+        return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        ensure_squad_rate_table(cur)
+        cur.execute("SELECT id, category, is_deleted, content FROM community.posts WHERE id = %s", (post_id,))
+        post = cur.fetchone()
+        if not post or not squad_rate_eligible(post):
+            return jsonify({'success': False, 'message': '평가할 수 없는 글입니다'}), 400
+        key = squad_rate_voter_key()
+        cur.execute("""
+            INSERT INTO community.squad_ratings (post_id, voter_key, rating)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (post_id, voter_key) DO NOTHING
+        """, (post_id, key, choice))
+        already = cur.rowcount == 0
+        conn.commit()
+        data = squad_rate_summary(cur, post_id, key)
+        data.update({'success': True, 'already': already})
+        return jsonify(data)
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'평가 중 오류가 발생했습니다: {e}'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
 @app.route('/community/vote/<int:post_id>/<vote_type>', methods=['POST'])
 def vote_post(post_id, vote_type):
     """게시글 추천/비추천"""
