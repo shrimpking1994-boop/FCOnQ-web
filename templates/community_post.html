@@ -77,7 +77,7 @@
         <div class="pv-rate {% if sr.my %}done{% endif %}" id="pvRate">
             <div class="pv-rate-q">⚽ 이 스쿼드 어때요?</div>
             <div class="pv-rate-btns">
-                {% for icon in ['🔥', '👍', '🔧'] %}
+                {% for icon in ['🔥', '✅', '🔧'] %}
                 {% set n = sr.counts[loop.index0] %}
                 {% set pct = ((n * 100 / sr.total) | round | int) if sr.total else 0 %}
                 <button type="button" class="pv-rate-btn {% if sr.my == loop.index %}mine{% endif %}"
