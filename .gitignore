@@ -29,4 +29,6 @@ Thumbs.db
 
 # Logs
 *.log
-```
+
+# Claude Code (local only)
+CLAUDE.md
