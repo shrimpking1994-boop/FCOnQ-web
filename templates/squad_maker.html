@@ -2390,8 +2390,8 @@
         text-decoration: none;
     }
 
-    .sm-cm-more:hover {
-        color: var(--text-primary);
+    .sm-cm-more:visited {
+        color: var(--text-muted);
     }
 
     .sm-cm-row {
@@ -2404,8 +2404,26 @@
         text-decoration: none;
     }
 
-    .sm-cm-row:hover .sm-cm-title {
-        text-decoration: underline;
+    /* 링크 호버 효과 없음 (밑줄·색 변경 X) */
+    .sm-cm-box a,
+    .sm-cm-box a:hover,
+    .sm-cm-box a:visited,
+    .sm-cm-ticker a,
+    .sm-cm-ticker a:hover,
+    .sm-cm-ticker a:visited {
+        text-decoration: none;
+    }
+
+    .sm-cm-row,
+    .sm-cm-row:hover,
+    .sm-cm-row:visited {
+        color: var(--text-primary);
+    }
+
+    .sm-cm-item,
+    .sm-cm-item:hover,
+    .sm-cm-item:visited {
+        color: var(--text-secondary);
     }
 
     .sm-cm-thumb {
@@ -2537,14 +2555,27 @@
             grid-row: 1 / span 4;
             align-self: stretch;
             padding-bottom: 10px;
+            min-width: 0;
         }
 
-        /* 도구는 세로로 쌓고, 패널 칸 안에서만 따라옴 → 팀컬러 상세 현황에 닿지 않음 */
+        /* 도구는 세로로 쌓고 제자리에 고정 (스크롤해도 움직이지 않음)
+           마지막 칸(최근 팀평 요청)이 남는 높이를 채워서 아래 끝이 교체 선수 줄과 맞음 */
         .sm-side>.sm-tools {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: minmax(0, 1fr) !important;
+            grid-template-rows: auto auto auto 1fr;
+            height: 100%;
             margin-bottom: 0 !important;
-            position: sticky;
-            top: 16px;
+        }
+
+        .sm-side-extra {
+            min-width: 0;
+        }
+
+        /* 긴 제목이 오른쪽 패널 폭을 늘리지 않게 */
+        .sm-cm-box {
+            contain: inline-size;
+            height: 100%;
+            box-sizing: border-box;
         }
 
         /* 아래: 팀컬러 현황 (전체 폭) */
