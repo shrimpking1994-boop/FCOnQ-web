@@ -257,6 +257,102 @@
         color: #cd7f32;
     }
 
+    /* 인기 팀컬러 1~3위: 금·은·동 (티어리스트 키보드 랭커와 같은 결) */
+    .home-tile.tc-medal {
+        overflow: hidden;
+        border-color: color-mix(in srgb, var(--m1) 55%, transparent);
+        background:
+            radial-gradient(130% 70% at 50% 0%, color-mix(in srgb, var(--m1) 22%, transparent) 0%, transparent 70%),
+            var(--bg-main);
+        box-shadow: inset 0 3px 0 var(--m1);
+    }
+
+    .home-tile.tc-medal::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 60%;
+        height: 45%;
+        background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--m1) 16%, transparent) 0 5px, transparent 5px 12px);
+        -webkit-mask-image: radial-gradient(100% 100% at 100% 0%, #000 0%, transparent 75%);
+        mask-image: radial-gradient(100% 100% at 100% 0%, #000 0%, transparent 75%);
+        pointer-events: none;
+    }
+
+    .home-tile.tc-medal>* {
+        position: relative;
+    }
+
+    .home-tile.tc-medal>.home-tile-rank,
+    .home-tile.tc-medal>.home-tile-change {
+        position: absolute;
+    }
+
+    .home-tile.tc-medal:hover {
+        border-color: var(--m1);
+    }
+
+    .home-tile.tc-medal .home-tile-rank {
+        top: 4px;
+        font-size: 0.95rem;
+        background: linear-gradient(100deg, var(--m1) 0%, var(--m2) 45%, var(--m1) 55%, var(--m1) 100%);
+        background-size: 250% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: tc-shine 3.5s ease-in-out infinite;
+    }
+
+    @keyframes tc-shine {
+        0% {
+            background-position: 100% 0;
+        }
+
+        60%,
+        100% {
+            background-position: 0% 0;
+        }
+    }
+
+    /* 라이트 모드: 숫자가 흐려지지 않게 한 단계 진하게 */
+    .home-tile.tc-m1 {
+        --m1: #c9971a;
+        --m2: #f3cf63;
+        box-shadow: inset 0 3px 0 var(--m1), 0 0 14px rgba(224, 180, 58, 0.25);
+    }
+
+    .home-tile.tc-m2 {
+        --m1: #7d889a;
+        --m2: #bcc5d1;
+    }
+
+    .home-tile.tc-m3 {
+        --m1: #a35c33;
+        --m2: #d9905f;
+    }
+
+    [data-theme="dark"] .home-tile.tc-m1 {
+        --m1: #e0b43a;
+        --m2: #fff4c2;
+    }
+
+    [data-theme="dark"] .home-tile.tc-m2 {
+        --m1: #aab4c3;
+        --m2: #ffffff;
+    }
+
+    [data-theme="dark"] .home-tile.tc-m3 {
+        --m1: #a8653f;
+        --m2: #f2cfb4;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-tile.tc-medal .home-tile-rank {
+            animation: none;
+        }
+    }
+
     .home-tile-change {
         position: absolute;
         top: 2px;
@@ -1133,7 +1229,7 @@
             const prevDate = summary.teamcolor_prev_date || '';
             document.getElementById('homeTcDate').textContent = prevDate ? `${prevDate} → ${tcDate}` : tcDate;
             box.innerHTML = list.map(t => `
-                <a class="home-tile" href="/tierlist?tab=card&tc=${encodeURIComponent(t.name)}">
+                <a class="home-tile${t.rank <= 3 ? ' tc-medal tc-m' + t.rank : ''}" href="/tierlist?tab=card&tc=${encodeURIComponent(t.name)}">
                     <span class="home-tile-rank ${t.rank <= 3 ? 'r' + t.rank : ''}">${t.rank}</span>
                     ${rankChangeHtml(t.change)}
                     ${t.logo ? `<img class="home-tile-logo" src="${t.logo}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="home-tile-logo"></span>'}
