@@ -99,6 +99,7 @@ def admin_required(f):
 # ===== 비회원 도배 방지 + IP 차단 =====
 from collections import defaultdict, deque
 import time
+import threading
 
 def get_client_ip():
     """실제 접속자 IP (Cloudflare 헤더 우선, 없으면 X-Forwarded-For 첫 번째)"""
@@ -3314,6 +3315,15 @@ TIERLIST_EXCLUDE_TEAMCOLORS = {'단일 팀'}
 # → 10분 동안 계산 결과를 재사용 (크롤링 직후 최대 10분 늦게 반영)
 TIERLIST_CACHE_SEC = 600
 _tierlist_api_cache = {}   # {키: (저장 시각, 결과)}
+_tierlist_cache_lock = threading.Lock()
+# 종류별 최대 개수 (서버 메모리 512MB라 크게 잡지 않음, 결과 1개 크기는 로컬 측정값)
+TIERLIST_CACHE_LIMITS = {
+    'card_tierlist': 12,      # 티어리스트 1개 약 3~5MB (구단가치 구간별)
+    'squad_cards': 25,        # 스쿼드 메이커 팀컬러 카드 1개 약 1MB
+    'squad_teamcolors': 20,   # 아주 작음
+    'ranker_all': 40,         # 랭커 목록 1개 약 0.4MB
+    'ranker_detail': 300,     # 랭커 1명 아주 작음
+}
 
 
 def tierlist_cache_get(key):
@@ -3324,9 +3334,18 @@ def tierlist_cache_get(key):
 
 
 def tierlist_cache_set(key, value):
-    if len(_tierlist_api_cache) > 400:   # 이상한 요청이 쌓여 메모리가 커지는 것 방지
-        _tierlist_api_cache.clear()
-    _tierlist_api_cache[key] = (time.time(), value)
+    now = time.time()
+    limit = TIERLIST_CACHE_LIMITS.get(key[0], 20)
+    with _tierlist_cache_lock:
+        # 10분 지난 결과는 바로 지워서 메모리 반납
+        for k in [k for k, (t, _) in _tierlist_api_cache.items() if now - t >= TIERLIST_CACHE_SEC]:
+            _tierlist_api_cache.pop(k, None)
+        # 같은 종류가 꽉 찼으면 가장 오래된 것부터 지움
+        same = sorted(((t, k) for k, (t, _) in _tierlist_api_cache.items() if k[0] == key[0] and k != key),
+                      key=lambda x: x[0])
+        for _, k in same[:max(0, len(same) - limit + 1)]:
+            _tierlist_api_cache.pop(k, None)
+        _tierlist_api_cache[key] = (now, value)
 
 
 @app.route('/api/get_card_tierlist_data')
@@ -3842,6 +3861,11 @@ def ranker_squad_detail():
     if not teamcolor or not rank:
         return jsonify({'success': False}), 400
 
+    cache_key = ('ranker_detail', teamcolor, rank)   # 같은 랭커 상세는 10분 동안 재사용
+    cached = tierlist_cache_get(cache_key)
+    if cached is not None:
+        return jsonify(cached)
+
     conn = get_db_connection()
     try:
         cur = conn.cursor()
@@ -3879,7 +3903,9 @@ def ranker_squad_detail():
     finally:
         conn.close()
 
-    return jsonify({'success': True, 'data': ranker})
+    data = {'success': True, 'data': ranker}
+    tierlist_cache_set(cache_key, data)
+    return jsonify(data)
 
 @app.route('/api/ranker_squad_list_all')
 def ranker_squad_list_all():
@@ -3889,17 +3915,26 @@ def ranker_squad_list_all():
     tc_filter_raw = request.args.get('teamcolors', '', type=str)
     tc_filter = set(t for t in tc_filter_raw.split(',') if t)
 
+    # 같은 조건이면 10분 동안 결과 재사용 (팀컬러는 고른 순서와 상관없이 같은 조합으로)
+    # 원본 덩어리(약 50MB)는 기억하지 않고 최종 결과만 기억 → 메모리 부담 거의 없음
+    cache_key = ('ranker_all', min_val, max_val, tuple(sorted(tc_filter)))
+    cached = tierlist_cache_get(cache_key)
+    if cached is not None:
+        return jsonify(cached)
+
     conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT squad_full_data
-        FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC, id DESC
-        LIMIT 1
-    """)
-    result = cur.fetchone()
-    cur.close()
-    conn.close()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT squad_full_data
+            FROM card_tierlist_rankings
+            ORDER BY crawl_date DESC, id DESC
+            LIMIT 1
+        """)
+        result = cur.fetchone()
+        cur.close()
+    finally:
+        conn.close()
 
     if not result or not result['squad_full_data']:
         return jsonify({'success': True, 'data': []})
@@ -3929,7 +3964,9 @@ def ranker_squad_list_all():
 
     # 서버 전체 순위 기준 오름차순 정렬, 최대 100명
     combined = sorted(combined, key=lambda x: x['rank'])[:100]
-    return jsonify({'success': True, 'data': combined})
+    data = {'success': True, 'data': combined}
+    tierlist_cache_set(cache_key, data)
+    return jsonify(data)
 
 @app.route('/api/get_all_formation_data')
 def get_all_formation_data():
