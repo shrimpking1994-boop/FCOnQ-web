@@ -3557,7 +3557,7 @@ def get_keyboard_stats():
         tcs = [t for t in dev.get('teamcolors', []) if t.get('name') not in TIERLIST_EXCLUDE_TEAMCOLORS]
         for t in tcs:
             t['logo'] = table_logos.get(t['name']) or t.get('logo')
-        dev['teamcolors'] = tcs[:5]
+        dev['teamcolors'] = tcs[:10]
     for r in data.get('top_keyboard', []):
         r['logo'] = table_logos.get(r.get('teamcolor')) or r.get('logo')
 
