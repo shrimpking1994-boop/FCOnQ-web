@@ -2434,6 +2434,37 @@
         border-radius: 4px;
         object-fit: cover;
         background: rgba(127, 127, 127, 0.15);
+        transition: transform 0.2s ease;
+    }
+
+    /* 커뮤니티 칸 표시: 제목만 커뮤니티 보라색 */
+    .sm-cm-label {
+        color: #8b8ff5;
+    }
+
+    html:not([data-theme="dark"]) .sm-cm-label {
+        color: #6366f1;
+    }
+
+    /* 호버: 그 줄만 둥근 옅은 배경 + 썸네일 살짝 확대 (밑줄·색 변경 없음) */
+    .sm-cm-box .sm-cm-row {
+        margin: 0 -6px;
+        padding-left: 6px;
+        padding-right: 6px;
+        border-radius: 6px;
+        transition: background 0.15s ease;
+    }
+
+    .sm-cm-box .sm-cm-row:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    html:not([data-theme="dark"]) .sm-cm-box .sm-cm-row:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .sm-cm-box .sm-cm-row:hover .sm-cm-thumb {
+        transform: scale(1.06);
     }
 
     .sm-cm-title {
@@ -2586,7 +2617,8 @@
             flex: 1 1 0;
             min-height: 36px;
             max-height: 50px;
-            padding: 0;
+            padding-top: 0;
+            padding-bottom: 0;
         }
 
         /* 빠른 제작·관리·내보내기: 제목 위 여백을 제목-버튼 간격과 같게 (세로 공간 확보) */
@@ -6363,7 +6395,7 @@
             box.innerHTML = `
                 <div class="sm-cm-box">
                     <div class="sm-cm-head">
-                        <span class="sm-quick-label">💬 최근 팀평 요청</span>
+                        <span class="sm-quick-label sm-cm-label">💬 최근 팀평 요청</span>
                         <a class="sm-cm-more" href="/community?category=${encodeURIComponent('스쿼드')}"${pcTarget}>더보기 ›</a>
                     </div>
                     ${posts.map(p => `
