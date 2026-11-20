@@ -2228,8 +2228,8 @@ def test_db():
     
     
 # ===== 스쿼드 메이커 ↔ 커뮤니티 연결: 최근 팀평 요청 글 =====
-SQUAD_REQ_DAYS = 14      # 최근 며칠 이내 글만
-SQUAD_REQ_LIMIT = 3      # 보여줄 개수
+SQUAD_REQ_DAYS = 28      # 최근 며칠 이내 글만
+SQUAD_REQ_LIMIT = 5      # 보여줄 개수
 _squad_req_cache = {}    # {팀컬러: (시각, 결과)} 1분 캐시
 
 

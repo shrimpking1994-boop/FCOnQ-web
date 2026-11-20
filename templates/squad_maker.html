@@ -2390,7 +2390,8 @@
         text-decoration: none;
     }
 
-    .sm-cm-more:visited {
+    .sm-cm-more:visited,
+    .sm-cm-more:hover {
         color: var(--text-muted);
     }
 
@@ -2398,7 +2399,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 0;
+        padding: 4px 0;
         border-top: 1px solid var(--border-color);
         color: var(--text-primary);
         text-decoration: none;
@@ -2571,11 +2572,38 @@
             min-width: 0;
         }
 
-        /* 긴 제목이 오른쪽 패널 폭을 늘리지 않게 */
+        /* 긴 제목이 오른쪽 패널 폭을 늘리지 않게 + 남는 높이에 맞춰 글 줄 간격이 늘었다 줄었다 */
         .sm-cm-box {
             contain: inline-size;
             height: 100%;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sm-cm-box .sm-cm-row {
+            flex: 1 1 0;
+            min-height: 36px;
+            max-height: 50px;
+            padding: 0;
+        }
+
+        /* 빠른 제작·관리·내보내기: 제목 위 여백을 제목-버튼 간격과 같게 (세로 공간 확보) */
+        .sm-side .sm-quick-vertical,
+        .sm-side .sm-manage,
+        .sm-side .sm-export {
+            padding-top: 9px;
+            padding-bottom: 12px;
+        }
+
+        .sm-side .sm-cm-box {
+            padding-top: 9px;
+            padding-bottom: 6px;
+        }
+
+        .sm-side>.sm-tools {
+            gap: 10px !important;
         }
 
         /* 아래: 팀컬러 현황 (전체 폭) */
