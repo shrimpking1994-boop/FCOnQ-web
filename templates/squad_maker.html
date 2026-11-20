@@ -41,7 +41,8 @@
     html.sm-embed .sm-side,
     html.sm-embed .sm-bench,
     html.sm-embed .sm-tc,
-    html.sm-embed .sm-ranker-queue-bar {
+    html.sm-embed .sm-ranker-queue-bar,
+    html.sm-embed .sm-cm-ticker {
         display: none !important;
     }
 
@@ -2369,6 +2370,136 @@
         border-color: rgba(244, 67, 54, 0.5);
     }
 
+    /* ===== 커뮤니티 연결: 최근 팀평 요청 (PC 오른쪽 박스 / 모바일 한 줄 띠) ===== */
+    .sm-cm-box {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+
+    .sm-cm-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .sm-cm-more {
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-decoration: none;
+    }
+
+    .sm-cm-more:hover {
+        color: var(--text-primary);
+    }
+
+    .sm-cm-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-top: 1px solid var(--border-color);
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+
+    .sm-cm-row:hover .sm-cm-title {
+        text-decoration: underline;
+    }
+
+    .sm-cm-thumb {
+        width: 42px;
+        height: 30px;
+        flex-shrink: 0;
+        border-radius: 4px;
+        object-fit: cover;
+        background: rgba(127, 127, 127, 0.15);
+    }
+
+    .sm-cm-title {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sm-cm-cmt {
+        flex-shrink: 0;
+        color: #f97316;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    /* 모바일 띠: 기본은 숨김, 1000px 미만에서 글이 있을 때만 */
+    .sm-cm-ticker {
+        display: none;
+    }
+
+    @media (max-width: 999px) {
+        .sm-side-extra {
+            display: none !important;
+        }
+
+        .sm-cm-ticker.ready {
+            display: block;
+            max-width: 640px;
+            margin: 0 auto 10px;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+    }
+
+    .sm-cm-view {
+        height: 34px;
+        overflow: hidden;
+    }
+
+    .sm-cm-track {
+        transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .sm-cm-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 34px;
+        padding: 0 6px;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        text-decoration: none;
+    }
+
+    .sm-cm-item .k {
+        flex-shrink: 0;
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+
+    .sm-cm-item .t {
+        flex: 1;
+        min-width: 0;
+        color: var(--text-primary);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sm-cm-item .go {
+        flex-shrink: 0;
+        opacity: 0.6;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .sm-cm-track {
+            transition: none;
+        }
+    }
+
     /* ===== PC 2단 구성: 왼쪽 그린필드 / 오른쪽 도구 ===== */
     .sm-side-extra:empty {
         display: none;
@@ -2877,6 +3008,13 @@
     <div class="sm-bench" id="squad-bench">
         <div class="sm-bench-label"><span class="ico">⇅</span>교체<br>선수</div>
         <div class="sm-bench-row" id="bench-row"></div>
+    </div>
+
+    <!-- 커뮤니티 연결 (모바일): 최근 팀평 요청 한 줄 띠 -->
+    <div class="sm-cm-ticker" id="smCmTicker">
+        <div class="sm-cm-view">
+            <div class="sm-cm-track" id="smCmTrack"></div>
+        </div>
     </div>
 
     <!-- 강화단계 선택 팝업 -->
@@ -4886,6 +5024,7 @@
         });
         tcCornerClub = top;
         renderTcCorner();
+        if (typeof scheduleSquadRequests === 'function') scheduleSquadRequests();
     }
 
     function updateTcTraitCorner(traitList) {
@@ -6122,4 +6261,106 @@
     </div>
 </div>
 
+<script>
+    // ===== 스쿼드 메이커 ↔ 커뮤니티: 최근 팀평 요청 (같은 팀컬러 글 먼저) =====
+    (function () {
+        if (document.documentElement.classList.contains('sm-embed')) return;
+        const box = document.getElementById('sm-side-extra');
+        const ticker = document.getElementById('smCmTicker');
+        const track = document.getElementById('smCmTrack');
+        let lastTc = null, timer = null, rollTimer = null;
+
+        function esc(t) {
+            const d = document.createElement('div');
+            d.textContent = t == null ? '' : String(t);
+            return d.innerHTML;
+        }
+
+        function load() {
+            const tc = (typeof tcCornerClub !== 'undefined' && tcCornerClub && tcCornerClub.name) ? tcCornerClub.name.trim() : '';
+            if (tc === lastTc) return;
+            lastTc = tc;
+            fetch('/api/squad_requests' + (tc ? '?tc=' + encodeURIComponent(tc) : ''))
+                .then(r => r.json())
+                .then(d => render((d && d.success && d.posts) || []))
+                .catch(() => render([]));
+        }
+
+        // 선수를 넣고 빼는 동안 여러 번 바뀌므로 잠깐 멈췄을 때 한 번만
+        window.scheduleSquadRequests = function () {
+            clearTimeout(timer);
+            timer = setTimeout(load, 800);
+        };
+
+        function render(posts) {
+            const pcTarget = window.innerWidth >= 1000 ? ' target="_blank" rel="noopener"' : '';
+            if (!posts.length) {
+                box.innerHTML = '';
+                ticker.classList.remove('ready');
+                track.innerHTML = '';
+                return;
+            }
+            // PC 박스
+            box.innerHTML = `
+                <div class="sm-cm-box">
+                    <div class="sm-cm-head">
+                        <span class="sm-quick-label">💬 최근 팀평 요청</span>
+                        <a class="sm-cm-more" href="/community?category=${encodeURIComponent('스쿼드')}"${pcTarget}>더보기 ›</a>
+                    </div>
+                    ${posts.map(p => `
+                        <a class="sm-cm-row" href="/community/post/${p.id}"${pcTarget} data-cm="pc">
+                            <img class="sm-cm-thumb" src="/community/post/${p.id}/image" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+                            <span class="sm-cm-title">${esc(p.title)}</span>
+                            ${p.comments ? `<span class="sm-cm-cmt">[${p.comments}]</span>` : ''}
+                        </a>`).join('')}
+                </div>`;
+            // 모바일 띠 (끝에 첫 줄을 한 번 더 붙여 끊김 없이 돌게)
+            const items = posts.map(p => `
+                <a class="sm-cm-item" href="/community/post/${p.id}" data-cm="mobile">
+                    <span class="k">💬 팀평 요청</span>
+                    <span class="t">${esc(p.title)}</span>
+                    ${p.comments ? `<span class="sm-cm-cmt">[${p.comments}]</span>` : ''}
+                    <span class="go">›</span>
+                </a>`);
+            track.innerHTML = items.join('') + (items.length > 1 ? items[0] : '');
+            ticker.classList.add('ready');
+            roll(items.length);
+        }
+
+        function roll(n) {
+            clearInterval(rollTimer);
+            track.style.transition = 'none';
+            track.style.transform = 'translateY(0)';
+            if (n < 2) return;
+            let idx = 0, paused = false;
+            ticker.onmouseenter = () => { paused = true; };
+            ticker.onmouseleave = () => { paused = false; };
+            rollTimer = setInterval(() => {
+                if (paused || document.hidden || !ticker.offsetParent) return;
+                const h = track.firstElementChild ? track.firstElementChild.offsetHeight : 34;
+                idx++;
+                track.style.transition = '';
+                track.style.transform = `translateY(-${idx * h}px)`;
+                if (idx === n) {
+                    setTimeout(() => {
+                        track.style.transition = 'none';
+                        track.style.transform = 'translateY(0)';
+                        idx = 0;
+                    }, 550);
+                }
+            }, 3000);
+        }
+
+        // GA: 어디서 눌렀는지 기록
+        document.addEventListener('click', e => {
+            const a = e.target.closest('[data-cm]');
+            if (a && typeof gtag === 'function') {
+                gtag('event', 'squad_cm_click', { place: a.dataset.cm, transport_type: 'beacon' });
+            }
+        });
+
+        lastTc = undefined;
+        load();
+    })();
+</script>
 {% endblock %}

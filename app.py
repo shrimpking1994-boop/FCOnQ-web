@@ -2227,6 +2227,59 @@ def test_db():
 
     
     
+# ===== 스쿼드 메이커 ↔ 커뮤니티 연결: 최근 팀평 요청 글 =====
+SQUAD_REQ_DAYS = 14      # 최근 며칠 이내 글만
+SQUAD_REQ_LIMIT = 3      # 보여줄 개수
+_squad_req_cache = {}    # {팀컬러: (시각, 결과)} 1분 캐시
+
+
+@app.route('/api/squad_requests')
+def squad_requests():
+    """스쿼드 카테고리 + 이미지 글 중 최근 3개. 팀컬러(tc)를 주면 제목이 [팀컬러 …]인 글을 먼저"""
+    tc = (request.args.get('tc') or '').strip()[:40]
+    hit = _squad_req_cache.get(tc)
+    if hit and time.time() - hit[0] < 60:
+        return jsonify({'success': True, 'posts': hit[1]})
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        since = datetime.now(pytz.UTC) - timedelta(days=SQUAD_REQ_DAYS)
+        base = """
+            SELECT p.id, p.title,
+                   (SELECT COUNT(*) FROM community.comments c
+                    WHERE c.post_id = p.id AND c.is_deleted = false) AS comment_count
+            FROM community.posts p
+            WHERE p.category = '스쿼드' AND p.is_deleted = false
+              AND POSITION('<img' IN p.content) > 0
+              AND p.created_at >= %s
+        """
+        posts = []
+        if tc:
+            # 제목이 "[레알 마드리드 · …" 또는 "[레알 마드리드]" 로 시작하는 글
+            like_tc = tc.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+            cur.execute(base + " AND (p.title LIKE %s OR p.title LIKE %s) ORDER BY p.created_at DESC LIMIT %s",
+                        (since, f'[{like_tc} ·%', f'[{like_tc}]%', SQUAD_REQ_LIMIT))
+            posts = cur.fetchall()
+        if len(posts) < SQUAD_REQ_LIMIT:
+            have = [p['id'] for p in posts] or [0]
+            cur.execute(base + " AND p.id <> ALL(%s::int[]) ORDER BY p.created_at DESC LIMIT %s",
+                        (since, have, SQUAD_REQ_LIMIT - len(posts)))
+            posts += cur.fetchall()
+        result = [{'id': p['id'], 'title': p['title'], 'comments': p['comment_count'],
+                   'same_tc': bool(tc) and (p['title'] or '').startswith(f'[{tc}')} for p in posts]
+        _squad_req_cache[tc] = (time.time(), result)
+        if len(_squad_req_cache) > 300:
+            _squad_req_cache.clear()
+        return jsonify({'success': True, 'posts': result})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
 # ===== 스쿼드 한 번 탭 평가: 스쿼드 카테고리 + 이미지가 있는 글에만 =====
 SQUAD_RATE_LABELS = ['좋아요', '무난해요', '보완 필요']   # 1, 2, 3
 _squad_rate_ready = False
