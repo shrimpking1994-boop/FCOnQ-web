@@ -6368,7 +6368,7 @@
         }
 
         function load() {
-            const tc = (typeof tcCornerClub !== 'undefined' && tcCornerClub && tcCornerClub.name) ? tcCornerClub.name.trim() : '';
+            const tc = '';   // 팀컬러와 상관없이 최신 글만
             if (tc === lastTc) return;
             lastTc = tc;
             fetch('/api/squad_requests' + (tc ? '?tc=' + encodeURIComponent(tc) : ''))
