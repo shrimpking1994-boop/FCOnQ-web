@@ -3318,8 +3318,8 @@ _tierlist_api_cache = {}   # {키: (저장 시각, 결과)}
 _tierlist_cache_lock = threading.Lock()
 # 종류별 최대 개수 (서버 메모리 512MB라 크게 잡지 않음, 결과 1개 크기는 로컬 측정값)
 TIERLIST_CACHE_LIMITS = {
-    'card_tierlist': 12,      # 티어리스트 1개 약 3~5MB (구단가치 구간별)
-    'squad_cards': 25,        # 스쿼드 메이커 팀컬러 카드 1개 약 1MB
+    'card_tierlist': 9,       # 티어리스트 1개 약 3~5MB (구단가치 구간별)
+    'squad_cards': 20,        # 스쿼드 메이커 팀컬러 카드 1개 약 1MB
     'squad_teamcolors': 20,   # 아주 작음
     'ranker_all': 40,         # 랭커 목록 1개 약 0.4MB
     'ranker_detail': 300,     # 랭커 1명 아주 작음
