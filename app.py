@@ -1387,7 +1387,7 @@ def add_comment(post_id):
             
             user_id = None
             password_hash = hash_password(password)
-            ip_hash = hash_ip(request.remote_addr)
+            ip_hash = hash_ip(get_client_ip())
             author_ip = get_client_ip()
         
         # 글쓴이 댓글인지 판단 (회원: 회원 ID / 비회원: 같은 브라우저·같은 IP·같은 비밀번호+IP 앞 두 자리)
@@ -2370,8 +2370,8 @@ def vote_post(post_id, vote_type):
     if vote_type not in ['like', 'dislike']:
         return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
     
-    # IP 해시 생성
-    ip_hash = hash_ip(request.remote_addr)
+    # IP 해시 생성 (Render 프록시 뒤라 remote_addr 대신 실제 접속자 IP)
+    ip_hash = hash_ip(get_client_ip())
     
     conn = get_db_connection()
     cur = conn.cursor()
@@ -2485,7 +2485,7 @@ def write_player_review(spid):
             
             user_id = None
             password_hash = hash_password(password)
-            ip_hash = hash_ip(request.remote_addr)
+            ip_hash = hash_ip(get_client_ip())
             author_ip = get_client_ip()
         
         # 후기 삽입
@@ -2605,7 +2605,7 @@ def vote_player_review(review_id, vote_type):
         return jsonify({'success': False, 'message': '잘못된 요청입니다'}), 400
     
     # IP 해시 생성
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+    ip = get_client_ip()
     ip_hash = hash_ip(ip)
     
     conn = get_db_connection()
@@ -4883,7 +4883,7 @@ def site_stats_api():
     return jsonify(data)
 
 
-# ===== 새 댓글 알림 (내 글에 달린 댓글 + 내 댓글에 달린 답글, 최근 7일) =====
+# ===== 알림 (내 글에 달린 댓글·내 댓글에 달린 답글·내 글 추천·내 스쿼드 평가, 최근 7일) =====
 # 비회원: 이 브라우저 세션에 기록된 내 글·댓글 / 회원: 계정 기준 (어느 기기에서나)
 NOTI_DAYS = 7
 NOTI_LIMIT = 30
@@ -4941,7 +4941,76 @@ def notifications_api():
                 'snippet': text[:40] + ('…' if len(text) > 40 else ''),
                 'type': 'reply' if is_reply else 'comment',
                 'created_at': r['created_at'].isoformat() if r['created_at'] else None,
+                '_ts': r['created_at'].timestamp() if r['created_at'] else 0,
             })
+
+        # 내 글이 받은 추천 (글 하나당 1줄로 묶음, 비추천은 알리지 않음)
+        # id에 개수를 넣어서 개수가 늘면 다시 '안 읽음'으로 뜨게 함
+        if my_posts:
+            try:
+                cur.execute("""
+                    SELECT v.post_id, p.title, COUNT(*) AS n, MAX(v.created_at)::timestamptz AS last_at
+                    FROM community.post_votes v
+                    JOIN community.posts p ON p.id = v.post_id
+                    WHERE v.post_id = ANY(%s::int[])
+                      AND v.vote_type = 'like'
+                      AND COALESCE(p.is_deleted, false) = false
+                    GROUP BY v.post_id, p.title
+                    HAVING MAX(v.created_at)::timestamptz > %s
+                """, (list(my_posts), since))
+                for r in cur.fetchall():
+                    items.append({
+                        'id': f"like:{r['post_id']}:{r['n']}",
+                        'post_id': r['post_id'],
+                        'title': (r['title'] or '')[:40],
+                        'count': r['n'],
+                        'type': 'like',
+                        'created_at': r['last_at'].isoformat() if r['last_at'] else None,
+                        '_ts': r['last_at'].timestamp() if r['last_at'] else 0,
+                    })
+            except Exception as e:
+                conn.rollback()
+                print(f"추천 알림 조회 실패: {e}")
+
+            # 내 스쿼드 글에 달린 평가 (좋아요 / 무난해요 / 보완 필요), 내가 누른 평가는 제외
+            try:
+                ensure_squad_rate_table(cur)
+                my_key = squad_rate_voter_key()
+                cur.execute("""
+                    SELECT s.post_id, p.title,
+                           COUNT(*) FILTER (WHERE s.rating = 1) AS r1,
+                           COUNT(*) FILTER (WHERE s.rating = 2) AS r2,
+                           COUNT(*) FILTER (WHERE s.rating = 3) AS r3,
+                           MAX(s.created_at)::timestamptz AS last_at
+                    FROM community.squad_ratings s
+                    JOIN community.posts p ON p.id = s.post_id
+                    WHERE s.post_id = ANY(%s::int[])
+                      AND s.voter_key <> %s
+                      AND COALESCE(p.is_deleted, false) = false
+                    GROUP BY s.post_id, p.title
+                    HAVING MAX(s.created_at)::timestamptz > %s
+                """, (list(my_posts), my_key, since))
+                for r in cur.fetchall():
+                    counts = [r['r1'], r['r2'], r['r3']]
+                    items.append({
+                        'id': f"rate:{r['post_id']}:{sum(counts)}",
+                        'post_id': r['post_id'],
+                        'title': (r['title'] or '')[:40],
+                        'count': sum(counts),
+                        'counts': counts,
+                        'labels': SQUAD_RATE_LABELS,
+                        'type': 'rate',
+                        'created_at': r['last_at'].isoformat() if r['last_at'] else None,
+                        '_ts': r['last_at'].timestamp() if r['last_at'] else 0,
+                    })
+            except Exception as e:
+                conn.rollback()
+                print(f"스쿼드 평가 알림 조회 실패: {e}")
+
+        items.sort(key=lambda it: it['_ts'], reverse=True)
+        items = items[:NOTI_LIMIT]
+        for it in items:
+            it.pop('_ts', None)
         cur.close()
         return jsonify({'active': True, 'items': items})
     except Exception as e:

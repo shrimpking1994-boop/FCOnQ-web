@@ -1529,24 +1529,41 @@
             const list = document.getElementById('notiList');
             let items = [];
 
+            function itemHtml(it) {
+                const cls = `noti-item ${readIds.has(it.id) ? '' : 'unread'}`;
+                const foot = `<div class="noti-line3">${esc(it.title)} · ${ago(it.created_at)}</div>`;
+                if (it.type === 'like') {
+                    return `<a class="${cls}" data-id="${esc(it.id)}" data-type="like" href="/community/post/${it.post_id}">
+                            <div class="noti-line1">👍 내 글이 추천 <b>${it.count}개</b>를 받았어요</div>${foot}</a>`;
+                }
+                if (it.type === 'rate') {
+                    const detail = (it.labels || []).map((l, i) => `${esc(l)} ${(it.counts || [])[i] || 0}`).join(' · ');
+                    return `<a class="${cls}" data-id="${esc(it.id)}" data-type="rate" href="/community/post/${it.post_id}">
+                            <div class="noti-line1">⚽ 내 스쿼드에 평가 <b>${it.count}개</b>가 달렸어요</div>
+                            <div class="noti-line2">${detail}</div>${foot}</a>`;
+                }
+                return `<a class="${cls}" data-id="${it.id}" data-type="${it.type}" href="/community/post/${it.post_id}#c-${it.id}">
+                            <div class="noti-line1"><b>${esc(it.author)}</b>님이 ${it.type === 'reply' ? '내 댓글에 답글' : '내 글에 댓글'}을 남겼어요</div>
+                            <div class="noti-line2">“${esc(it.snippet)}”</div>${foot}</a>`;
+            }
+
             function render() {
                 const unread = items.filter(it => !readIds.has(it.id)).length;
                 badge.hidden = unread === 0;
                 badge.textContent = unread > 99 ? '99+' : unread;
                 list.innerHTML = items.length
-                    ? items.map(it => `
-                        <a class="noti-item ${readIds.has(it.id) ? '' : 'unread'}" data-id="${it.id}"
-                           href="/community/post/${it.post_id}#c-${it.id}">
-                            <div class="noti-line1"><b>${esc(it.author)}</b>님이 ${it.type === 'reply' ? '내 댓글에 답글' : '내 글에 댓글'}을 남겼어요</div>
-                            <div class="noti-line2">“${esc(it.snippet)}”</div>
-                            <div class="noti-line3">${esc(it.title)} · ${ago(it.created_at)}</div>
-                        </a>`).join('')
-                    : '<div class="noti-empty">최근 7일 동안 새 댓글이 없어요</div>';
+                    ? items.map(itemHtml).join('')
+                    : '<div class="noti-empty">최근 7일 동안 새 알림이 없어요</div>';
             }
 
             fetch('/api/notifications').then(r => r.json()).then(data => {
                 if (!data || !data.active) return;
                 items = data.items || [];
+                // 지금 보고 있는 글의 추천·평가 알림은 읽은 것으로 처리
+                items.forEach(it => {
+                    if ((it.type === 'like' || it.type === 'rate') && location.pathname === `/community/post/${it.post_id}`) readIds.add(it.id);
+                });
+                saveRead();
                 // 처음 쓰는 기기: 지금 있는 알림은 읽은 것으로 (예전 댓글이 한꺼번에 뜨지 않게)
                 if (!store.get(INIT_KEY)) {
                     items.forEach(it => readIds.add(it.id));
@@ -1573,9 +1590,10 @@
             list.addEventListener('click', e => {
                 const a = e.target.closest('.noti-item');
                 if (!a) return;
-                readIds.add(Number(a.dataset.id));
+                const rawId = a.dataset.id;
+                readIds.add(/^\d+$/.test(rawId) ? Number(rawId) : rawId);   // 댓글은 숫자, 추천·평가는 'like:글:개수' 형태
                 saveRead();
-                if (typeof gtag === 'function') gtag('event', 'noti_click');
+                if (typeof gtag === 'function') gtag('event', 'noti_click', { noti_type: a.dataset.type || 'comment' });
                 // 같은 글이면 새로고침해서 댓글 위치로 이동
                 const url = new URL(a.href);
                 if (url.pathname === location.pathname) {
