@@ -3308,15 +3308,52 @@ def get_all_tierlist_data():
 # 티어리스트 / 스쿼드 메이커 공통: 이 인원 미만 팀컬러는 제외
 TIERLIST_MIN_USERS = 10
 TIERLIST_EXCLUDE_TEAMCOLORS = {'단일 팀'}
+
+# ===== 티어리스트 계열 API 메모리 캐시 =====
+# 랭커 데이터는 크롤러가 하루 한 번만 바꾸는데, 덩어리가 커서(압축 상태로 약 1MB) 매번 꺼내면 2~3초 걸림
+# → 10분 동안 계산 결과를 재사용 (크롤링 직후 최대 10분 늦게 반영)
+TIERLIST_CACHE_SEC = 600
+_tierlist_api_cache = {}   # {키: (저장 시각, 결과)}
+
+
+def tierlist_cache_get(key):
+    hit = _tierlist_api_cache.get(key)
+    if hit and time.time() - hit[0] < TIERLIST_CACHE_SEC:
+        return hit[1]
+    return None
+
+
+def tierlist_cache_set(key, value):
+    if len(_tierlist_api_cache) > 400:   # 이상한 요청이 쌓여 메모리가 커지는 것 방지
+        _tierlist_api_cache.clear()
+    _tierlist_api_cache[key] = (time.time(), value)
+
+
 @app.route('/api/get_card_tierlist_data')
 def get_card_tierlist_data():
     """카드 티어리스트 데이터 반환 (가장 최근 날짜)"""
     include_hover = request.args.get('include_hover') == 'true'
     bucket = request.args.get('bucket', '').strip()   # 구단가치 구간 (없으면 전체)
 
-    conn = get_db_connection()
-    cur = conn.cursor()
+    cache_key = ('card_tierlist', include_hover, bucket)
+    cached = tierlist_cache_get(cache_key)
+    if cached is not None:
+        return jsonify(cached)
 
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        data, status = build_card_tierlist_data(cur, include_hover, bucket)
+        cur.close()
+    finally:
+        conn.close()
+    if status == 200:
+        tierlist_cache_set(cache_key, data)
+    return jsonify(data), status
+
+
+def build_card_tierlist_data(cur, include_hover, bucket):
+    """get_card_tierlist_data 본체: (결과, 상태코드) 반환. 연결 열고 닫기는 호출하는 쪽에서"""
     cur.execute("""
         SELECT full_data, crawl_date
         FROM card_tierlist_rankings 
@@ -3327,9 +3364,7 @@ def get_card_tierlist_data():
     result = cur.fetchone()
 
     if not result:
-        cur.close()
-        conn.close()
-        return jsonify({'success': False, 'message': '데이터가 없습니다'}), 404
+        return {'success': False, 'message': '데이터가 없습니다'}, 404
 
     full_data = result['full_data']
     bucket_label = ''
@@ -3471,9 +3506,6 @@ def get_card_tierlist_data():
                         if price is not None:
                             price_map[f"{spid}_{buildup}"] = price
 
-    cur.close()
-    conn.close()
-
     response = {'success': True, 'data': full_data, 'effects': effects,
                 'crawl_date': str(result['crawl_date']),
                 'prev_date': prev_date, 'rank_change': rank_change,
@@ -3481,7 +3513,7 @@ def get_card_tierlist_data():
     if include_hover:
         response['hover_map'] = hover_map
         response['price_map'] = price_map
-    return jsonify(response)
+    return response, 200
 
 @app.route('/api/get_price_movers')
 def get_price_movers():
@@ -3646,35 +3678,42 @@ def img_proxy():
 def squad_tierlist_teamcolors():
     """스쿼드 메이커 픽률 자동 완성: 팀컬러 순위 (bucket이 있으면 해당 구단가치 구간 기준)"""
     bucket = request.args.get('bucket', '').strip()
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT full_data->'_order' AS tc_order, full_data->'_logos' AS tc_logos,
-               full_data->'_usage' AS tc_usage
-        FROM card_tierlist_rankings
-        ORDER BY crawl_date DESC, id DESC
-        LIMIT 1
-    """)
-    result = cur.fetchone()
+    cache_key = ('squad_teamcolors', bucket)
+    cached = tierlist_cache_get(cache_key)
+    if cached is not None:
+        return jsonify(cached)
 
-    # 구단가치 구간 데이터 (없는 구간이면 전체로)
-    gd = None
-    if bucket:
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
         cur.execute("""
             SELECT full_data->'_order' AS tc_order, full_data->'_logos' AS tc_logos,
                    full_data->'_usage' AS tc_usage
-            FROM card_tierlist_gd
-            WHERE bucket = %s
-        """, (bucket,))
-        gd = cur.fetchone()
+            FROM card_tierlist_rankings
+            ORDER BY crawl_date DESC, id DESC
+            LIMIT 1
+        """)
+        result = cur.fetchone()
 
-    cur.execute("SELECT team_name, logo_url FROM team_logos")
-    table_logos = {row['team_name']: row['logo_url'] for row in cur.fetchall()}
+        # 구단가치 구간 데이터 (없는 구간이면 전체로)
+        gd = None
+        if bucket:
+            cur.execute("""
+                SELECT full_data->'_order' AS tc_order, full_data->'_logos' AS tc_logos,
+                       full_data->'_usage' AS tc_usage
+                FROM card_tierlist_gd
+                WHERE bucket = %s
+            """, (bucket,))
+            gd = cur.fetchone()
+
+        cur.execute("SELECT team_name, logo_url FROM team_logos")
+        table_logos = {row['team_name']: row['logo_url'] for row in cur.fetchall()}
+        cur.close()
+    finally:
+        conn.close()
     crawled_logos = (result['tc_logos'] if result else None) or {}
     gd_logos = (gd['tc_logos'] if gd else None) or {}
     logos = {**crawled_logos, **gd_logos, **table_logos}
-    cur.close()
-    conn.close()
 
     src = gd or result
     if not src:
@@ -3684,7 +3723,9 @@ def squad_tierlist_teamcolors():
     usage = src['tc_usage'] or {}
     if usage:
         order = [tc for tc in order if usage.get(tc, 0) >= TIERLIST_MIN_USERS]
-    return jsonify({'success': True, 'order': order, 'logos': logos, 'bucket': bucket if gd else ''})
+    data = {'success': True, 'order': order, 'logos': logos, 'bucket': bucket if gd else ''}
+    tierlist_cache_set(cache_key, data)
+    return jsonify(data)
 
 @app.route('/api/squad_tierlist_cards')
 def squad_tierlist_cards():
@@ -3693,32 +3734,41 @@ def squad_tierlist_cards():
     bucket = request.args.get('bucket', '').strip()
     if not teamcolor:
         return jsonify({'success': False}), 400
+    cache_key = ('squad_cards', teamcolor, bucket)
+    cached = tierlist_cache_get(cache_key)
+    if cached is not None:
+        return jsonify(cached)
+
     conn = get_db_connection()
-    cur = conn.cursor()
+    try:
+        cur = conn.cursor()
 
-    result = None
-    if bucket:
-        cur.execute("""
-            SELECT full_data->%s AS tc_data
-            FROM card_tierlist_gd
-            WHERE bucket = %s
-        """, (teamcolor, bucket))
-        result = cur.fetchone()
+        result = None
+        if bucket:
+            cur.execute("""
+                SELECT full_data->%s AS tc_data
+                FROM card_tierlist_gd
+                WHERE bucket = %s
+            """, (teamcolor, bucket))
+            result = cur.fetchone()
 
-    if not result:   # 전체 기준 (또는 없는 구간이면 전체로)
-        cur.execute("""
-            SELECT full_data->%s AS tc_data
-            FROM card_tierlist_rankings
-            ORDER BY crawl_date DESC, id DESC
-            LIMIT 1
-        """, (teamcolor,))
-        result = cur.fetchone()
+        if not result:   # 전체 기준 (또는 없는 구간이면 전체로)
+            cur.execute("""
+                SELECT full_data->%s AS tc_data
+                FROM card_tierlist_rankings
+                ORDER BY crawl_date DESC, id DESC
+                LIMIT 1
+            """, (teamcolor,))
+            result = cur.fetchone()
 
-    cur.close()
-    conn.close()
+        cur.close()
+    finally:
+        conn.close()
     if not result or not result['tc_data']:
         return jsonify({'success': False}), 404
-    return jsonify({'success': True, 'data': result['tc_data']})
+    data = {'success': True, 'data': result['tc_data']}
+    tierlist_cache_set(cache_key, data)
+    return jsonify(data)
 
 
 @app.route('/api/squad_cards_batch', methods=['POST'])
