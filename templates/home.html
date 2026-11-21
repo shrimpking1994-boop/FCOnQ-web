@@ -350,8 +350,73 @@
         --m2: #f2cfb4;
     }
 
+    /* 인기 팀컬러 7일 전보다 3단계 이상 급상승: 뒷배경이 아래에서 은은히 불타오름 (금은동과 함께 써도 안 겹침) */
+    .home-tile.tc-hot {
+        overflow: hidden;
+    }
+
+    .home-tile.tc-hot>* {
+        position: relative;
+        z-index: 1;
+    }
+
+    .home-tile.tc-hot>.home-tile-rank,
+    .home-tile.tc-hot>.home-tile-change {
+        position: absolute;
+        z-index: 2;
+    }
+
+    .home-tile.tc-hot::before {
+        z-index: 0;
+    }
+
+    .home-tile.tc-hot::after {
+        content: '';
+        position: absolute;
+        z-index: 0;
+        left: -15%;
+        right: -15%;
+        bottom: -12%;
+        height: 80%;
+        background:
+            radial-gradient(35% 75% at 25% 100%, rgba(255, 96, 32, 0.55) 0%, transparent 70%),
+            radial-gradient(30% 90% at 55% 100%, rgba(255, 150, 40, 0.5) 0%, transparent 70%),
+            radial-gradient(35% 70% at 82% 100%, rgba(255, 70, 30, 0.5) 0%, transparent 70%);
+        filter: blur(5px);
+        transform-origin: 50% 100%;
+        animation: tc-flame 2.2s ease-in-out infinite alternate;
+        pointer-events: none;
+    }
+
+    .home-tile.tc-hot:not(.tc-medal) {
+        border-color: rgba(255, 110, 50, 0.45);
+    }
+
+    @keyframes tc-flame {
+        0% {
+            transform: scaleY(0.88) translateX(-3%);
+            opacity: 0.7;
+        }
+
+        35% {
+            transform: scaleY(1.06) translateX(2%);
+            opacity: 1;
+        }
+
+        70% {
+            transform: scaleY(0.95) translateX(-1%);
+            opacity: 0.85;
+        }
+
+        100% {
+            transform: scaleY(1.1) translateX(3%);
+            opacity: 0.95;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-        .home-tile.tc-medal .home-tile-rank {
+        .home-tile.tc-medal .home-tile-rank,
+        .home-tile.tc-hot::after {
             animation: none;
         }
     }
@@ -1232,7 +1297,7 @@
             const prevDate = summary.teamcolor_prev_date || '';
             document.getElementById('homeTcDate').textContent = prevDate ? `${prevDate} → ${tcDate}` : tcDate;
             box.innerHTML = list.map(t => `
-                <a class="home-tile${t.rank <= 3 ? ' tc-medal tc-m' + t.rank : ''}" href="/tierlist?tab=card&tc=${encodeURIComponent(t.name)}">
+                <a class="home-tile${t.rank <= 3 ? ' tc-medal tc-m' + t.rank : ''}${typeof t.change === 'number' && t.change >= 3 ? ' tc-hot' : ''}" href="/tierlist?tab=card&tc=${encodeURIComponent(t.name)}">
                     <span class="home-tile-rank ${t.rank <= 3 ? 'r' + t.rank : ''}">${t.rank}</span>
                     ${rankChangeHtml(t.change)}
                     ${t.logo ? `<img class="home-tile-logo" src="${t.logo}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="home-tile-logo"></span>'}
