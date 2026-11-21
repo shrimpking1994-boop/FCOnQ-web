@@ -323,8 +323,9 @@
     }
 
     .home-tile.tc-m2 {
-        --m1: #7d889a;
-        --m2: #bcc5d1;
+        --m1: #8e99aa;
+        --m2: #e4e9f0;
+        box-shadow: inset 0 3px 0 var(--m1), 0 0 12px rgba(160, 172, 190, 0.3);
     }
 
     .home-tile.tc-m3 {
@@ -337,9 +338,11 @@
         --m2: #fff4c2;
     }
 
+    /* 은: 푸른 회색(쇠 느낌) 대신 밝고 하얗게 빛나는 쪽으로 */
     [data-theme="dark"] .home-tile.tc-m2 {
-        --m1: #aab4c3;
+        --m1: #d3dae4;
         --m2: #ffffff;
+        box-shadow: inset 0 3px 0 var(--m1), 0 0 14px rgba(225, 232, 242, 0.22);
     }
 
     [data-theme="dark"] .home-tile.tc-m3 {
