@@ -2157,9 +2157,17 @@
         box-shadow: inset 3px 0 0 var(--m1), 0 0 0 1px rgba(224, 180, 58, 0.45), 0 0 16px rgba(224, 180, 58, 0.2);
     }
 
+    /* 은: 홈 인기 팀컬러 2위와 같은 색 (푸른 회색 대신 밝게 빛나는 은빛) */
     .kb-ranker.kb-m2 {
-        --m1: #aab4c3;
+        --m1: #8e99aa;
+        --m2: #e4e9f0;
+        box-shadow: inset 3px 0 0 var(--m1), 0 0 0 1px rgba(142, 153, 170, 0.45), 0 0 12px rgba(160, 172, 190, 0.3);
+    }
+
+    [data-theme="dark"] .kb-ranker.kb-m2 {
+        --m1: #d3dae4;
         --m2: #ffffff;
+        box-shadow: inset 3px 0 0 var(--m1), 0 0 0 1px rgba(211, 218, 228, 0.4), 0 0 14px rgba(225, 232, 242, 0.22);
     }
 
     .kb-ranker.kb-m3 {
