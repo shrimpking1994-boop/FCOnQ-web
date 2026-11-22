@@ -640,12 +640,14 @@ def home_summary():
 
     # 업데이트
     cur.execute("""
-        SELECT id, title, created_at FROM community.posts
+        SELECT id, title, created_at, COALESCE(is_notice, false) AS pinned FROM community.posts
         WHERE is_deleted = false AND category = '업데이트'
-        ORDER BY created_at DESC
+        ORDER BY COALESCE(is_notice, false) DESC, created_at DESC
         LIMIT 9
     """)
-    updates = [{'id': r['id'], 'title': r['title'], 'date': _home_date(r['created_at'])}
+    # 공지로 지정한 업데이트 글은 맨 위 고정 (커뮤니티 공지 버튼으로 켜고 끔)
+    updates = [{'id': r['id'], 'title': r['title'], 'date': _home_date(r['created_at']),
+                'pinned': r['pinned']}
                for r in cur.fetchall()]
 
     cur.close()

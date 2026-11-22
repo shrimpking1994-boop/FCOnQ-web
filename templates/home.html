@@ -565,6 +565,19 @@
         margin-left: auto;
     }
 
+    /* 업데이트 박스: 공지로 고정된 글 */
+    .home-upd-pin .home-list-title {
+        font-weight: 700;
+    }
+
+    /* 앱으로 실행 중이면 앱 안내 글은 숨김 */
+    @media (display-mode: standalone),
+    (display-mode: fullscreen) {
+        .home-upd-app {
+            display: none !important;
+        }
+    }
+
     .home-review-face {
         width: 34px;
         height: 34px;
@@ -1368,11 +1381,12 @@
                 }).join('')
                 : '<div class="home-empty">아직 후기가 없어요.</div>';
 
+            const APP_GUIDE_POST_ID = 617; // 앱 안내 글 (앱으로 실행 중이면 홈 목록에서 숨김)
             const updates = summary.updates || [];
             document.getElementById('homeUpdateList').innerHTML = updates.length
                 ? updates.map(u => `
-                    <a class="home-list-row" href="/community/post/${u.id}">
-                        <span class="home-list-title">${esc(u.title)}</span>
+                    <a class="home-list-row${u.pinned ? ' home-upd-pin' : ''}${u.id === APP_GUIDE_POST_ID ? ' home-upd-app' : ''}" href="/community/post/${u.id}">
+                        <span class="home-list-title">${u.pinned ? '📌 ' : ''}${esc(u.title)}</span>
                         <span class="home-list-date">${u.date}</span>
                     </a>`).join('')
                 : '<div class="home-empty">아직 업데이트 소식이 없어요.</div>';

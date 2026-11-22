@@ -888,6 +888,66 @@
             }
         }
 
+        /* ===== 모바일 앱 설치 띠 배너 (JS가 조건 맞을 때만 표시) ===== */
+        .app-banner {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body.has-app-banner .app-banner {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+                z-index: 999;
+                padding: 8px 10px 8px 14px;
+                background: var(--bg-main);
+                border-top: 1px solid var(--border-color);
+                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+            }
+
+            body.has-app-banner {
+                padding-bottom: calc(58px + 50px + env(safe-area-inset-bottom, 0px));
+            }
+
+            .app-banner-text {
+                flex: 1;
+                min-width: 0;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-primary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .app-banner-btn {
+                flex-shrink: 0;
+                padding: 6px 12px;
+                border-radius: 8px;
+                background: #5865b8;
+                color: #fff;
+                font-size: 12px;
+                font-weight: 700;
+                text-decoration: none;
+                white-space: nowrap;
+            }
+
+            .app-banner-close {
+                flex-shrink: 0;
+                width: 28px;
+                height: 28px;
+                border: none;
+                background: none;
+                color: var(--text-secondary);
+                font-size: 16px;
+                cursor: pointer;
+            }
+        }
+
         /* ===== 상단 로그인 / 테마 버튼 (아이콘형) ===== */
         .theme-btn {
             display: inline-flex;
@@ -1389,6 +1449,75 @@
             <span>유틸리티</span>
         </a>
     </nav>
+
+    <!-- 모바일 앱 설치 띠 배너 -->
+    <div class="app-banner" id="appBanner">
+        <span class="app-banner-text" id="appBannerText"></span>
+        <a class="app-banner-btn" id="appBannerBtn" href="#"></a>
+        <button type="button" class="app-banner-close" id="appBannerClose" aria-label="닫기">✕</button>
+    </div>
+    <script>
+        (function () {
+            const HIDE_DAYS = 14;
+            const ls = {
+                get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
+            };
+            // 방문 횟수: 브라우저 탭 세션당 1회만 셈
+            let visits = parseInt(ls.get('fcqVisits') || '0', 10) || 0;
+            try {
+                if (!sessionStorage.getItem('fcqVisitCounted')) {
+                    visits += 1;
+                    ls.set('fcqVisits', String(visits));
+                    sessionStorage.setItem('fcqVisitCounted', '1');
+                }
+            } catch (e) { }
+
+            const ua = navigator.userAgent || '';
+            const isAndroid = /Android/i.test(ua);
+            const isIOS = /iPhone|iPad|iPod/i.test(ua) ||
+                (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1); // 최신 아이패드는 맥으로 표시됨
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                window.matchMedia('(display-mode: fullscreen)').matches ||
+                navigator.standalone === true ||
+                document.referrer.startsWith('android-app://');
+            const hiddenAt = parseInt(ls.get('fcqAppBannerHide') || '0', 10) || 0;
+            const hiddenRecently = Date.now() - hiddenAt < HIDE_DAYS * 86400000;
+
+            if (!(isAndroid || isIOS) || isStandalone || visits < 2 || hiddenRecently) return;
+            if (location.pathname === '/community/post/617') return; // 아이폰 안내 글 자체에선 숨김
+
+            const os = isAndroid ? 'android' : 'ios';
+            // 아이폰 인앱 브라우저(카톡·인스타·네이버 등)는 사파리에서만 홈 화면 추가 가능
+            const iosInApp = isIOS && /KAKAOTALK|Instagram|FBAN|FBAV|NAVER|Line\/|DaumApps|everytimeApp/i.test(ua);
+
+            const text = document.getElementById('appBannerText');
+            const btn = document.getElementById('appBannerBtn');
+            if (os === 'android') {
+                text.textContent = '📱 엪씨온큐 앱으로 더 빠르고 편하게';
+                btn.textContent = '설치';
+                btn.href = 'https://play.google.com/store/apps/details?id=com.fconq.twa&hl=ko';
+                btn.target = '_blank';
+                btn.rel = 'noopener';
+            } else {
+                text.textContent = iosInApp ? '📱 사파리로 열어 홈 화면에 추가하면 앱처럼' : '📱 홈 화면에 추가하면 앱처럼 바로 실행';
+                btn.textContent = '방법 보기';
+                btn.href = '/community/post/617';
+            }
+
+            document.body.classList.add('has-app-banner');
+            if (typeof gtag === 'function') gtag('event', 'app_banner_view', { os: os, in_app: iosInApp });
+
+            btn.addEventListener('click', function () {
+                if (typeof gtag === 'function') gtag('event', 'app_banner_click', { os: os, in_app: iosInApp });
+            });
+            document.getElementById('appBannerClose').addEventListener('click', function () {
+                ls.set('fcqAppBannerHide', String(Date.now()));
+                document.body.classList.remove('has-app-banner');
+                if (typeof gtag === 'function') gtag('event', 'app_banner_close', { os: os });
+            });
+        })();
+    </script>
 
     <!-- 스크립트 -->
     <script src="{{ url_for('static', filename='js/darkmode.js') }}"></script>
