@@ -241,7 +241,7 @@
         display: inline-block;
         padding: 7px 16px;
         border-radius: 8px;
-        background: #22c55e;
+        background: #059669;
         color: #fff;
         font-weight: 600;
         font-size: 0.9rem;
@@ -250,8 +250,17 @@
     }
 
     .cm-write:hover {
-        background: #16a34a;
+        background: #047857;
         color: #fff;
+    }
+
+    /* 다크 모드는 기존 밝은 초록 유지 (라이트는 밝은 배경에 묻혀서 진한 에메랄드) */
+    [data-theme="dark"] .cm-write {
+        background: #22c55e;
+    }
+
+    [data-theme="dark"] .cm-write:hover {
+        background: #16a34a;
     }
 
     /* 카테고리 */
@@ -496,9 +505,9 @@
         font-size: 1.02rem;
     }
 
-    /* 정보 줄 맨 앞 카테고리: 배지 대신 보라색 글자 */
+    /* 정보 줄 맨 앞 카테고리: 모든 글에 붙는 정보라 색 없이 굵은 회색 */
     .cm-meta-cat {
-        color: var(--cm-accent);
+        color: var(--text-secondary);
         font-weight: 700;
     }
 
@@ -537,11 +546,15 @@
 
     /* 추천: 플러스만 초록으로 강조, 0·마이너스는 회색 그대로 */
     .cm-pos {
-        color: #22c55e;
+        color: #059669;
         font-weight: 600;
     }
 
-    /* 스쿼드 평가 수 */
+    [data-theme="dark"] .cm-pos {
+        color: #22c55e;
+    }
+
+    /* 스쿼드 평가 수: 사이트 대표 보라 (글 상세의 평가 버튼과 같은 색 계열) */
     .cm-rate {
         color: var(--cm-accent);
         font-weight: 600;

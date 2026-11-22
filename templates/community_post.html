@@ -44,7 +44,7 @@
                 <span class="pv-stats">
                     <span>조회 {{ post.views }}</span>
                     {% set net_votes = (post.likes or 0) - (post.dislikes or 0) %}
-                    <span {% if net_votes> 0 %}style="color:#22c55e; font-weight:600" {% endif %}>추천 {{ net_votes
+                    <span {% if net_votes> 0 %}class="pv-pos" {% endif %}>추천 {{ net_votes
                         }}</span>
                     <span>댓글 {{ comments | rejectattr('is_deleted') | list | length }}</span>
                 </span>
@@ -543,15 +543,34 @@
     }
 
     .pv-btn-write {
-        background: #22c55e;
-        border-color: #22c55e;
+        background: #059669;
+        border-color: #059669;
         color: #fff;
         font-weight: 600;
     }
 
     .pv-btn-write:hover {
-        background: #16a34a;
+        background: #047857;
         color: #fff;
+    }
+
+    /* 추천 수(플러스일 때): 라이트는 진한 에메랄드, 다크는 기존 밝은 초록 (목록과 같은 색) */
+    .pv-pos {
+        color: #059669;
+        font-weight: 600;
+    }
+
+    [data-theme="dark"] .pv-btn-write {
+        background: #22c55e;
+        border-color: #22c55e;
+    }
+
+    [data-theme="dark"] .pv-btn-write:hover {
+        background: #16a34a;
+    }
+
+    [data-theme="dark"] .pv-pos {
+        color: #22c55e;
     }
 
     .pv-btn-submit {
