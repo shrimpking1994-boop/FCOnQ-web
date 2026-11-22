@@ -112,8 +112,8 @@
                         <span class="cm-date">{{ post.display_date }}</span>
                         <span>조회 {{ post.views }}</span>
                         {% set net_votes = (post.likes or 0) - (post.dislikes or 0) %}
-                        {% if net_votes > 0 %}<span class="cm-pos">추천 {{ net_votes }}</span>{% endif %}
                         {% if post.rating_count %}<span class="cm-rate">평가 {{ post.rating_count }}</span>{% endif %}
+                        {% if net_votes > 0 %}<span class="cm-pos">추천 {{ net_votes }}</span>{% endif %}
                     </span>
                 </span>
             </a>
