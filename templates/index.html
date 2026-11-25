@@ -1238,6 +1238,47 @@
         #pc-right-rail:has(ins[data-ad-status="unfilled"]) {
             display: none !important;
         }
+
+        /* ===== 모바일 하단 고정 광고 (하단 메뉴 바로 위, 320x50) ===== */
+        #m-bottom-ad {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body.has-m-ad #m-bottom-ad {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+                height: 50px;
+                z-index: 998;
+                overflow: hidden;
+                background: var(--bg-main);
+                box-shadow: 0 -1px 0 var(--border-color);
+            }
+
+            body.has-m-ad {
+                padding-bottom: calc(58px + 50px + env(safe-area-inset-bottom, 0px));
+            }
+
+            /* 비교 바(티어리스트·선수 DB)가 열려 있으면 광고 숨김 */
+            body.cmp-open #m-bottom-ad,
+            body:has(#comparisonBar[style*="block"]) #m-bottom-ad {
+                display: none;
+            }
+
+            /* 광고가 안 채워지면 자리와 여백 모두 숨김 */
+            body.has-m-ad:has(#m-bottom-ad ins[data-ad-status="unfilled"]) #m-bottom-ad {
+                display: none;
+            }
+
+            body.has-m-ad:has(#m-bottom-ad ins[data-ad-status="unfilled"]) {
+                padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+            }
+        }
     </style>
 </head>
 
@@ -1748,6 +1789,11 @@
     <div id="pc-right-rail" data-slot-300="8764761811" data-slot-160="9743825669"></div>
     {% endif %}
 
+    <!-- 모바일 하단 고정 광고 (PC 오른쪽 광고와 같은 제외 기준 + 스쿼드 메이커 전체 제외) -->
+    {% if not hide_side_ad and not request.path.startswith('/squad_maker') %}
+    <div id="m-bottom-ad" data-slot="3016038273"></div>
+    {% endif %}
+
     <!-- X05 PRO 광고 배너 -->{#
     <a id="x05pro-banner" href="https://link.coupang.com/a/gQvGOGMErA" target="_blank" rel="noopener"
         onclick="gtag('event', 'ad_click', { 'ad_name': 'x05pro_pad', 'placement': 'index_left_banner' });">
@@ -1846,6 +1892,38 @@
             window.addEventListener('load', placeRail);
             window.addEventListener('resize', placeRail);
             window.addEventListener('scroll', keepAboveFooter, { passive: true });
+        })();
+
+        // 모바일 하단 고정 광고: 모바일 폭에서만, 앱 설치 배너가 떠 있으면 배너를 닫은 뒤에 불러오기
+        (function () {
+            const box = document.getElementById('m-bottom-ad');
+            if (!box || !window.matchMedia('(max-width: 768px)').matches) return;
+
+            function loadAd() {
+                if (box.dataset.loaded) return;
+                box.dataset.loaded = '1';
+                document.body.classList.add('has-m-ad');
+                box.innerHTML = `<ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px"
+                    data-ad-client="ca-pub-7405651133449844" data-ad-slot="${box.dataset.slot}"></ins>`;
+                try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
+
+                // 채워졌는지(filled/unfilled) GA로 기록
+                const ins = box.querySelector('ins');
+                const obs = new MutationObserver(function () {
+                    const status = ins.getAttribute('data-ad-status');
+                    if (!status) return;
+                    obs.disconnect();
+                    if (typeof gtag === 'function') gtag('event', 'mobile_anchor_ad', { status: status, page: location.pathname });
+                });
+                obs.observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
+            }
+
+            if (document.body.classList.contains('has-app-banner')) {
+                const closeBtn = document.getElementById('appBannerClose');
+                if (closeBtn) closeBtn.addEventListener('click', loadAd);
+                return;
+            }
+            loadAd();
         })();
     </script>
 
