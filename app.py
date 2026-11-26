@@ -3321,6 +3321,7 @@ _tierlist_cache_lock = threading.Lock()
 # 종류별 최대 개수 (서버 메모리 512MB라 크게 잡지 않음, 결과 1개 크기는 로컬 측정값)
 TIERLIST_CACHE_LIMITS = {
     'card_tierlist': 9,       # 티어리스트 1개 약 3~5MB (구단가치 구간별)
+    'card_positions': 9,      # 카드-포지션별 1개 약 0.3MB (구단가치 구간별)
     'squad_cards': 20,        # 스쿼드 메이커 팀컬러 카드 1개 약 1MB
     'squad_teamcolors': 20,   # 아주 작음
     'ranker_all': 40,         # 랭커 목록 1개 약 0.4MB
@@ -3463,69 +3464,14 @@ def build_card_tierlist_data(cur, include_hover, bucket):
     hover_map = {}
     price_map = {}
     if include_hover:
-        # 화면에 나온 모든 카드의 spid + (spid, 강화단계) 조합 수집
-        spid_set = set()
+        # 화면에 나온 모든 카드의 (spid, 강화단계) 조합 수집
         pair_set = set()
         for tc in teamcolor_names:
             positions = full_data.get(tc, {})
             for pos_cards in positions.values():
                 for card in pos_cards:
-                    spid = int(card['spid'])
-                    buildup = card['buildup']
-                    spid_set.add(spid)
-                    pair_set.add((spid, buildup))
-
-        if spid_set:
-            spid_list = list(spid_set)
-
-            cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
-            new_trait_names = set(row['trait_name'] for row in cur.fetchall())
-
-            cur.execute("""
-                SELECT spid, full_data->'game_info' as game_info
-                FROM player_cards
-                WHERE spid = ANY(%s)
-            """, (spid_list,))
-
-            for row in cur.fetchall():
-                game_info = row['game_info'] or {}
-                traits = game_info.get('traits', [])
-                new_trait = next((t for t in traits if t in new_trait_names), None)
-                hover_map[row['spid']] = {
-                    'salary': game_info.get('salary', ''),
-                    'new_trait': new_trait
-                }
-
-            # (spid, 강화단계) 조합별로 필요한 최신 가격 값 하나만 DB에서 콕 집어서 조회
-            pair_list = list(pair_set)
-            price_rows = execute_values(cur, """
-                SELECT v.spid, v.buildup,
-                       cph.full_data #> ARRAY[v.buildup::text, 'values'] -> -1 AS latest_price
-                FROM (VALUES %s) AS v(spid, buildup)
-                JOIN card_price_history cph ON cph.spid = v.spid
-            """, pair_list, template="(%s, %s)", fetch=True)
-
-            for row in price_rows:
-                if row['latest_price'] is not None:
-                    price_map[f"{row['spid']}_{row['buildup']}"] = row['latest_price']
-
-            # 위에서 못 찾은 조합만 card_prices(스냅샷)로 대체
-            missing_pairs = [p for p in pair_list if f"{p[0]}_{p[1]}" not in price_map]
-            if missing_pairs:
-                missing_spids = list(set(p[0] for p in missing_pairs))
-                cur.execute("""
-                    SELECT spid, bp1, bp2, bp3, bp4, bp5, bp6, bp7, bp8, bp9, bp10, bp11, bp12, bp13
-                    FROM card_prices
-                    WHERE spid = ANY(%s)
-                """, (missing_spids,))
-                price_fallback_map = {row['spid']: row for row in cur.fetchall()}
-
-                for spid, buildup in missing_pairs:
-                    fb = price_fallback_map.get(spid)
-                    if fb:
-                        price = fb.get(f'bp{buildup}')
-                        if price is not None:
-                            price_map[f"{spid}_{buildup}"] = price
+                    pair_set.add((int(card['spid']), card['buildup']))
+        hover_map, price_map = card_hover_price_maps(cur, pair_set)
 
     response = {'success': True, 'data': full_data, 'effects': effects,
                 'crawl_date': str(result['crawl_date']),
@@ -3535,6 +3481,156 @@ def build_card_tierlist_data(cur, include_hover, bucket):
         response['hover_map'] = hover_map
         response['price_map'] = price_map
     return response, 200
+
+
+def card_hover_price_maps(cur, pair_set):
+    """(spid, 강화단계) 조합 → 카드 급여·신규특성(hover_map), 최신 가격(price_map)"""
+    hover_map = {}
+    price_map = {}
+    spid_set = set(p[0] for p in pair_set)
+    if spid_set:
+        spid_list = list(spid_set)
+
+        cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new'")
+        new_trait_names = set(row['trait_name'] for row in cur.fetchall())
+
+        cur.execute("""
+            SELECT spid, full_data->'game_info' as game_info
+            FROM player_cards
+            WHERE spid = ANY(%s)
+        """, (spid_list,))
+
+        for row in cur.fetchall():
+            game_info = row['game_info'] or {}
+            traits = game_info.get('traits', [])
+            new_trait = next((t for t in traits if t in new_trait_names), None)
+            hover_map[row['spid']] = {
+                'salary': game_info.get('salary', ''),
+                'new_trait': new_trait
+            }
+
+        # (spid, 강화단계) 조합별로 필요한 최신 가격 값 하나만 DB에서 콕 집어서 조회
+        pair_list = list(pair_set)
+        price_rows = execute_values(cur, """
+            SELECT v.spid, v.buildup,
+                   cph.full_data #> ARRAY[v.buildup::text, 'values'] -> -1 AS latest_price
+            FROM (VALUES %s) AS v(spid, buildup)
+            JOIN card_price_history cph ON cph.spid = v.spid
+        """, pair_list, template="(%s, %s)", fetch=True)
+
+        for row in price_rows:
+            if row['latest_price'] is not None:
+                price_map[f"{row['spid']}_{row['buildup']}"] = row['latest_price']
+
+        # 위에서 못 찾은 조합만 card_prices(스냅샷)로 대체
+        missing_pairs = [p for p in pair_list if f"{p[0]}_{p[1]}" not in price_map]
+        if missing_pairs:
+            missing_spids = list(set(p[0] for p in missing_pairs))
+            cur.execute("""
+                SELECT spid, bp1, bp2, bp3, bp4, bp5, bp6, bp7, bp8, bp9, bp10, bp11, bp12, bp13
+                FROM card_prices
+                WHERE spid = ANY(%s)
+            """, (missing_spids,))
+            price_fallback_map = {row['spid']: row for row in cur.fetchall()}
+
+            for spid, buildup in missing_pairs:
+                fb = price_fallback_map.get(spid)
+                if fb:
+                    price = fb.get(f'bp{buildup}')
+                    if price is not None:
+                        price_map[f"{spid}_{buildup}"] = price
+    return hover_map, price_map
+
+
+POSITION_TIERLIST_LIMIT = 50   # 카드-포지션별: 포지션마다 보여줄 카드 수
+
+@app.route('/api/card_position_tierlist')
+def card_position_tierlist():
+    """카드 티어리스트 - 포지션별: 팀컬러 상관없이 랭커 전체의 포지션별 카드 사용률 (강화는 합쳐서 집계)"""
+    bucket = request.args.get('bucket', '').strip()   # 구단가치 구간 (없으면 전체)
+    cache_key = ('card_positions', bucket)
+    cached = tierlist_cache_get(cache_key)
+    if cached is not None:
+        return jsonify(cached)
+
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        data, status = build_card_position_tierlist(cur, bucket)
+        cur.close()
+    finally:
+        conn.close()
+    if status == 200:
+        tierlist_cache_set(cache_key, data)
+    return jsonify(data), status
+
+
+def build_card_position_tierlist(cur, bucket):
+    """팀컬러별 집계(full_data)를 포지션 기준으로 다시 합산: (결과, 상태코드)"""
+    cur.execute("""
+        SELECT full_data, crawl_date
+        FROM card_tierlist_rankings
+        ORDER BY crawl_date DESC, id DESC
+        LIMIT 1
+    """)
+    result = cur.fetchone()
+    if not result:
+        return {'success': False, 'message': '데이터가 없습니다'}, 404
+
+    full_data = result['full_data']
+    if bucket:
+        cur.execute("SELECT full_data FROM card_tierlist_gd WHERE bucket = %s", (bucket,))
+        gd = cur.fetchone()
+        if gd:
+            full_data = gd['full_data']
+        else:
+            bucket = ''   # 없는 구간이면 전체로
+
+    # 분모: 집계된 랭커 수 (팀컬러가 있는 랭커 전원)
+    rankers = sum((full_data.get('_usage') or {}).values())
+    if not rankers:
+        return {'success': False, 'message': '데이터가 없습니다'}, 404
+
+    # 포지션 → spid → {이름, 총 횟수, 강화별 횟수}
+    merged = {}
+    for tc, positions in full_data.items():
+        if tc.startswith('_') or not isinstance(positions, dict):
+            continue
+        for pos, cards in positions.items():
+            box = merged.setdefault(pos, {})
+            for c in cards:
+                spid = str(c.get('spid'))
+                item = box.setdefault(spid, {'name': c.get('name', ''), 'count': 0, 'bu': {}})
+                n = int(c.get('count') or 0)
+                b = int(c.get('buildup') or 1)
+                item['count'] += n
+                item['bu'][b] = item['bu'].get(b, 0) + n
+
+    out = {}
+    pair_set = set()
+    for pos, box in merged.items():
+        top = sorted(box.items(), key=lambda x: x[1]['count'], reverse=True)[:POSITION_TIERLIST_LIMIT]
+        rows = []
+        for spid, item in top:
+            bu_sorted = sorted(item['bu'].items(), key=lambda x: x[1], reverse=True)
+            main_bu = bu_sorted[0][0]
+            rows.append({
+                'spid': spid,
+                'name': item['name'],
+                'count': item['count'],
+                'pct': round(item['count'] * 100 / rankers, 1),
+                'buildup': main_bu,
+                # 강화 분포: 이 카드를 쓴 횟수 중 강화별 비율 (많은 순)
+                'bu_dist': [[b, round(n * 100 / item['count'])] for b, n in bu_sorted],
+            })
+            for b, _ in bu_sorted[:3]:   # 화면에 보이는 상위 3개 강화 가격
+                pair_set.add((int(spid), b))
+        out[pos] = rows
+
+    hover_map, price_map = card_hover_price_maps(cur, pair_set)
+    return {'success': True, 'positions': out, 'rankers': rankers,
+            'crawl_date': str(result['crawl_date']), 'bucket': bucket,
+            'hover_map': hover_map, 'price_map': price_map}, 200
 
 @app.route('/api/get_price_movers')
 def get_price_movers():
