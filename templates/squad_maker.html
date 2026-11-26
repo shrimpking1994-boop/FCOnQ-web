@@ -1348,6 +1348,15 @@
         gap: 8px;
     }
 
+    .sm-tier-rank-note {
+        margin-top: 12px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-align: center;
+        line-height: 1.5;
+        word-break: keep-all;
+    }
+
     .sm-tier-rank-btn {
         padding: 13px;
         border-radius: 8px;
@@ -5927,7 +5936,8 @@
             ${[1, 2, 3, 4, 5].map(n =>
             `<button class="sm-tier-rank-btn" onclick="executeTierFill(${n})">${n}순위 조합</button>`
         ).join('')}
-        </div>`;
+        </div>
+        <div class="sm-tier-rank-note">💡 랭커가 적은 팀컬러·구단가치는 순위가 낮을수록 1순위와 비슷하게 나올 수 있어요.</div>`;
     }
 
     async function executeTierFill(rank) {
@@ -5950,6 +5960,16 @@
 
         const usedPids = new Set();
         const assignments = {};
+        const pidOf = c => String(c.spid).slice(-6);
+
+        // 후보는 카드 티어리스트(미니티)에 보이는 카드와 같은 기준으로 거름 — 1회짜리 우연한 카드가 뽑히지 않게
+        const tcIdx = (tierTcCache[tierBucket] || []).indexOf(tierSelectedTc);
+        const threshold = tierBucket ? 1 : (tcIdx <= 24 ? 2 : 1);
+        const shownCards = list => {
+            const filtered = (list || []).filter(c => c.count > threshold);
+            const top10 = filtered.slice(0, 10);
+            return filtered.slice(0, (top10.length === 10 && top10[9].count >= 10) ? 20 : 10);
+        };
 
         // 골키퍼는 급여 조절용: 필드 플레이어를 먼저 채운 뒤 따로 고름
         const gkPos = positions.find(p => SM_TO_TIERLIST[p] === 'GK');
@@ -5957,14 +5977,19 @@
             if (pos === gkPos) continue;
             const tlPos = SM_TO_TIERLIST[pos];
             const cards = tcData[tlPos] || [];
-            let picked = null, uniqueCount = 0;
-            for (const card of cards) {
-                const pid = String(card.spid).slice(-6);
-                if (!usedPids.has(pid)) {
-                    uniqueCount++;
-                    if (uniqueCount >= rank) { picked = card; break; }
-                }
+            // 보이는 카드 중 N번째 선수(같은 선수는 한 번만 셈), 모자라면 남은 것 중 가장 뒤 순위
+            let picked = null, lastAvail = null;
+            const seen = new Set();
+            for (const card of shownCards(cards)) {
+                const pid = pidOf(card);
+                if (usedPids.has(pid) || seen.has(pid)) continue;
+                seen.add(pid);
+                lastAvail = card;
+                if (seen.size >= rank) { picked = card; break; }
             }
+            if (!picked) picked = lastAvail;
+            // 보이는 카드가 하나도 없을 때만 전체에서 가장 많이 쓴 선수로 채움
+            if (!picked) picked = cards.find(c => !usedPids.has(pidOf(c))) || null;
             if (picked) {
                 usedPids.add(String(picked.spid).slice(-6));
                 assignments[pos] = picked;
