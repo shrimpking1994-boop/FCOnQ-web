@@ -5203,6 +5203,7 @@
     function resetSquad() {
         const hasPlayer = Object.values(squadData).some(p => p) || benchData.some(p => p);
         if (hasPlayer && !confirm('그린필드와 교체 선수를 모두 비울까요?')) return;
+        if (window.mtlNewSquad) mtlNewSquad();   // 스쿼드를 통째로 바꾸면 미니 티어리스트가 다시 팀컬러·구단가치를 따라감
         renderFormation(currentFormation);
         benchData = Array(BENCH_SIZE).fill(null);
         renderBench();
@@ -5931,6 +5932,7 @@
 
     async function executeTierFill(rank) {
         closeTierModal();
+        if (window.mtlNewSquad) mtlNewSquad();   // 스쿼드를 통째로 바꾸면 미니 티어리스트가 다시 팀컬러·구단가치를 따라감
 
         const res = await fetch(`/api/squad_tierlist_cards?teamcolor=${encodeURIComponent(tierSelectedTc)}`
             + (tierBucket ? `&bucket=${encodeURIComponent(tierBucket)}` : ''));
@@ -6344,6 +6346,7 @@
     }
 
     async function executeRankerFill(teamcolor, rank) {
+        if (window.mtlNewSquad) mtlNewSquad();   // 스쿼드를 통째로 바꾸면 미니 티어리스트가 다시 팀컬러·구단가치를 따라감
         const res = await fetch(`/api/ranker_squad_detail?teamcolor=${encodeURIComponent(teamcolor)}&rank=${rank}`);
         const data = await res.json();
         if (!data.success) { alert('스쿼드 데이터를 불러오지 못했습니다.'); return; }
@@ -6427,6 +6430,7 @@
     }
 
     async function fillFieldFromSquad(squad) {
+        if (window.mtlNewSquad) mtlNewSquad();   // 스쿼드를 통째로 바꾸면 미니 티어리스트가 다시 팀컬러·구단가치를 따라감
         const spids = squad.map(c => parseInt(c.spid));
         const cardRes = await fetch('/api/squad_cards_batch', {
             method: 'POST',
@@ -6666,6 +6670,7 @@
     async function loadSquad(idx, isLoggedIn) {
         const s = squadListCache[idx];
         if (!s) return;
+        if (window.mtlNewSquad) mtlNewSquad();   // 스쿼드를 통째로 바꾸면 미니 티어리스트가 다시 팀컬러·구단가치를 따라감
 
         const squadObj = isLoggedIn ? s.squad_data : s.data;
         const savedBench = Array.isArray(squadObj._bench) ? squadObj._bench : [];
@@ -7092,13 +7097,15 @@
 
         // ── 데이터 ──
         async function loadTeamcolors() {
-            let d = st.tcCache[st.bucket];
+            const bucket = st.bucket;   // 불러오는 사이 구간이 바뀌어도 엉뚱한 칸에 저장하지 않게
+            let d = st.tcCache[bucket];
             if (!d) {
-                const res = await fetch('/api/squad_tierlist_teamcolors' + (st.bucket ? '?bucket=' + encodeURIComponent(st.bucket) : ''));
+                const res = await fetch('/api/squad_tierlist_teamcolors' + (bucket ? '?bucket=' + encodeURIComponent(bucket) : ''));
                 d = await res.json();
                 if (!d.success) throw new Error();
-                st.tcCache[st.bucket] = d;
+                st.tcCache[bucket] = d;
             }
+            if (bucket !== st.bucket) return;   // 그사이 다른 구간으로 바뀌었으면 그쪽 결과를 따름
             st.order = d.order || [];
             if (!st.manual && st.pendingSync && st.order.includes(st.pendingSync)) st.tc = st.pendingSync;   // 스쿼드 팀컬러 우선
             if (!st.order.includes(st.tc)) st.tc = st.order[0] || '';
@@ -7357,6 +7364,9 @@
             st.tc = name; showTc();
             render();
         };
+
+        // 스쿼드를 통째로 바꾸면(자동 완성·랭커·구단주·불러오기·초기화) 직접 고른 팀컬러·구단가치를 풀고 다시 따라감
+        window.mtlNewSquad = function () { st.manual = false; st.buManual = false; };
 
         // ── 스쿼드 구단가치 구간 자동 선택 (11명 다 채웠을 때, 직접 고른 뒤에는 따라가지 않음) ──
         window.mtlSyncBucket = function (v) {
