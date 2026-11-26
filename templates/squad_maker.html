@@ -2975,10 +2975,487 @@
             animation: none
         }
     }
+    /* ===== 미니 티어리스트 (PC 왼쪽 빈 공간 / 좁은 화면은 서랍) ===== */
+    .mtl-panel,
+    .mtl-tab {
+        display: none;
+    }
+
+    .mtl-panel {
+        z-index: 50;
+        flex-direction: column;
+        box-sizing: border-box;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .mtl-panel.show {
+        display: flex;
+    }
+
+    .mtl-panel.drawer {
+        z-index: 1100;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+        border-radius: 0 12px 12px 0;
+    }
+
+    .mtl-tab.show {
+        display: flex;
+        position: fixed;
+        left: 0;
+        top: 42%;
+        z-index: 1050;
+        writing-mode: vertical-rl;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 7px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-left: none;
+        border-radius: 0 10px 10px 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .mtl-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        padding: 12px 12px 8px;
+    }
+
+    .mtl-title {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        white-space: nowrap;
+    }
+
+    .mtl-more {
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .mtl-close {
+        display: none;
+        border: none;
+        background: none;
+        color: var(--text-secondary);
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0 2px;
+    }
+
+    .mtl-panel.drawer .mtl-close {
+        display: block;
+    }
+
+    .mtl-selects {
+        display: flex;
+        gap: 6px;
+        padding: 0 12px 8px;
+    }
+
+    .mtl-selects select {
+        min-width: 0;
+        padding: 6px 6px;
+        background: var(--bg-main);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .mtl-selects {
+        position: relative;
+    }
+
+    .mtl-dd {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mtl-dd-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        padding: 5px 8px;
+        background: var(--bg-main);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .mtl-dd-btn .name,
+    .mtl-dd-item .name {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mtl-dd-btn .arrow {
+        flex-shrink: 0;
+        font-size: 0.6rem;
+        color: var(--text-secondary);
+    }
+
+    .mtl-dd-logo {
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+    }
+
+    .mtl-dd-list {
+        display: none;
+        position: absolute;
+        top: calc(100% - 4px);
+        left: 12px;
+        right: 12px;
+        z-index: 20;
+        max-height: 360px;
+        overflow-y: auto;
+        padding: 4px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .mtl-dd.open .mtl-dd-list {
+        display: block;
+    }
+
+    .mtl-dd-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 6px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+
+    .mtl-dd-item:hover {
+        background: rgba(127, 127, 127, 0.14);
+    }
+
+    .mtl-dd-item.active {
+        background: var(--primary-color);
+        color: #fff;
+    }
+
+    .mtl-dd-item .rank {
+        flex-shrink: 0;
+        width: 20px;
+        text-align: right;
+        font-size: 0.7rem;
+        opacity: 0.75;
+    }
+
+    /* 구단가치: 글자가 다 보이게 폭은 고른 항목 글자만큼 (팀컬러 칸이 나머지를 씀)
+       field-sizing 미지원 브라우저는 가장 긴 항목 폭으로 표시 */
+    #mtl-bucket {
+        flex: 0 0 auto;
+        field-sizing: content;
+        padding-right: 4px;
+    }
+
+    .mtl-pos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 0 12px 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .mtl-pos button {
+        padding: 3px 7px;
+        background: var(--bg-main);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .mtl-pos button.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+    }
+
+    .mtl-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+        align-content: start;
+        gap: 10px 4px;
+        padding: 10px 10px 14px;
+        scrollbar-width: thin;   /* 스크롤바가 폭을 덜 먹게 (카드 한 줄 4장 유지) */
+    }
+
+    .mtl-msg {
+        grid-column: 1 / -1;
+        padding: 20px 0;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .mtl-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        min-width: 0;
+        padding: 4px 0 3px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    /* 마우스를 올린 카드만 은은하게 (말풍선은 없음) */
+    .mtl-card:hover {
+        background: rgba(127, 127, 127, 0.12);
+    }
+
+    .mtl-card {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    /* 끌고 있는 카드 */
+    .mtl-ghost {
+        position: fixed !important;
+        z-index: 9999;
+        opacity: 0.92;
+        pointer-events: none;
+        border-radius: 6px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+        transform: scale(1.08);
+    }
+
+    /* 급여 (카드 티어리스트와 같은 좌측 육각형, 시즌 아이콘 위) */
+    .mtl-salary {
+        position: absolute;
+        left: 0;
+        bottom: 14px;
+        width: 16px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        clip-path: polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%);
+        background: var(--text-secondary);
+        color: var(--bg-main);
+        font-size: 0.55rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .mtl-price {
+        margin-top: -3px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: #d97706;
+        white-space: nowrap;
+    }
+
+    /* 신규 특성 (카드 티어리스트와 같은 우상단 동그라미) */
+    .mtl-trait {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 18px;
+        height: 18px;
+        padding: 2px;
+        box-sizing: border-box;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.8);
+        object-fit: contain;
+    }
+
+    body.mtl-dragging,
+    body.mtl-dragging * {
+        cursor: grabbing !important;
+    }
+
+    .mtl-card.busy {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    /* 클릭 안내 (아래에 잠깐 표시) */
+    .mtl-note {
+        padding: 8px 12px;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.74rem;
+        font-weight: 600;
+        text-align: center;
+        color: var(--text-secondary);
+        background: var(--bg-main);
+    }
+
+    /* 알림(교체 안내 등)이 뜰 때는 진하게 */
+    .mtl-note.msg {
+        color: var(--text-primary);
+    }
+
+    /* 같은 포지션이 다 찼을 때 교체할 칸 강조 */
+    #field-rows .mtl-target .sm-slot-card {
+        outline: 2px solid #f59e0b;
+        outline-offset: 2px;
+        animation: mtlBlink 0.9s ease-in-out infinite;
+    }
+
+    @keyframes mtlBlink {
+        50% {
+            outline-color: rgba(245, 158, 11, 0.25);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #field-rows .mtl-target .sm-slot-card {
+            animation: none;
+        }
+    }
+
+    .mtl-face {
+        position: relative;
+        width: 54px;
+        height: 54px;
+    }
+
+    .mtl-face img.face {
+        width: 54px;
+        height: 54px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: #333;
+    }
+
+    .mtl-rank {
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 3px;
+        box-sizing: border-box;
+        border-radius: 8px;
+        background: #4b5563;
+        color: #fff;
+        font-size: 0.6rem;
+        font-weight: 800;
+        line-height: 16px;
+        text-align: center;
+    }
+
+    .mtl-rank.r1 { background: #f59e0b; }
+    .mtl-rank.r2 { background: #9ca3af; }
+    .mtl-rank.r3 { background: #b45309; }
+
+    .mtl-season {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 14px;
+    }
+
+    .mtl-bu {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        height: 14px;
+        min-width: 18px;
+        padding: 0 3px;
+        box-sizing: border-box;
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.6);
+        color: #333;
+        font-size: 0.58rem;
+        font-weight: 800;
+        line-height: 12px;
+        text-align: center;
+    }
+
+    .mtl-bu.bu-1 { background: #808080; color: #fff; }
+    .mtl-bu.bu-bronze { background: #CD7F32; }
+    .mtl-bu.bu-silver { background: #C0C0C0; }
+    .mtl-bu.bu-gold { background: #FFD700; }
+    .mtl-bu.bu-purple { background: linear-gradient(135deg, #6f7ec4 0%, #9be8f0 35%, #f6d5ea 70%, #d7b8f0 100%); }
+
+    .mtl-name {
+        width: 100%;
+        font-size: 0.66rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mtl-count {
+        margin-top: -3px;
+        font-size: 0.62rem;
+        color: #a78bfa;
+    }
 </style>
 
 <h1 class="visually-hidden">FC온라인 스쿼드 메이커</h1>
 <div class="sm-container">
+
+    <!-- 미니 티어리스트 (PC 전용: 왼쪽 빈 공간에 붙이고, 좁으면 왼쪽 탭을 눌러 서랍으로 열기) -->
+    <button type="button" class="mtl-tab" id="mtl-tab" onclick="mtlOpenDrawer()">📊 티어리스트</button>
+    <aside class="mtl-panel" id="mtl-panel" aria-label="카드 티어리스트">
+        <div class="mtl-head">
+            <span class="mtl-title">📊 카드 티어리스트</span>
+            <a class="mtl-more" id="mtl-more" href="/tierlist?tab=card" target="_blank" rel="noopener">전체 보기 ↗</a>
+            <button type="button" class="mtl-close" onclick="mtlCloseDrawer()" aria-label="닫기">✕</button>
+        </div>
+        <div class="mtl-selects">
+            <!-- 팀컬러 선택 (로고를 보여주려고 직접 만든 목록) -->
+            <div class="mtl-dd" id="mtl-tc">
+                <button type="button" class="mtl-dd-btn" id="mtl-tc-btn" aria-haspopup="listbox" aria-label="팀컬러"></button>
+                <div class="mtl-dd-list" id="mtl-tc-list" role="listbox"></div>
+            </div>
+            <select id="mtl-bucket" aria-label="랭커 구단가치">
+                <option value="">구단가치(전체)</option>
+                <option value="20">구단가치(1~20억)</option>
+                <option value="50">구단가치(20~50억)</option>
+                <option value="100">구단가치(50~100억)</option>
+                <option value="150">구단가치(100~150억)</option>
+                <option value="300">구단가치(150~300억)</option>
+                <option value="500">구단가치(300~500억)</option>
+                <option value="500p">구단가치(500억+)</option>
+            </select>
+        </div>
+        <div class="mtl-pos" id="mtl-pos"></div>
+        <div class="mtl-list" id="mtl-list"><div class="mtl-msg">불러오는 중이에요.</div></div>
+        <div class="mtl-note" id="mtl-note" role="status">👆 카드를 클릭 or 드래그해서 넣기</div>
+    </aside>
 
     <!-- 오른쪽 패널 칸: PC에서 도구가 이 칸 안에서만 따라옴 (팀컬러 상세 현황과 겹치지 않음) -->
     <div class="sm-side">
@@ -5044,6 +5521,7 @@
         const el = document.getElementById('field-emblem');
         if (!el) return;
         const url = tcCornerClub && tcCornerClub.image_url;
+        if (window.mtlSyncTeamcolor) mtlSyncTeamcolor(tcCornerClub && tcCornerClub.name);   // 미니 티어리스트 팀컬러 맞추기
         if (url) {
             if (el.getAttribute('src') !== url) el.src = url;
             el.style.display = '';
@@ -6452,6 +6930,397 @@
 
         lastTc = undefined;
         load();
+    })();
+</script>
+<script>
+    // ===== 미니 티어리스트 (카드-팀컬러별 티어리스트 축소판) =====
+    (function () {
+        const panel = document.getElementById('mtl-panel');
+        const tab = document.getElementById('mtl-tab');
+        if (!panel || document.documentElement.classList.contains('sm-embed')) return;
+        document.body.appendChild(tab);     // 페이지 기준 위치로 배치하려고 body 바로 아래로 옮김
+        document.body.appendChild(panel);
+
+        const SEASON_LOGOS = {{ season_logos | tojson }};
+        const POS_LIST = ['ST', 'CAM', 'LWING', 'RWING', 'CM', 'LRDM', 'CDM', 'CB', 'LB', 'RB', 'GK'];
+        const POS_LABEL = { LWING: 'LW', RWING: 'RW', LRDM: 'L/RDM' };
+        const store = {
+            get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+            set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
+        };
+        const st = {
+            order: [], tc: store.get('mtlTc') || '', bucket: store.get('mtlBucket') || '',
+            pos: store.get('mtlPos') || 'ST', tcCache: {}, cardCache: {}, hoverCache: {}, priceCache: {}, loaded: false, mode: ''
+        };
+        const tcBox = document.getElementById('mtl-tc');
+        const tcBtn = document.getElementById('mtl-tc-btn');
+        const tcList = document.getElementById('mtl-tc-list');
+        const logoHtml = tc => {
+            const url = (st.logos || {})[tc];
+            return url ? `<img class="mtl-dd-logo" src="${esc(url)}" alt="" onerror="this.style.visibility='hidden'">` : '<span class="mtl-dd-logo"></span>';
+        };
+        // 고른 팀컬러를 버튼과 목록에 표시
+        function showTc() {
+            const i = st.order.indexOf(st.tc);
+            tcBtn.innerHTML = st.tc ? `${logoHtml(st.tc)}<span class="name">${i + 1}. ${esc(st.tc)}</span><span class="arrow">▼</span>` : '<span class="name">-</span>';
+            tcList.querySelectorAll('.mtl-dd-item').forEach(el => el.classList.toggle('active', el.dataset.tc === st.tc));
+        }
+        const buSel = document.getElementById('mtl-bucket');
+        const posBox = document.getElementById('mtl-pos');
+        const list = document.getElementById('mtl-list');
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const buClass = b => b === 1 ? 'bu-1' : b <= 4 ? 'bu-bronze' : b <= 7 ? 'bu-silver' : b <= 10 ? 'bu-gold' : 'bu-purple';
+        const ga = (action, extra) => { if (typeof gtag === 'function') gtag('event', 'sm_mini_tierlist', Object.assign({ action }, extra || {})); };
+        if ([...buSel.options].some(o => o.value === st.bucket)) buSel.value = st.bucket; else st.bucket = '';
+
+        // ── 위치: 왼쪽 빈 공간이 넉넉하면 붙여두고, 좁으면 서랍 ──
+        const DOCK_MIN = 250;
+        function place() {
+            const field = document.getElementById('squad-field');
+            if (window.innerWidth <= 768 || !field) {
+                panel.className = 'mtl-panel'; tab.className = 'mtl-tab'; st.mode = '';
+                return;
+            }
+            const fr = field.getBoundingClientRect();
+            const leftSpace = fr.left;
+            if (leftSpace >= DOCK_MIN) {
+                const w = Math.min(300, leftSpace - 32);
+                panel.className = 'mtl-panel show';
+                tab.className = 'mtl-tab';
+                // 높이는 카드 수에 맞춰 늘어남 (스크롤 없이 한 번에 보이게), 최소는 그린필드 높이
+                Object.assign(panel.style, {
+                    position: 'absolute', width: w + 'px', left: Math.round((leftSpace - w) / 2) + 'px',
+                    top: Math.round(fr.top + window.scrollY) + 'px', height: 'auto', minHeight: Math.round(fr.height) + 'px'
+                });
+                st.mode = 'dock';
+            } else {
+                const open = panel.classList.contains('open');
+                panel.className = 'mtl-panel drawer' + (open ? ' show open' : '');
+                tab.className = 'mtl-tab' + (open ? '' : ' show');
+                Object.assign(panel.style, {
+                    position: 'fixed', width: '290px', left: '0px', top: '90px', height: 'calc(100vh - 110px)', minHeight: ''
+                });
+                st.mode = 'drawer';
+            }
+            if ((st.mode === 'dock' || panel.classList.contains('open')) && !st.loaded) init();
+        }
+
+        window.mtlOpenDrawer = function () {
+            panel.classList.add('open', 'show');
+            tab.classList.remove('show');
+            if (!st.loaded) init();
+            ga('drawer_open');
+        };
+        window.mtlCloseDrawer = function () {
+            panel.classList.remove('open', 'show');
+            if (st.mode === 'drawer') tab.classList.add('show');
+        };
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && panel.classList.contains('open')) mtlCloseDrawer(); });
+
+        // ── 데이터 ──
+        async function loadTeamcolors() {
+            let d = st.tcCache[st.bucket];
+            if (!d) {
+                const res = await fetch('/api/squad_tierlist_teamcolors' + (st.bucket ? '?bucket=' + encodeURIComponent(st.bucket) : ''));
+                d = await res.json();
+                if (!d.success) throw new Error();
+                st.tcCache[st.bucket] = d;
+            }
+            st.order = d.order || [];
+            if (!st.manual && st.pendingSync && st.order.includes(st.pendingSync)) st.tc = st.pendingSync;   // 스쿼드 팀컬러 우선
+            if (!st.order.includes(st.tc)) st.tc = st.order[0] || '';
+            st.logos = d.logos || {};
+            tcList.innerHTML = st.order.map((tc, i) =>
+                `<div class="mtl-dd-item" role="option" data-tc="${esc(tc)}"><span class="rank">${i + 1}</span>${logoHtml(tc)}<span class="name">${esc(tc)}</span></div>`).join('');
+            showTc();
+        }
+
+        async function loadCards() {
+            const key = st.tc + '|' + st.bucket;
+            if (!st.cardCache[key]) {
+                const res = await fetch('/api/squad_tierlist_cards?hover=1&teamcolor=' + encodeURIComponent(st.tc)
+                    + (st.bucket ? '&bucket=' + encodeURIComponent(st.bucket) : ''));
+                const d = await res.json();
+                if (!d.success) throw new Error();
+                st.cardCache[key] = d.data || {};
+                st.hoverCache[key] = d.hover_map || {};   // 카드별 급여·신규 특성
+                st.priceCache[key] = d.price_map || {};   // (카드, 강화)별 가격
+            }
+            return st.cardCache[key];
+        }
+
+        // 카드 티어리스트(팀컬러별)와 같은 기준으로 거르기
+        function pickCards(cards) {
+            const idx = st.order.indexOf(st.tc);
+            const threshold = st.bucket ? 1 : (idx <= 24 ? 2 : 1);
+            const filtered = (cards || []).filter(c => c.count > threshold);
+            const top10 = filtered.slice(0, 10);
+            const limit = (top10.length === 10 && top10[9].count >= 10) ? 20 : 10;
+            return filtered.slice(0, limit);
+        }
+
+        async function render() {
+            if (!st.tc) { list.innerHTML = '<div class="mtl-msg">데이터가 없어요.</div>'; return; }
+            document.getElementById('mtl-more').href = '/tierlist?tab=card&tc=' + encodeURIComponent(st.tc);
+            list.innerHTML = '<div class="mtl-msg">불러오는 중이에요.</div>';
+            let data;
+            try { data = await loadCards(); } catch (e) { list.innerHTML = '<div class="mtl-msg">불러오지 못했어요.</div>'; return; }
+            const avail = POS_LIST.filter(p => pickCards(data[p]).length);
+            if (!avail.includes(st.pos)) st.pos = avail[0] || 'ST';
+            posBox.innerHTML = avail.map(p => `<button type="button" data-pos="${p}" class="${p === st.pos ? 'active' : ''}">${POS_LABEL[p] || p}</button>`).join('');
+            renderList(data);
+        }
+
+        function renderList(data) {
+            const cards = pickCards(data[st.pos]);
+            if (!cards.length) { list.innerHTML = '<div class="mtl-msg">카드가 없어요.</div>'; return; }
+            const hover = st.hoverCache[st.tc + '|' + st.bucket] || {};
+            const prices = st.priceCache[st.tc + '|' + st.bucket] || {};
+            let rank = 1;
+            list.innerHTML = cards.map((c, i) => {
+                if (i > 0 && cards[i - 1].count !== c.count) rank = i + 1;
+                const spid = String(c.spid);
+                const pid = parseInt(spid.slice(-6));
+                const face = `https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${spid}.png`;
+                const face2 = `https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersHigh/p${pid}.png`;
+                const season = SEASON_LOGOS[spid.slice(0, 3)] || '';
+                const nt = (hover[spid] || {}).new_trait;
+                const ntUrl = nt && TRAIT_MAP[nt];   // 카드 티어리스트처럼 우상단에 신규 특성
+                const salary = (hover[spid] || {}).salary;
+                const priceText = formatPrice(prices[`${spid}_${c.buildup}`]);
+                return `<div class="mtl-card" data-spid="${spid}" data-bu="${c.buildup}">
+                    <div class="mtl-face">
+                        <img class="face" src="${face}" loading="lazy" alt="" draggable="false" onerror="this.onerror=null; this.src='${face2}';">
+                        <span class="mtl-rank${rank <= 3 ? ' r' + rank : ''}">${rank}</span>
+                        ${season ? `<img class="mtl-season" src="${season}" loading="lazy" alt="" draggable="false" onerror="this.style.display='none'">` : ''}
+                        <span class="mtl-bu ${buClass(c.buildup)}">${c.buildup}</span>
+                        ${ntUrl ? `<img class="mtl-trait" src="${ntUrl}" alt="" title="${esc(nt)}" draggable="false">` : ''}
+                        ${salary ? `<span class="mtl-salary">${esc(salary)}</span>` : ''}
+                    </div>
+                    <span class="mtl-name">${esc(c.name)}</span>
+                    ${priceText ? `<span class="mtl-price">${priceText} BP</span>` : ''}
+                    <span class="mtl-count">${c.count}회</span>
+                </div>`;
+            }).join('');
+        }
+
+        async function init() {
+            st.loaded = true;
+            try {
+                await loadTeamcolors();
+                await render();
+            } catch (e) {
+                st.loaded = false;
+                list.innerHTML = '<div class="mtl-msg">불러오지 못했어요.</div>';
+            }
+        }
+
+        // ── 카드 클릭 → 그린필드에 넣기 ──
+        const note = document.getElementById('mtl-note');
+        const NOTE_HINT = note.textContent;   // 평소에는 사용법 안내, 알림이 있으면 잠깐 바뀌었다 돌아옴
+        let noteTimer = null;
+        function showNote(msg) {
+            note.textContent = msg;
+            note.classList.add('msg');
+            clearTimeout(noteTimer);
+            noteTimer = setTimeout(() => { note.textContent = NOTE_HINT; note.classList.remove('msg'); }, 3500);
+        }
+
+        let pendingReplace = null;   // { card, targets: [포지션...] } 같은 포지션 칸이 다 찼을 때 교체할 칸 고르기
+        function clearReplace() {
+            document.querySelectorAll('#field-rows .mtl-target').forEach(el => el.classList.remove('mtl-target'));
+            pendingReplace = null;
+        }
+
+        // 지금 그린필드 칸 중 미니 목록 포지션(ST, CB…)에 해당하는 칸 (왼쪽 → 오른쪽 순)
+        function matchingSlots(tlPos) {
+            return [...document.querySelectorAll('#field-rows [data-pos]')]
+                .map(el => el.dataset.pos)
+                .filter(p => SM_TO_TIERLIST[p] === tlPos)
+                .sort((a, b) => ((slotPositions[a] || {}).left || 0) - ((slotPositions[b] || {}).left || 0));
+        }
+
+        async function fetchFullCard(spid, buildup) {
+            const res = await fetch('/api/squad_cards_batch', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ spids: [parseInt(spid)] })
+            });
+            const list = await res.json();
+            const card = (list || [])[0];
+            if (!card) throw new Error();
+            card.boost = buildup;
+            return card;
+        }
+
+        async function putCard(pos, card) {
+            const dup = findDuplicatePos(card.spid, pos);
+            if (dup) { showNote(`${card.player_name}은(는) 이미 ${posLabel(dup)}에 있어요.`); return false; }
+            await fetchCardPrice(card);
+            setCard(pos, card);
+            renderAnyCard(pos);
+            updateSummary();
+            return true;
+        }
+
+        list.addEventListener('click', async e => {
+            const el = e.target.closest('.mtl-card');
+            if (!el || el.classList.contains('busy')) return;
+            clearReplace();
+            const tlPos = st.pos;
+            const label = POS_LABEL[tlPos] || tlPos;
+            const slots = matchingSlots(tlPos);
+            if (!slots.length) { showNote(`현재 포메이션에 ${label} 자리가 없어요.`); return; }
+
+            el.classList.add('busy');
+            let card;
+            try { card = await fetchFullCard(el.dataset.spid, parseInt(el.dataset.bu)); }
+            catch (err) { showNote('카드 정보를 불러오지 못했어요.'); el.classList.remove('busy'); return; }
+            el.classList.remove('busy');
+
+            const empty = slots.find(p => !squadData[p]);
+            if (empty) {
+                if (await putCard(empty, card)) ga('insert', { result: 'empty', position: tlPos });
+                return;
+            }
+            // 그 포지션 칸이 하나뿐이면 바로 교체
+            if (slots.length === 1) {
+                if (await putCard(slots[0], card)) ga('insert', { result: 'replace', position: tlPos });
+                return;
+            }
+            // 같은 포지션 칸이 여러 개이고 다 찼으면: 칸을 반짝이게 하고 교체할 칸을 고르게 함
+            pendingReplace = { card, targets: slots };
+            slots.forEach(p => document.getElementById(`wrapper-${p}`)?.classList.add('mtl-target'));
+            showNote(`${label} 자리가 다 찼어요. 교체할 칸을 눌러주세요.`);
+        });
+
+        // 교체할 칸 고르기: 그린필드 칸을 누르면 원래 동작(검색·드래그) 대신 교체
+        document.addEventListener('pointerdown', async e => {
+            if (!pendingReplace) return;
+            if (e.target.closest('#mtl-panel')) return;
+            const wrapper = e.target.closest('#field-rows [data-pos]');
+            const { card, targets } = pendingReplace;
+            if (wrapper && targets.includes(wrapper.dataset.pos)) {
+                e.preventDefault();
+                e.stopPropagation();
+                const pos = wrapper.dataset.pos;
+                clearReplace();
+                if (await putCard(pos, card)) ga('insert', { result: 'replace', position: SM_TO_TIERLIST[pos] });
+                return;
+            }
+            clearReplace();   // 다른 곳을 누르면 교체 취소
+        }, true);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') clearReplace(); });
+
+        // ── 카드 끌어다 놓기 → 그린필드 칸(또는 교체 칸)에 넣기 ──
+        let drag = null;         // { el, spid, bu, x, y, ghost, cardPromise }
+        let suppressClick = false;
+
+        list.addEventListener('pointerdown', e => {
+            const el = e.target.closest('.mtl-card');
+            if (!el || e.button !== 0 || e.pointerType === 'touch') return;
+            drag = { el, spid: el.dataset.spid, bu: parseInt(el.dataset.bu), x: e.clientX, y: e.clientY, ghost: null, cardPromise: null };
+            document.addEventListener('pointermove', onMtlDragMove);
+            document.addEventListener('pointerup', onMtlDragEnd);
+            document.addEventListener('pointercancel', onMtlDragEnd);
+        });
+
+        function onMtlDragMove(e) {
+            if (!drag) return;
+            if (!drag.ghost) {
+                if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;   // 살짝 움직인 건 클릭으로
+                clearReplace();
+                // 얼굴 + 시즌 + 강화 + 신규 특성까지 카드째로 따라오게 (순위 배지는 빼고)
+                drag.ghost = drag.el.querySelector('.mtl-face').cloneNode(true);
+                drag.ghost.querySelector('.mtl-rank')?.remove();
+                drag.ghost.classList.add('mtl-ghost');
+                document.body.appendChild(drag.ghost);
+                document.body.classList.add('mtl-dragging');
+                drag.cardPromise = fetchFullCard(drag.spid, drag.bu).catch(() => null);   // 놓기 전에 미리 불러오기
+            }
+            e.preventDefault();
+            drag.ghost.style.left = (e.clientX - 27) + 'px';
+            drag.ghost.style.top = (e.clientY - 27) + 'px';
+            const bench = benchSlotAt(e.clientX, e.clientY);
+            highlightBenchSlot(bench);
+            highlightFieldSlot(bench === null ? fieldSlotAt(e.clientX, e.clientY) : null);
+        }
+
+        async function onMtlDragEnd(e) {
+            document.removeEventListener('pointermove', onMtlDragMove);
+            document.removeEventListener('pointerup', onMtlDragEnd);
+            document.removeEventListener('pointercancel', onMtlDragEnd);
+            const d = drag;
+            drag = null;
+            if (!d || !d.ghost) return;   // 끌지 않았으면 클릭으로 처리
+            d.ghost.remove();
+            document.body.classList.remove('mtl-dragging');
+            suppressClick = true;
+            setTimeout(() => { suppressClick = false; }, 0);
+            highlightBenchSlot(null);
+            highlightFieldSlot(null);
+            if (e.type === 'pointercancel') return;
+
+            const bench = benchSlotAt(e.clientX, e.clientY);
+            const pos = bench !== null ? `SUB${bench + 1}` : fieldSlotAt(e.clientX, e.clientY);
+            if (!pos) return;   // 그린필드 밖에 놓으면 취소
+            const card = await d.cardPromise;
+            if (!card) { showNote('카드 정보를 불러오지 못했어요.'); return; }
+            if (await putCard(pos, card)) ga('drag_insert', { position: isBenchPos(pos) ? 'SUB' : SM_TO_TIERLIST[pos] });
+        }
+
+        // 끌고 난 직후의 클릭은 무시 (클릭으로 또 넣지 않게)
+        list.addEventListener('click', e => {
+            if (suppressClick) { e.stopImmediatePropagation(); e.preventDefault(); }
+        }, true);
+
+        // ── 스쿼드 대표 팀컬러 자동 선택 (직접 고른 뒤에는 따라가지 않음) ──
+        st.manual = false;
+        window.mtlSyncTeamcolor = function (name) {
+            if (!name || st.manual || name === st.tc) return;
+            st.pendingSync = name;
+            if (!st.loaded || !st.order.length) return;   // 아직 안 불러왔으면 불러온 뒤 적용
+            if (!st.order.includes(name)) return;
+            st.tc = name; showTc();
+            render();
+        };
+
+        // ── 조작 ──
+        tcBtn.addEventListener('click', () => {
+            tcBox.classList.toggle('open');
+            if (tcBox.classList.contains('open')) tcList.querySelector('.active')?.scrollIntoView({ block: 'nearest' });
+        });
+        tcList.addEventListener('click', e => {
+            const item = e.target.closest('.mtl-dd-item');
+            if (!item) return;
+            tcBox.classList.remove('open');
+            if (item.dataset.tc === st.tc) return;
+            st.tc = item.dataset.tc; store.set('mtlTc', st.tc);
+            st.manual = true;
+            showTc(); render(); ga('teamcolor');
+        });
+        document.addEventListener('click', e => { if (!tcBox.contains(e.target)) tcBox.classList.remove('open'); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') tcBox.classList.remove('open'); });
+        buSel.addEventListener('change', async () => {
+            st.bucket = buSel.value; store.set('mtlBucket', st.bucket);
+            try { await loadTeamcolors(); await render(); } catch (e) { list.innerHTML = '<div class="mtl-msg">불러오지 못했어요.</div>'; }
+            ga('bucket', { bucket: st.bucket || 'all' });
+        });
+        posBox.addEventListener('click', async e => {
+            const b = e.target.closest('button[data-pos]');
+            if (!b || b.dataset.pos === st.pos) return;
+            st.pos = b.dataset.pos; store.set('mtlPos', st.pos);
+            posBox.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+            renderList(await loadCards()); ga('position', { position: st.pos });
+        });
+
+        place();
+        window.addEventListener('resize', place);
+        window.addEventListener('load', place);
+        // 랭커 바가 열리는 등 그린필드 위치가 바뀌면 다시 맞춤
+        if ('ResizeObserver' in window) {
+            const smc = document.querySelector('.sm-container');
+            if (smc) new ResizeObserver(() => { if (st.mode === 'dock') place(); }).observe(smc);
+        }
     })();
 </script>
 {% endblock %}

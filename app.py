@@ -3849,9 +3849,10 @@ def squad_tierlist_cards():
     """스쿼드 메이커용 특정 팀컬러 카드 데이터 반환 (bucket이 있으면 해당 구단가치 구간 기준)"""
     teamcolor = request.args.get('teamcolor', '').strip()
     bucket = request.args.get('bucket', '').strip()
+    with_hover = request.args.get('hover') == '1'   # 미니 티어리스트: 카드별 급여·신규 특성도 함께
     if not teamcolor:
         return jsonify({'success': False}), 400
-    cache_key = ('squad_cards', teamcolor, bucket)
+    cache_key = ('squad_cards', teamcolor, bucket, with_hover)
     cached = tierlist_cache_get(cache_key)
     if cached is not None:
         return jsonify(cached)
@@ -3878,12 +3879,23 @@ def squad_tierlist_cards():
             """, (teamcolor,))
             result = cur.fetchone()
 
+        # 미니 티어리스트용: 화면에 나올 카드(포지션별 상위 20장)의 급여·신규 특성·가격 (카드 티어리스트와 같은 방식)
+        hover_map, price_map = {}, {}
+        if with_hover and result and result['tc_data']:
+            pairs = {(int(c['spid']), c['buildup']) for cards in result['tc_data'].values() for c in cards[:20]}
+            hover_map, price_map = card_hover_price_maps(cur, pairs)
+
         cur.close()
     finally:
         conn.close()
     if not result or not result['tc_data']:
         return jsonify({'success': False}), 404
     data = {'success': True, 'data': result['tc_data']}
+    if with_hover:
+        # 미니 티어리스트는 포지션별 20장까지만 보여주므로 나머지는 보내지 않음 (응답·캐시 크기 줄이기)
+        data['data'] = {pos: cards[:20] for pos, cards in result['tc_data'].items()}
+        data['hover_map'] = hover_map
+        data['price_map'] = price_map
     tierlist_cache_set(cache_key, data)
     return jsonify(data)
 
@@ -4122,12 +4134,15 @@ def squad_maker():
         cur = conn.cursor()
         cur.execute("SELECT trait_name FROM player_traits WHERE trait_type = 'new' ORDER BY trait_name")
         new_traits = [row['trait_name'] for row in cur.fetchall()]
+        # 미니 티어리스트 카드의 시즌 아이콘용 (시즌 번호 → 이미지)
+        cur.execute("SELECT season_id, season_img_url FROM seasons")
+        season_logos = {str(row['season_id']): row['season_img_url'] for row in cur.fetchall()}
         cur.close()
     finally:
         conn.close()
 
     return render_template('squad_maker.html', og_title=og_title, og_description=og_description,
-                           is_logged_in=is_logged_in, new_traits=new_traits)
+                           is_logged_in=is_logged_in, new_traits=new_traits, season_logos=season_logos)
 
 
 @app.route('/api/user_squad/save', methods=['POST'])

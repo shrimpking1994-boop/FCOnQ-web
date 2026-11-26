@@ -1812,6 +1812,26 @@
 
             const bannerTop = 160;
 
+            // 스쿼드 메이커: 왼쪽은 미니 티어리스트 자리라 배너를 오른쪽 위로 (구글 광고는 그 아래)
+            if (location.pathname.startsWith('/squad_maker')) {
+                const main = document.querySelector('.main-content .container') || container;
+                const rightSpace = window.innerWidth - main.getBoundingClientRect().right;
+                window.fcqRailBase = 160;
+                window.fcqRailBanner = null;
+                if (rightSpace >= 250 + 20) {
+                    banner.style.display = 'block';
+                    banner.style.position = 'absolute';
+                    banner.style.top = bannerTop + 'px';
+                    banner.style.left = (window.innerWidth - rightSpace / 2 - banner.offsetWidth / 2) + 'px';
+                    window.fcqRailBase = bannerTop + banner.offsetHeight + 16;
+                    window.fcqRailBanner = banner;   // 구글 광고가 화면에 고정되면 배너도 같이 따라가게
+                } else {
+                    banner.style.display = 'none';
+                }
+                if (banner2) banner2.style.display = 'none';
+                return;
+            }
+
             if (containerLeft > 220) {
                 banner.style.display = 'block';
                 banner.style.position = 'absolute';
@@ -1866,7 +1886,7 @@
                 rail.style.display = 'block';
                 rail.style.width = railSize + 'px';
                 rail.style.left = (window.innerWidth - rightSpace / 2 - railSize / 2) + 'px';
-                rail.style.position = window.innerHeight >= 780 ? 'fixed' : 'absolute';
+                rail.style.position = window.innerHeight >= railBase() + 620 ? 'fixed' : 'absolute';
                 keepAboveFooter();
 
                 if (!pushed) {
@@ -1879,14 +1899,30 @@
             }
 
             // 스크롤해서 푸터가 올라오면 광고도 같이 올라가게 (푸터를 덮지 않도록)
+            // 광고 위쪽 시작 높이 (스쿼드 메이커는 짱대낙 배너 아래)
+            function railBase() {
+                return window.fcqRailBase || 160;
+            }
+
             function keepAboveFooter() {
-                if (rail.style.position !== 'fixed') {
-                    rail.style.top = '160px';
+                const base = railBase();
+                const banner = window.fcqRailBanner;
+                if (rail.style.display === 'none' || rail.style.position !== 'fixed') {
+                    rail.style.top = base + 'px';
+                    if (banner) {
+                        banner.style.position = 'absolute';
+                        banner.style.top = '160px';
+                    }
                     return;
                 }
                 const footer = document.querySelector('.main-footer');
-                const limit = footer ? footer.getBoundingClientRect().top - 620 : 160;
-                rail.style.top = Math.min(160, limit) + 'px';
+                const limit = footer ? footer.getBoundingClientRect().top - 620 : base;
+                const top = Math.min(base, limit);
+                rail.style.top = top + 'px';
+                if (banner) {
+                    banner.style.position = 'fixed';
+                    banner.style.top = (top - (base - 160)) + 'px';
+                }
             }
 
             window.addEventListener('load', placeRail);
