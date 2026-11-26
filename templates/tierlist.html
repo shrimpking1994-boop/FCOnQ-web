@@ -471,6 +471,8 @@
         display: grid;
         /* 칸 폭을 고정해 옆 카드끼리도 줄이 맞게 (100%만 비율 칸이 조금 넓어짐) */
         grid-template-columns: 20px minmax(24px, auto) 1fr;
+        /* 강화가 1~2개인 카드도 3줄 높이를 비워둬서 아래 명수 줄 높이를 맞춤 */
+        grid-template-rows: repeat(3, 14px);
         column-gap: 3px;
         row-gap: 2px;
         align-items: center;
@@ -531,6 +533,7 @@
 
         .pos-tiles .pos-bu {
             grid-template-columns: 15px minmax(19px, auto) 1fr;
+            grid-template-rows: repeat(3, 12px);
             column-gap: 2px;
             padding: 0;
         }
