@@ -2675,7 +2675,7 @@
 
         // GA: 탭 클릭 기록
         if (typeof gtag === 'function') {
-            gtag('event', 'tierlist_tab_view', { 'tab_name': tab, 'method': 'click' });
+            gtag('event', 'tierlist_tab_view', { 'tab_name': gaTabName(tab), 'method': 'click' });
         }
 
         // 각 탭별로 ranking 동기화 및 차트 로드
@@ -3225,6 +3225,11 @@
     try { if (localStorage.getItem('cardView') === 'pos') cardView = 'pos'; } catch (e) { }
     try { const p = localStorage.getItem('cardPos'); if (POSITION_ORDER.includes(p)) cardPos = p; } catch (e) { }
 
+    // GA 탭 이름: 카드 탭은 하위 보기까지 구분
+    function gaTabName(tab) {
+        return tab === 'card' ? (cardView === 'pos' ? 'card-pos' : 'card-team') : tab;
+    }
+
     function switchCardView(view, silent) {
         cardView = view;
         document.querySelectorAll('#cardViewTabs .cv-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
@@ -3233,7 +3238,8 @@
         try { localStorage.setItem('cardView', view); } catch (e) { }
         const shownWrap = document.getElementById(view === 'pos' ? 'cardPosWrap' : 'cardTierlistWrap');
         if (shownWrap.dataset.dateText) document.getElementById('cardInfoDate').textContent = shownWrap.dataset.dateText;
-        if (!silent && typeof gtag === 'function') gtag('event', 'tierlist_card_view', { view: view });
+        // GA: 카드 탭 안에서 팀컬러별/포지션별을 바꿔도 탭 조회로 기록 (card-team / card-pos)
+        if (!silent && typeof gtag === 'function') gtag('event', 'tierlist_tab_view', { tab_name: gaTabName('card'), method: 'sub_click' });
         return view === 'pos' ? loadCardPositions() : loadCardTierlist();
     }
 
@@ -4028,7 +4034,8 @@
 
         // GA: 첫 진입 탭 기록
         if (typeof gtag === 'function') {
-            gtag('event', 'tierlist_tab_view', { 'tab_name': lastTab, 'method': 'initial' });
+            const startView = (!tcParam && (urlParams.get('view') === 'pos' || (!tabParam && cardView === 'pos'))) ? 'card-pos' : 'card-team';
+            gtag('event', 'tierlist_tab_view', { 'tab_name': lastTab === 'card' ? startView : lastTab, 'method': 'initial' });
         }
 
         if (lastTab === 'teamcolor') {
