@@ -5621,6 +5621,9 @@
         });
         tcCornerClub = top;
         renderTcCorner();
+        // 11명 전원이 같은 소속 팀컬러면 미니 티어리스트 자동 펼치기
+        const fieldCnt = Object.values(squadData).filter(Boolean).length;
+        if (window.mtlAutoExpand && fieldCnt >= 11 && (tcList || []).some(tc => tc.type !== 'season' && tc.cnt >= 11)) mtlAutoExpand();
         if (typeof scheduleSquadRequests === 'function') scheduleSquadRequests();
     }
 
@@ -7036,14 +7039,24 @@
         // 처음엔 접힌 상태로 시작 (펼친 상태는 기억하지 않음)
         st.collapsed = true;
         const fold = document.getElementById('mtl-fold');
-        function setFold(c) {
+        function setFold(c, action) {
             st.collapsed = c;
             fold.textContent = c ? '펼치기 ▼' : '접기 ▲';
             fold.setAttribute('aria-expanded', String(!c));
             place();
-            ga(c ? 'collapse' : 'expand');
+            ga(action || (c ? 'collapse' : 'expand'));
         }
-        fold.addEventListener('click', e => { e.stopPropagation(); setFold(!st.collapsed); });
+        fold.addEventListener('click', e => {
+            e.stopPropagation();
+            if (!st.collapsed) st.userFolded = true;   // 직접 접으면 이 페이지에선 다시 자동으로 열지 않음
+            setFold(!st.collapsed);
+        });
+        // 11명 전원이 같은 소속 팀컬러가 되면 한 번만 자동으로 펼침 (자동으로 접지는 않음, 서랍 모드는 제외)
+        window.mtlAutoExpand = function () {
+            if (st.autoOpened || st.userFolded || st.mode !== 'dock' || !st.collapsed) return;
+            st.autoOpened = true;
+            setFold(false, 'auto_expand');
+        };
         panel.querySelector('.mtl-head').addEventListener('click', () => {
             if (st.mode === 'dock' && st.collapsed) setFold(false);   // 접혔을 땐 제목 줄 어디를 눌러도 펼침
         });
