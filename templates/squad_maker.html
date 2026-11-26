@@ -3037,11 +3037,39 @@
         white-space: nowrap;
     }
 
-    .mtl-more {
-        font-size: 0.72rem;
+    /* 접기/펼치기 (붙여둔 상태에서만, 처음엔 접힘) */
+    .mtl-fold {
+        display: none;
+        border: none;
+        background: none;
         color: var(--text-secondary);
-        text-decoration: none;
+        font-size: 0.74rem;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 3px 6px;
+        border-radius: 6px;
         white-space: nowrap;
+    }
+
+    .mtl-fold:hover {
+        background: var(--bg-main);
+    }
+
+    .mtl-panel.dock .mtl-fold {
+        display: block;
+    }
+
+    .mtl-panel.collapsed > :not(.mtl-head) {
+        display: none;
+    }
+
+    .mtl-panel.collapsed .mtl-head {
+        padding-bottom: 12px;
+        cursor: pointer;
+    }
+
+    .mtl-panel.collapsed .mtl-head:hover {
+        background: var(--bg-main);
     }
 
     .mtl-close {
@@ -3432,7 +3460,7 @@
     <aside class="mtl-panel" id="mtl-panel" aria-label="카드 티어리스트">
         <div class="mtl-head">
             <span class="mtl-title">📊 카드 티어리스트</span>
-            <a class="mtl-more" id="mtl-more" href="/tierlist?tab=card" target="_blank" rel="noopener">전체 보기 ↗</a>
+            <button type="button" class="mtl-fold" id="mtl-fold" aria-expanded="false">펼치기 ▼</button>
             <button type="button" class="mtl-close" onclick="mtlCloseDrawer()" aria-label="닫기">✕</button>
         </div>
         <div class="mtl-selects">
@@ -6985,12 +7013,12 @@
             const leftSpace = fr.left;
             if (leftSpace >= DOCK_MIN) {
                 const w = Math.min(300, leftSpace - 32);
-                panel.className = 'mtl-panel show';
+                panel.className = 'mtl-panel show dock' + (st.collapsed ? ' collapsed' : '');
                 tab.className = 'mtl-tab';
-                // 높이는 카드 수에 맞춰 늘어남 (스크롤 없이 한 번에 보이게), 최소는 그린필드 높이
+                // 높이는 카드 수에 맞춰 늘어남 (스크롤 없이 한 번에 보이게), 최소는 그린필드 높이 (접혔으면 제목 줄만)
                 Object.assign(panel.style, {
                     position: 'absolute', width: w + 'px', left: Math.round((leftSpace - w) / 2) + 'px',
-                    top: Math.round(fr.top + window.scrollY) + 'px', height: 'auto', minHeight: Math.round(fr.height) + 'px'
+                    top: Math.round(fr.top + window.scrollY) + 'px', height: 'auto', minHeight: st.collapsed ? '' : Math.round(fr.height) + 'px'
                 });
                 st.mode = 'dock';
             } else {
@@ -7002,8 +7030,23 @@
                 });
                 st.mode = 'drawer';
             }
-            if ((st.mode === 'dock' || panel.classList.contains('open')) && !st.loaded) init();
+            if (((st.mode === 'dock' && !st.collapsed) || panel.classList.contains('open')) && !st.loaded) init();
         }
+
+        // 처음엔 접힌 상태로 시작 (펼친 상태는 기억하지 않음)
+        st.collapsed = true;
+        const fold = document.getElementById('mtl-fold');
+        function setFold(c) {
+            st.collapsed = c;
+            fold.textContent = c ? '펼치기 ▼' : '접기 ▲';
+            fold.setAttribute('aria-expanded', String(!c));
+            place();
+            ga(c ? 'collapse' : 'expand');
+        }
+        fold.addEventListener('click', e => { e.stopPropagation(); setFold(!st.collapsed); });
+        panel.querySelector('.mtl-head').addEventListener('click', () => {
+            if (st.mode === 'dock' && st.collapsed) setFold(false);   // 접혔을 땐 제목 줄 어디를 눌러도 펼침
+        });
 
         window.mtlOpenDrawer = function () {
             panel.classList.add('open', 'show');
@@ -7061,7 +7104,6 @@
 
         async function render() {
             if (!st.tc) { list.innerHTML = '<div class="mtl-msg">데이터가 없어요.</div>'; return; }
-            document.getElementById('mtl-more').href = '/tierlist?tab=card&tc=' + encodeURIComponent(st.tc);
             list.innerHTML = '<div class="mtl-msg">불러오는 중이에요.</div>';
             let data;
             try { data = await loadCards(); } catch (e) { list.innerHTML = '<div class="mtl-msg">불러오지 못했어요.</div>'; return; }
