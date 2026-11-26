@@ -231,6 +231,13 @@
         opacity: 0.85;
     }
 
+    /* 11명을 다 채우면 글쓰기 강조 (커뮤니티 글 유도) */
+    #write-btn.sm-write-hl {
+        background: rgba(88, 101, 184, 0.22);
+        border-color: var(--primary-color);
+        font-weight: 700;
+    }
+
     .sm-manage-share {
         border-color: var(--primary-color);
         background: rgba(138, 43, 226, 0.15);
@@ -3471,13 +3478,13 @@
             </div>
             <select id="mtl-bucket" aria-label="랭커 구단가치">
                 <option value="">구단가치(전체)</option>
-                <option value="20">구단가치(1~20억)</option>
-                <option value="50">구단가치(20~50억)</option>
-                <option value="100">구단가치(50~100억)</option>
-                <option value="150">구단가치(100~150억)</option>
-                <option value="300">구단가치(150~300억)</option>
-                <option value="500">구단가치(300~500억)</option>
-                <option value="500p">구단가치(500억+)</option>
+                <option value="20">1~20억</option>
+                <option value="50">20~50억</option>
+                <option value="100">50~100억</option>
+                <option value="150">100~150억</option>
+                <option value="300">150~300억</option>
+                <option value="500">300~500억</option>
+                <option value="500p">500억+</option>
             </select>
         </div>
         <div class="mtl-pos" id="mtl-pos"></div>
@@ -5382,7 +5389,7 @@
         const label = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '⏳ 준비 중...';
-        if (typeof gtag === 'function') gtag('event', 'squad_write_click');
+        if (typeof gtag === 'function') gtag('event', 'squad_write_click', { highlighted: btn.classList.contains('sm-write-hl') ? 'yes' : 'no' });
         let image = '';
         try {
             image = await blobToPostImage(await makeCaptureBlob());
@@ -5458,6 +5465,8 @@
         }, 0);
         const priceEl = document.getElementById('total-price');
         priceEl.textContent = totalPrice > 0 ? formatPrice(totalPrice) : '—';
+        if (window.mtlSyncBucket && players.length >= 11) mtlSyncBucket(totalPrice);
+        document.getElementById('write-btn')?.classList.toggle('sm-write-hl', players.length >= 11);   // 스쿼드 완성 → 글쓰기 강조   // 미니 티어리스트 구단가치 맞추기
 
         // 각 슬롯 가격 비중 업데이트
         const showRatio = true;
@@ -6974,7 +6983,7 @@
 
         const SEASON_LOGOS = {{ season_logos | tojson }};
         const POS_LIST = ['ST', 'CAM', 'LWING', 'RWING', 'CM', 'LRDM', 'CDM', 'CB', 'LB', 'RB', 'GK'];
-        const POS_LABEL = { LWING: 'LW', RWING: 'RW', LRDM: 'L/RDM' };
+        const POS_LABEL = { LWING: 'L-WING', RWING: 'R-WING', LRDM: 'L/RDM' };
         const store = {
             get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
             set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
@@ -7057,6 +7066,10 @@
             st.autoOpened = true;
             setFold(false, 'auto_expand');
         };
+        // 뒤로/앞으로 가기로 돌아온 경우(브라우저가 이전 상태를 그대로 복원)도 새 방문처럼 초기화
+        window.addEventListener('pageshow', e => {
+            if (e.persisted) { st.autoOpened = false; st.userFolded = false; }
+        });
         panel.querySelector('.mtl-head').addEventListener('click', () => {
             if (st.mode === 'dock' && st.collapsed) setFold(false);   // 접혔을 땐 제목 줄 어디를 눌러도 펼침
         });
@@ -7117,9 +7130,11 @@
 
         async function render() {
             if (!st.tc) { list.innerHTML = '<div class="mtl-msg">데이터가 없어요.</div>'; return; }
+            const tok = st.renderTok = (st.renderTok || 0) + 1;
             list.innerHTML = '<div class="mtl-msg">불러오는 중이에요.</div>';
             let data;
-            try { data = await loadCards(); } catch (e) { list.innerHTML = '<div class="mtl-msg">불러오지 못했어요.</div>'; return; }
+            try { data = await loadCards(); } catch (e) { if (tok === st.renderTok) list.innerHTML = '<div class="mtl-msg">불러오지 못했어요.</div>'; return; }
+            if (tok !== st.renderTok) return;
             const avail = POS_LIST.filter(p => pickCards(data[p]).length);
             if (!avail.includes(st.pos)) st.pos = avail[0] || 'ST';
             posBox.innerHTML = avail.map(p => `<button type="button" data-pos="${p}" class="${p === st.pos ? 'active' : ''}">${POS_LABEL[p] || p}</button>`).join('');
@@ -7339,6 +7354,19 @@
             render();
         };
 
+        // ── 스쿼드 구단가치 구간 자동 선택 (11명 다 채웠을 때, 직접 고른 뒤에는 따라가지 않음) ──
+        window.mtlSyncBucket = function (v) {
+            if (!v || st.buManual) return;
+            const key = v < 20e8 ? '20' : v < 50e8 ? '50' : v < 100e8 ? '100' : v < 150e8 ? '150'
+                : v < 300e8 ? '300' : v < 500e8 ? '500' : '500p';
+            if (key === st.bucket) return;
+            st.bucket = key; buSel.value = key;
+            if (!st.loaded) return;   // 아직 안 불러왔으면 펼칠 때 이 구간으로 불러옴
+            (async () => {
+                try { await loadTeamcolors(); await render(); } catch (e) { list.innerHTML = '<div class="mtl-msg">불러오지 못했어요.</div>'; }
+            })();
+        };
+
         // ── 조작 ──
         tcBtn.addEventListener('click', () => {
             tcBox.classList.toggle('open');
@@ -7357,6 +7385,7 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape') tcBox.classList.remove('open'); });
         buSel.addEventListener('change', async () => {
             st.bucket = buSel.value; store.set('mtlBucket', st.bucket);
+            st.buManual = true;
             try { await loadTeamcolors(); await render(); } catch (e) { list.innerHTML = '<div class="mtl-msg">불러오지 못했어요.</div>'; }
             ga('bucket', { bucket: st.bucket || 'all' });
         });
@@ -7367,6 +7396,12 @@
             posBox.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
             renderList(await loadCards()); ga('position', { position: st.pos });
         });
+
+        // 이 코드보다 먼저 불러온 스쿼드(저장·공유 링크)도 구단가치 맞추기
+        try {
+            const ps = Object.values(squadData).filter(Boolean);
+            if (ps.length >= 11) mtlSyncBucket(ps.reduce((sum, p) => sum + (parseInt(p['bp' + (p.boost || 8)]) || 0), 0));
+        } catch (e) { }
 
         place();
         window.addEventListener('resize', place);
