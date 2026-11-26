@@ -3038,15 +3038,19 @@
     }
 
     .mtl-title {
+        min-width: 0;
         font-size: 0.9rem;
         font-weight: 800;
         color: var(--text-primary);
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* 접기/펼치기 (붙여둔 상태에서만, 처음엔 접힘) */
     .mtl-fold {
         display: none;
+        flex-shrink: 0;
         border: none;
         background: none;
         color: var(--text-secondary);
@@ -3466,7 +3470,7 @@
     <button type="button" class="mtl-tab" id="mtl-tab" onclick="mtlOpenDrawer()">📊 티어리스트</button>
     <aside class="mtl-panel" id="mtl-panel" aria-label="카드 티어리스트">
         <div class="mtl-head">
-            <span class="mtl-title">📊 카드 티어리스트</span>
+            <span class="mtl-title">📊 티어리스트 추천픽</span>
             <button type="button" class="mtl-fold" id="mtl-fold" aria-expanded="false">펼치기 ▼</button>
             <button type="button" class="mtl-close" onclick="mtlCloseDrawer()" aria-label="닫기">✕</button>
         </div>
