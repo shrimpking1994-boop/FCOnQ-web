@@ -2702,7 +2702,7 @@
         }
 
         if (tab === 'card') {
-            switchCardView(cardView, true);
+            switchCardView(cardView, false, 'tab_click');
         }
 
         if (tab === 'formation') {
@@ -3225,7 +3225,8 @@
     try { if (localStorage.getItem('cardView') === 'pos') cardView = 'pos'; } catch (e) { }
     try { const p = localStorage.getItem('cardPos'); if (POSITION_ORDER.includes(p)) cardPos = p; } catch (e) { }
 
-    function switchCardView(view, silent) {
+    // method: 'click'(하위 버튼) / 'tab_click'(카드 탭 진입) / 'initial'(페이지 첫 진입)
+    function switchCardView(view, silent, method) {
         cardView = view;
         document.querySelectorAll('#cardViewTabs .cv-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
         document.getElementById('cardTierlistWrap').style.display = view === 'pos' ? 'none' : '';
@@ -3233,7 +3234,7 @@
         try { localStorage.setItem('cardView', view); } catch (e) { }
         const shownWrap = document.getElementById(view === 'pos' ? 'cardPosWrap' : 'cardTierlistWrap');
         if (shownWrap.dataset.dateText) document.getElementById('cardInfoDate').textContent = shownWrap.dataset.dateText;
-        if (!silent && typeof gtag === 'function') gtag('event', 'tierlist_card_view', { view: view });
+        if (!silent && typeof gtag === 'function') gtag('event', 'tierlist_card_view', { view: view, method: method || 'click' });
         return view === 'pos' ? loadCardPositions() : loadCardTierlist();
     }
 
@@ -4060,6 +4061,11 @@
                     });
                 }
             });
+        }
+
+        // GA: 카드 탭으로 들어왔을 때 처음 열린 보기(팀컬러별/포지션별)
+        if (lastTab === 'card' && typeof gtag === 'function') {
+            gtag('event', 'tierlist_card_view', { view: cardView, method: 'initial' });
         }
     });
 </script>
