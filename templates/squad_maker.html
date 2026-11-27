@@ -648,6 +648,22 @@
         background: rgba(255, 255, 255, 0.16);
     }
 
+    /* 빈 슬롯: 카드 모양(위아래 대칭 육각형) 점선 */
+    .sm-slot-card:not(.filled) {
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 80' preserveAspectRatio='none'%3E%3Cpolygon points='32,1 63,9 63,71 32,79 1,71 1,9' fill='rgba(255,255,255,0.08)' stroke='rgba(255,255,255,0.35)' stroke-width='1.5' stroke-dasharray='4 3' stroke-linejoin='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+        border: none;
+        border-radius: 0;
+    }
+
+    .sm-slot-card:not(.filled):hover {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 80' preserveAspectRatio='none'%3E%3Cpolygon points='32,1 63,9 63,71 32,79 1,71 1,9' fill='rgba(255,255,255,0.16)' stroke='rgba(255,255,255,0.45)' stroke-width='1.5' stroke-dasharray='4 3' stroke-linejoin='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+    }
+
+    #field-rows [data-pos].drop-hover .sm-slot-card:not(.filled) {
+        outline: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 80' preserveAspectRatio='none'%3E%3Cpolygon points='32,1 63,9 63,71 32,79 1,71 1,9' fill='rgba(0,220,100,0.15)' stroke='rgba(0,255,100,0.9)' stroke-width='1.5' stroke-dasharray='4 3' stroke-linejoin='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+    }
+
     .sm-slot-card .plus {
         font-size: 22px;
         color: rgba(255, 255, 255, 0.4);
@@ -4529,11 +4545,12 @@
         const el = document.getElementById(`slot-${pos}`);
         if (!el) return;
         el.innerHTML = `<span class="plus">+</span><div data-ghost-pos style="font-size:0.6rem;color:${posColor(pos)};opacity:0.75;margin-top:3px;font-weight:700;">${pos}</div>`;
-        el.style.background = 'rgba(255,255,255,0.08)';
-        el.style.border = '1.5px dashed rgba(255,255,255,0.3)';
+        el.style.background = '';   // 빈 슬롯 모양은 CSS(.sm-slot-card:not(.filled))가 그림
+        el.style.border = '';
         el.style.overflow = 'hidden';
-        el.style.width = '64px';
-        el.style.height = '80px';
+        el.style.width = '';
+        el.style.height = '';
+        el.classList.remove('filled');
     }
     // ─────────────────────────────────────────────────────────────
 
@@ -4643,11 +4660,12 @@
                 const slotEl = document.getElementById(`slot-${pos}`);
                 if (slotEl) {
                     slotEl.innerHTML = `<span class="plus">+</span><div style="font-size:0.6rem;color:${posColor(pos)};opacity:0.75;margin-top:3px;font-weight:700;">${pos}</div>`;
-                    slotEl.style.background = 'rgba(255,255,255,0.08)';
-                    slotEl.style.border = '1.5px dashed rgba(255,255,255,0.3)';
+                    slotEl.style.background = '';   // 빈 슬롯 모양은 CSS(.sm-slot-card:not(.filled))가 그림
+                    slotEl.style.border = '';
                     slotEl.style.overflow = 'hidden';
-                    slotEl.style.width = '64px';
-                    slotEl.style.height = '80px';
+                    slotEl.style.width = '';
+                    slotEl.style.height = '';
+                    slotEl.classList.remove('filled');
                 }
             }
             closeEditModal();
@@ -5126,6 +5144,7 @@
 
         const isNewCard = !slotEl.querySelector('[data-ghost-ovr]') || slotEl.dataset.spid !== String(card.spid);
         slotEl.dataset.spid = card.spid;
+        slotEl.classList.add('filled');
         slotEl.style.background = 'transparent';
         slotEl.style.border = 'none';
         slotEl.style.overflow = 'visible';
